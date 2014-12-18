@@ -1,0 +1,75 @@
+<html>
+  <head><title>FlowT</title>
+    <style type="text/css">
+      #surface { border: solid black 1px;
+                 width: 800px;
+                 height: 600px;
+                 cursor: none; 
+               }
+      #help { 
+              position: fixed;
+              top: 0px;
+              left: 810px;
+            }
+    </style>
+    <script src="../mxFrame/mxFrame.js"></script>
+    <script>
+      var gamesources = ['world.js',
+                         'region.js',
+                         'wang.js',
+                         'ambientoclusion.js',
+                         'float.js' ];
+
+      function setrange(name)
+      {
+        var r = document.getElementById(name);
+        var v = document.getElementById(name + "val");
+        v.innerHTML = r.value;
+        Game.setparam(name, r.value);
+      }
+      function showhelp(show)
+      {
+        var help = document.getElementById("help");
+        if (show)
+          help.style.visibility = "visible";
+        else
+          help.style.visibility = "hidden";
+      }
+    </script>
+  </head>
+  <body style="margin:0;padding:0;" onload="launchApp(gamesources, '../mxFrame', WITH_MXFRAME|WITH_OCULUS|WITH_NOISE|WITH_TOUCH);">
+    <div><canvas id='surface'></div>
+    <div style="top:5px; left:5px; position:fixed;"><canvas id='output' width="400" height="50"></div>
+    <div id='help'>
+    Warning: This demo requires a good graphics card<br />
+    Warning: The first time you right click, you may get a permissions popup<br />
+    <br />
+    Mouse controls:<br>
+    Left click - create water drops<br />
+    Right click - camera spin<br />
+    Mouse Wheel - camera zoom<br />
+    <br />
+    Keyboard Controls:<br />
+    Arrow keys - ball movement<bR />
+    Page up/down  - camera zoom<br />
+    f - Fullscreen<br />
+    o - oculus mode (requires oculus bridge)<br />
+    <br />
+    Debug settings:<br />
+    <br />
+    Diffuse: <input type="checkbox" checked onchange="Game.setparam('diffuse', this.checked);"/><br />
+    Ambient Occlusion: <input type="checkbox" checked onchange="Game.setparam('ao', this.checked);"/><br />
+    Shadows: <input type="checkbox" checked onchange="Game.setparam('shadow', this.checked);"/><br />
+    Water Flows: <input type="checkbox" checked onchange="Game.setparam('flow', this.checked);"/><br />
+          <br />
+    Sun: Rise <input id="sun" type="range" required min="0" max="360" value="0" oninput="setrange('sun');"/> Set : <span id="sunval">0</span><br /> 
+    Water Drop: <input id="water" type="range" required min="1" max="800" value="25" oninput="setrange('water');"/> : <span id="waterval">25</span><br /> 
+    <br />
+    Show Wang Tile Pattern: <input type="checkbox" onchange="Game.setparam('wang', this.checked);"/><br />
+    <br />
+    Ray Count: 1 <input id="count" type="range" min="1" max="50" value="30" onchange="setrange('count');"/> 50 : <span id="countval">30</span><br /> 
+    Ray Step: 1 <input id="step" type="range" min="1" max="20" value="10" onchange="setrange('step');"/> 20 : <span id="stepval">10</span><br /> 
+    Ray Step Size: 0.1 <input id="size" type="range" min="0.1" max="1" step="0.1" value="1.0" onchange="setrange('size');"/> 1.0 : <span id="sizeval">1.0</span><br /> 
+    </div>
+  </body>
+</html>

@@ -1,0 +1,136 @@
+<html>
+<head>
+<title>Madoxlabs Pipeline</title>
+  <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
+  <script>
+    var animImage;
+    var staticImage;
+    var importer;
+    function init()
+    {
+      window.onresize();
+      animImage = new Image();
+      animImage.src = "assets/animatedlogo.gif";
+      staticImage = new Image();
+      staticImage.src = "assets/logo.jpg";
+      importer = new Importer();
+    }
+
+    var tab = 0;
+    function changeTabs(src)
+    {
+      if (src != tab) tab = src;
+      else return;
+
+      document.getElementById("mover").className = ["top", "middle", "bottom"][tab];
+      document.getElementById("btnInfo").className = "mxButton " + ["active", "inactive", "inactive"][tab];
+      document.getElementById("btnImport").className = "mxButton " + ["inactive", "active", "inactive"][tab];
+      document.getElementById("btnView").className = "mxButton " + ["inactive", "inactive", "active"][tab];
+      document.getElementById("info").className = "appwindow " + ["", "hidden", "hidden"][tab];
+      document.getElementById("importer").className = "appwindow " + ["hidden", "", "hidden"][tab];
+      document.getElementById("viewer").className = "appwindow " + ["hidden", "hidden", ""][tab];
+    }
+
+    window.onresize = function()
+    {
+      document.getElementById("info").style.width = window.innerWidth - 200;
+      document.getElementById("importer").style.width = window.innerWidth - 200;
+      document.getElementById("viewer").style.width = window.innerWidth - 200;
+
+      document.getElementById("impLog").style.width = (window.innerWidth - 250) + "px";
+      document.getElementById("impLog").style.height = (window.innerHeight - 250) + "px";
+      document.getElementById("impDatalog").style.width = (window.innerWidth - 250) + "px";
+      document.getElementById("impDatalog").style.height = (window.innerHeight - 250) + "px";
+      document.getElementById("impImage").style.width = (window.innerWidth - 250) + "px";
+      document.getElementById("impImage").style.height = (window.innerHeight - 250) + "px";
+    }
+  </script>
+  <script src="js/tga.js"></script>
+  <script src="js/importer.js"></script>
+  <script src="../mxFrame/mxFrame.js"></script>
+</head>
+<body onload="init(); launchApp(['js/viewer.js'], '../mxFrame', WITH_MXFRAME|WITH_OCULUS);">
+  <div id='header'><img onmouseover="this.src=animImage.src;" onmouseout="this.src=staticImage.src;" src="assets/logo.jpg"></div>
+  <div id="btnInfo" class="mxButton active" onclick="changeTabs(0);">Information</div>
+  <div id="btnImport" class="mxButton inactive" onclick="changeTabs(1);">Importer</div>
+  <div id="btnView" class="mxButton inactive" onclick="changeTabs(2);">Viewer</div>
+  <br />
+  <div id="models" class="importControl sidebar"><center><p>Recent Models</p></center><div id="listModels"></div></div>
+  <br />
+  <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
+  <div id="edge"></div>
+  <div class="top" id="mover"></div>
+
+  <div id="info" class="appwindow">
+    <div class="mxTitle">Pipeline Information</div>
+    <p>MadoxLabs Pipeline is a tool for importing FBX files into the MadoxLabs WebGL Framework.</p>
+    <p>The Importer will read FBX files and turn them into a data blob that gets saved as a PNG image. Accepted FBX formats are <b>7.3 ASCII (2013 version)</b> and <b>7.4 Binary</b> formats. Others may work if they are not too different.</p>
+    <p>The Viewer will show the imported model in a WebGL window, to make sure it imported ok. Any textures that are needed for rendering need to be uploaded to the tool.</p>
+  </div>
+
+  <div id="importer" class="appwindow hidden">
+    <div class="mxTitle">Pipeline Importer</div>
+    <table><tr>
+      <td><div id="impBtnProcessing" class="mxTab active" onclick="importer.changePage(0);">Processing</div></td>
+      <td><div id="impBtnData" class="mxTab inactive" onclick="importer.changePage(1);">File Data</div></td>
+      <td><div id="impBtnResult" class="mxTab inactive" onclick="importer.changePage(2);">Result</div></td></tr>
+    </table>
+    <div id="impProcessing" class="importapp">
+      <p>FBX file importer.</P>
+      <P>Select what object components to process, then upload an FBX file for processing.</p>
+      <p>The status of the import will appear below. The resulting data image will appear in the Result tab. The FBX file data will appear in the File Data tab.</p>
+
+      <div class="importControl">
+      <input type="checkbox" id="impUVs" checked />UVs
+      <input type="checkbox" id="impNormals" checked />Normals
+      <input type="checkbox" id="impTangets"  />Tangents
+      <input type="checkbox" id="impBinormals"  />Binormals
+      <input type="checkbox" id="impAnimations"  />Animations
+        <br />
+      <div id="drop_zone">Drop file here</div>
+      <pre><div class="log" id="impLog"></div></pre>
+      </div>
+    </div>
+    <div id="impData" class="importapp hidden">
+      <p>FBX File Data.</P>
+      <p>The contents of the most recently imported file will appear here.</p>
+      <div class="importControl">
+      <textarea width=100% class="log" id="impDatalog"></textarea>
+      </div>
+    </div>
+    <div id="impResult" class="importapp hidden">
+      <p>FBX Import Result.</p>
+      <div class="importControl">
+      <div id="impImage"><image id='save'></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="viewer" class="appwindow hidden">
+    <div class="mxTitle">Pipeline Viewer</div>
+    <div><canvas id='surface'></div>
+    <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
+    <div style="top:55px; left:5px;  position:absolute;" class="overlay">
+      <p>
+    <input type=checkbox id="model" checked>Show Model</input><br />
+    <input type=checkbox id="normals">Show Normals</input><br />
+    <input type=checkbox id="explode">Show Exploded</input><br />
+    <input type=checkbox id="wire">Show Wireframe</input><br />
+    <input type=checkbox id="bb">Show Bounding Boxes</input><br />
+    <input type=checkbox id="uvs">Visualize UVs</input><br />
+    <input type=checkbox id="xseams">Check for U seams</input><br />
+    <input type=checkbox id="yseams">Check for V seams</input><br />
+      </p>
+     </div>
+    <div class="importControl">
+      <div id="scaleinfo"></div>
+    <p>Up/Down/Left/Right - rotate model</p>
+    <p>Shift Up/Down - move camera</p>
+    <p>Shift Left/Right - rotate camera</p>
+    <p>Page Up/Down - zoom camera</p>
+      </div>
+
+  </div>
+</body>
+</html>

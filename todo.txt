@@ -1,0 +1,210 @@
+cube textures
+more mesh types as we encounter them
+precomputed alpha
+check on w buffer to replace z
+
+
+
+
+viewer
+ lighting
+ mouse moves
+mesh 
+ animations
+ bump maps
+ tangents
+ binormals
+
+
+
+Lighting
+ 
+ Lighting is computed as: ambient + diffuse + specular + emissive
+ Ambient:  Ma * ( Ga + sum(At * Sp * La) )
+ Diffuse:  sum (Md * Ld * (normal'.Ldir) * At * Sp)
+ Specular: Ms * sum (Ls * (normal.H) ^ S * At * Sp)
+ Emissive: this is just the materal emissive 
+
+Light storage in uniforms
+ mat4[]  light details
+ float[] light type
+
+ Each light:  [ ambient color ] [attenuation 0]    La   A0
+              [ diffuse color ] [attenuation 1]    Ld   A1
+              [ specular color ] [attenuation 2]   Ls   A2
+              [ position ] [range]                 Lp   Lr
+ Computed values: Distance: | position - Lp |      D
+                  Attentuation :  1 / (A0 + A1 D + A2 D D)   At 
+                  Spotlight factos:  1 ???                   Sp
+                  Light direction: Lp - position             Ldir
+                  Half vector: norm(norm( Cp - position ) + Ldir)  H
+ light types: 0 off 
+              1 point
+              2 direction
+              3 spot 
+ range of 0 is infinite range
+point lights - have position and range.  
+directional lights - position is actually direction, has range
+spot lights - has position and range, what else?
+
+how many lights is enough? 8? 8 of each? 
+ - if off each, we dont need type float[]
+ - game keeps a list of all lights, and set the 8 closest lights?
+ - 8 closest light that are in range?
+
+Each part has its own material data:
+  ambient color        Ma
+  diffuse color        Md
+  specular color       Ms
+  emmisive color       E
+  shininiess exponant  S
+
+Global settings:
+  global ambient      Ga
+  camera position     Cp
+
+What is the spotlight factor
+
+
+
+
+
+
+fbx importer
+ - options for tangent binormal
+
+
+
+
+instancing
+ - instance data is a second buffer that hooks up to attributes the same way
+ - have bindInstanceData(data, number of instances) call
+ - if instance data, call the angle functions
+ - can we keep two attrib sets seperate?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plan for recreating shader controlled DX states:
+
+Raster states
+  fill mode               Not available
+  cull mode               cullFace(), glEnable()       cull CW|CCW|NONE
+  frontCCW                fromtFace()                  frontCCW  CW|CCW
+  depth bias              ploygonOffset(), glEnable()  depthBias x y
+  depth bias clamp		  Not available
+  slope scale depth bias  Not available
+  depth clip  bool		  depthRange()                 depthClip n f
+  scissor  bool           glEnable()                   scissor on|off
+  multisample  bool       Not available
+  antialiased line  bool  Not available
+
+Blend states
+  blend  bool       glEnable()                 blend on|off
+  src blend         blendFunc()                blendsrc type
+  dest blend        blendFunc()                blenddest type
+  blend op          blendEquation()            blendop op
+  src blend alpha   blendFuncSeparate()        blendsrca type
+  dest blend alpha  blendFuncSeparate()        blenddesta type
+  blend op alpha    blendEquationSeparate()    blendopa type
+  write mask
+  
+  blend factors     blendColor()               blendfactors r g b a
+  mask              colorMask()                blendmask m
+  
+Depth states
+  depth bool          glEnable()                depth on|off
+  write mask          depthMask()  on or off    depthwrite on|off
+  func                depthFunc()               depthfunc type
+  stencil bool        glEnable()                stencil on|off
+  stencil read mask   stencilFunc()
+  stencil write mask  stencilMask()
+  front stencil op    stencilOp()
+  back stencil op     stencilOp()
+  
+sample alpha to coverage, sample coverage   glEnable()
+
+
+
+What are the webgl versions of these? Are they settable? Make a mapping thingy
+ register states, save, load, use states
+ 
+
+function resetToInitialState(ctx) 
+{
+  var numAttribs = ctx.getParameter(ctx.MAX_VERTEX_ATTRIBS);
+  var tmp = ctx.createBuffer();
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, tmp);
+  for (var ii = 0; ii < numAttribs; ++ii) {
+    ctx.disableVertexAttribArray(ii);
+    ctx.vertexAttribPointer(ii, 4, ctx.FLOAT, false, 0, 0);
+    ctx.vertexAttrib1f(ii, 0);
+  }
+  ctx.deleteBuffer(tmp);
+
+  var numTextureUnits = ctx.getParameter(ctx.MAX_TEXTURE_IMAGE_UNITS);
+  for (var ii = 0; ii < numTextureUnits; ++ii) {
+    ctx.activeTexture(ctx.TEXTURE0 + ii);
+    ctx.bindTexture(ctx.TEXTURE_CUBE_MAP, null);
+    ctx.bindTexture(ctx.TEXTURE_2D, null);
+  }
+
+  ctx.activeTexture(ctx.TEXTURE0);
+  ctx.useProgram(null);
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, null);
+  ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, null);
+  ctx.bindFramebuffer(ctx.FRAMEBUFFER, null);
+  ctx.bindRenderbuffer(ctx.RENDERBUFFER, null);
+
+  ctx.disable(ctx.BLEND);
+  ctx.disable(ctx.CULL_FACE);
+  ctx.disable(ctx.DEPTH_TEST);
+  ctx.disable(ctx.DITHER);
+  ctx.disable(ctx.SCISSOR_TEST);
+
+  ctx.blendColor(0, 0, 0, 0);
+  ctx.blendEquation(ctx.FUNC_ADD);
+  ctx.blendFunc(ctx.ONE, ctx.ZERO);
+  ctx.clearColor(0, 0, 0, 0);
+  ctx.clearDepth(1);
+  ctx.clearStencil(-1);
+  ctx.colorMask(true, true, true, true);
+  ctx.cullFace(ctx.BACK);
+  ctx.depthFunc(ctx.LESS);
+  ctx.depthMask(true);
+  ctx.depthRange(0, 1);
+  ctx.frontFace(ctx.CCW);
+  ctx.hint(ctx.GENERATE_MIPMAP_HINT, ctx.DONT_CARE);
+  ctx.lineWidth(1);
+  ctx.pixelStorei(ctx.PACK_ALIGNMENT, 4);
+  ctx.pixelStorei(ctx.UNPACK_ALIGNMENT, 4);
+  ctx.pixelStorei(ctx.UNPACK_FLIP_Y_WEBGL, false);
+  ctx.pixelStorei(ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  if (ctx.UNPACK_COLORSPACE_CONVERSION_WEBGL) ctx.pixelStorei(ctx.UNPACK_COLORSPACE_CONVERSION_WEBGL, ctx.BROWSER_DEFAULT_WEBGL);
+  ctx.polygonOffset(0, 0);
+  ctx.sampleCoverage(1, false);
+  ctx.scissor(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.stencilFunc(ctx.ALWAYS, 0, 0xFFFFFFFF);
+  ctx.stencilMask(0xFFFFFFFF);
+  ctx.stencilOp(ctx.KEEP, ctx.KEEP, ctx.KEEP);
+
+  ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT | ctx.STENCIL_BUFFER_BIT);
+
+  // TODO: This should NOT be needed but Firefox fails with 'hint'
+  while(ctx.getError());
+}
