@@ -40,6 +40,7 @@ var perlinSrc = ["NoiseLib/mxrandom.js",
                  "NoiseLib/Modifiers/CurveOutput.js",
                  "NoiseLib/Modifiers/Turbulence.js",
                  "NoiseLib/Modifiers/Displace.js"];
+var appsrc = [];
 
 // define what parts of the lib to load
 var WITH_MXFRAME = 1;
@@ -49,7 +50,9 @@ var WITH_TOUCH = 8;
 
 // internal helpers
 var preload = 0;
+var load = 0;
 var libdir = "./";
+var libtype = 0;
 
 // predefined namespace for libnoise so it loads right
 var LibNoise = {};
@@ -58,10 +61,11 @@ var LibNoise = {};
 // note when all files are loaded, main() is called.
 function include(filename)
 {
+  console.log(" include " + filename);
   var head = document.getElementsByTagName("head")[0];
   var script = document.createElement("script");
   head.appendChild(script);
-  script.onload = function () { preload -= 1; if (!preload) main(); }
+  script.onload = function () { preload -= 1; console.log(" "+filename+" loaded. " + preload + " left"); if (!preload) main(); }
   script.src = filename;
   script.type = "text/javascript";
 }
@@ -73,27 +77,39 @@ function extend(obj, base)
 }
 
 // call this from the page's onload to launch your app
-function launchApp(appsrc, lib, type)
+function launchApp(files, lib, type)
 {
   if (!type) { alert("Missing app type"); return; }
 
+  libtype = type;
   libdir = lib;
+  appsrc = files;
   var src = [];
   if (type & WITH_MXFRAME) src = src.concat(baseSrc);
   if (type & WITH_OCULUS) src = src.concat(oculusSrc);
   if (type & WITH_NOISE) src = src.concat(perlinSrc);
   if (type & WITH_TOUCH) src = src.concat(touchSrc);
-  preload = src.length + appsrc.length;
+  preload = src.length;
+  load = appsrc.length;
+  console.log("Boot up phase 1");
   for (i in src) include(libdir + "/" + src[i]);
-  for (i in appsrc) include(appsrc[i]);
 }
 
 function main()
 {
+  if (load)
+  {
+    console.log("Boot up phase 2");
+    preload = load;
+    load = 0;
+    for (i in appsrc) include(appsrc[i]);
+    return;
+  }
+
   window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
 
+  console.log("Init");
   Game.init();
-  //  Game.framerate = 34;
+  console.log("Begin");
   window.requestAnimationFrame(Game.run);
-  //  window.setTimeout(Game.run, Game.framerate);
 }

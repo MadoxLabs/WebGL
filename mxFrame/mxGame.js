@@ -37,15 +37,13 @@ Game.init = function ()
   this.assetMan = new AssetManager();
 
   this.surface = document.getElementById("surface");
-  this.output = document.getElementById("output");
-  this.context = this.output.getContext('2d');
   this.mouse = new Mouse(this.surface);
 
   this.lastTime = Game.time;
   this.time = Game.now();
   this.elapsed = 0;
 
-  this.textureLocation = "./";
+  this.textureLocation = "";
 
   try {
     gl = this.surface.getContext("experimental-webgl");
@@ -72,16 +70,19 @@ Game.init = function ()
   document.onkeyup = Game.handleKeyUp;
   window.addEventListener('resize', handleSizeChange);
 
-  this.oculus = oculusDefault;
-  this.oculusReady = 0;
-  this.oculusBridge = new OculusBridge({
-    onConfigUpdate: bridgeConfigUpdated,
-    onConnect: bridgeConnected,
-    onDisconnect: bridgeDisconnected
-  });
+  if (libtype & WITH_OCULUS)
+  {
+    this.oculus = oculusDefault;
+    this.oculusReady = 0;
+    this.oculusBridge = new OculusBridge({
+      onConfigUpdate: bridgeConfigUpdated,
+      onConnect: bridgeConnected,
+      onDisconnect: bridgeDisconnected
+    });
+    Game.loadShaderFile(libdir + "/oculus.fx");
+  }
 
   // let game specific stuff init
-  Game.loadShaderFile(libdir + "/oculus.fx");
   Game.loadShaderFile(libdir + "/sprite.fx");
   Game.loadTextureFile("mouse", libdir + "/mouse.png", false);
   Game.loadTextureFile("missing", libdir + "/missing.png", true);
@@ -299,6 +300,8 @@ Game.drawEachEyeOculusEffect = function ()
 
 Game.drawEyeOculusEffect = function (eye)
 {
+  if (libtype & WITH_OCULUS == 0) return;
+
   eye.engage();
   var uniforms = {};
   uniforms.distortionscale = 0.8;
@@ -315,6 +318,8 @@ Game.drawEyeOculusEffect = function (eye)
 
 Game.oculusMode = function (state)
 {
+  if (libtype & WITH_OCULUS == 0) return;
+
   if (state && !Game.isOculus)
   {
     Game.fullscreenMode(true);
@@ -369,8 +374,11 @@ function handleSizeChange()
   gl.viewportWidth = Game.surface.clientWidth;
   gl.viewportHeight = Game.surface.clientHeight;
 
-  Game.oculus.hResolution = Game.surface.clientWidth;
-  Game.oculus.vResolution = Game.surface.clientHeight;
+  if (libtype & WITH_OCULUS)
+  {
+    Game.oculus.hResolution = Game.surface.clientWidth;
+    Game.oculus.vResolution = Game.surface.clientHeight;
+  }
 
   Game.camera.handleSizeChange(Game.surface.width, Game.surface.height);
   if (Game.frontbuffer) Game.frontbuffer = new RenderSurface(gl.viewportWidth, gl.viewportHeight);
@@ -480,7 +488,6 @@ Game.handleMouseEvent = function(type, mouse)
 // {
 // }
 // 
-// The grapgics device is ready or changed
 // Game.deviceReady = function ()
 // {
 // }
@@ -489,7 +496,7 @@ Game.handleMouseEvent = function(type, mouse)
 // {
 // }
 //
-// Game.loadingEnd = function ()
+// Game.loadingStop = function ()
 // {
 // }
 //
@@ -502,7 +509,7 @@ Game.handleMouseEvent = function(type, mouse)
 // {
 // }
 // 
-// Game.appDrawMain = function (eye)
+// Game.appDraw= function (eye)
 // {
 // }
 // 
@@ -514,3 +521,10 @@ Game.handleMouseEvent = function(type, mouse)
 // {
 // }
 // 
+// Game.appHandleMouseEvent = function(type, mouse)
+// {
+// }
+// 
+// Game.appLoadingError = function (name)
+// {
+// }
