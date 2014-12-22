@@ -1,6 +1,8 @@
 importScripts('cannon.js');
 
 var world;
+var live = false;
+
 self.onmessage = function (e)
 {
   if (!world)
@@ -14,23 +16,11 @@ self.onmessage = function (e)
     solver.tolerance = 0.1;
     world.solver = solver;
     world.defaultContactMaterial.contactEquationStiffness = 1e9;
-    world.defaultContactMaterial.contactEquationRegularizationTime = 4;
+    world.defaultContactMaterial.contactEquationRegularization = 4;
     world.defaultContactMaterial.friction = 1.0;
+    world.defaultContactMaterial.restitution = 0;
     world.defaultContactMaterial.frictionEquationStiffness = 1e9;
-    world.defaultContactMaterial.frictionEquationRegularizationTime = 4;
-//    physicsMaterial = new CANNON.Material("woodMaterial");
-//    var physicsContactMaterial = new CANNON.ContactMaterial(physicsMaterial,
-//                                                            physicsMaterial,
-//                                                            {
-//                                                              friction: 40.0,
-//                                                              restitution: 0.3,
-//                                                              contactEquationStiffness: 1e9,
-//                                                              contactEquationRelaxation: 4,
-//                                                              frictionEquationStiffness: 1e9,
-//                                                              frictionEquationRelaxation: 4
-//                                                            }
-//                                                            );
-//    world.addContactMaterial(physicsContactMaterial);
+    world.defaultContactMaterial.frictionEquationRegularization = 4;
 
     // Ground plane
     var plane = new CANNON.Plane();
@@ -48,28 +38,21 @@ self.onmessage = function (e)
       {
         var body = new CANNON.Body({ mass: 1});
         body.addShape(shape);
-      //  body.linearDamping = 1;
-      //  body.angularDamping = 1;;
         if (layer % 2) body.position.set(0.166 * piece, 0.083 * layer, 0.0);
         else body.position.set(0.166, 0.083 * layer, 0.166 * piece - 0.166);
         body.quaternion.setFromEuler(0, angle, 0);
         world.add(body);
+        body.sleep();
       }
     }
   }
 
-/*
-  if (e.data.live)
+  if (e.data.live && !live)
   {
-    for (var i = 0; i !== world.bodies.length-1; i++)
-    {
-      world.bodies[i + 1].mass = 1;
-      world.bodies[i + 1].updateMassProperties();
-    }
-    var point = new CANNON.Vec3(0, 0, 0);
-    var impulse = new CANNON.Vec3(20*1 / 60, 0, 0);
-    world.bodies[2].applyImpulse(impulse, point);
-  }*/
+    live = true;
+    for (var i = 0; i !== world.bodies.length - 1; i++)
+      world.bodies[i].wakeUp();
+  }
 
   // Step the world
   world.step(e.data.dt);
@@ -77,6 +60,7 @@ self.onmessage = function (e)
   // Copy over the data to the buffers
   var positions = e.data.positions;
   var quaternions = e.data.quaternions;
+  var bounds = e.data.bounds;
   for (var i = 0; i !== world.bodies.length-1; i++)
   {
     var b = world.bodies[i+1],
@@ -89,12 +73,20 @@ self.onmessage = function (e)
     quaternions[4 * i + 1] = q.y;
     quaternions[4 * i + 2] = q.z;
     quaternions[4 * i + 3] = q.w;
+    bounds[6 * i + 0] = b.aabb.lowerBound.x;
+    bounds[6 * i + 1] = b.aabb.lowerBound.y;
+    bounds[6 * i + 2] = b.aabb.lowerBound.z;
+    bounds[6 * i + 3] = b.aabb.upperBound.x;
+    bounds[6 * i + 4] = b.aabb.upperBound.y;
+    bounds[6 * i + 5] = b.aabb.upperBound.z;
   }
 
   // Send data back to the main thread
   self.postMessage({
     positions: positions,
-    quaternions: quaternions
+    quaternions: quaternions,
+    bounds: bounds
   }, [positions.buffer,
-      quaternions.buffer]);
+      quaternions.buffer,
+      bounds.buffer]);
 };

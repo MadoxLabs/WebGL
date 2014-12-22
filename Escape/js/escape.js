@@ -58,9 +58,9 @@ Game.appInit = function ()
   Game.textureLocation = "assets/"
   Game.loadMeshPNG("floor", "assets/floor.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
-//  Game.loadShaderFile("assets/shadowcast.fx");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
+  Game.loadShaderFile("assets/boxrender.fx");
 }
 
 Game.deviceReady = function ()
@@ -94,10 +94,8 @@ Game.loadingStop = function ()
     {
       var uPiece = {};
       uPiece.uWorld = mat4.create();
-//      var trans = mat4.create();
-//      if (layer % 2) mat4.translate(trans, trans, vec3.fromValues(0.168, 0.085 * layer, -0.168+0.168 * piece));
-//      else mat4.translate(trans, trans, vec3.fromValues(0.168 * piece, 0.085 * layer, 0.0));
-//      mat4.multiply(uPiece.uWorld, trans, rot);
+      uPiece.minBB = vec3.create();
+      uPiece.maxBB = vec3.create();
       Game.world.uJenga.push(uPiece);
     }
   }
@@ -127,12 +125,72 @@ Game.loadingStop = function ()
   Game.world.physicsWorker.onmessage = fromWorker;
   Game.world.physicsWorker.onerror = function (event) { console.log("ERROR: " + event.message + " (" + event.filename + ":" + event.lineno + ")"); };
   toWorker();
+
+  // MAKE THE AABB BOX
+  var aabbvertices = [
+    // front
+    0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+    1.0, 1.0, 0.0,
+    1.0, 1.0, 0.0,
+    1.0, 0.0, 0.0, 
+    1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    // back
+    0.0, 0.0, 1.0,
+    0.0, 1.0, 1.0,
+    0.0, 1.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 0.0, 1.0,
+    1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+    // side
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+    0.0, 1.0, 1.0,
+    0.0, 1.0, 1.0,
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0,
+    // side
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 1.0,
+    1.0, 0.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 1.0, 0.0,
+    1.0, 1.0, 0.0,
+    1.0, 0.0, 0.0,
+    // top
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+    1.0, 0.0, 1.0,
+    1.0, 0.0, 1.0,
+    1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    // bottom
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 1.0,
+    0.0, 1.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 1.0, 0.0,
+    0.0, 1.0, 0.0,
+  ];
+  var boxModel = new Mesh();
+  boxModel.loadFromArrays(aabbvertices, null, { 'POS': 0 }, gl.LINES, aabbvertices.length / 3.0, 0);
+  Game.assetMan.assets['boxmodel'] = boxModel;
 }
 
 var sendTime;
 var dt = 1 / 60;
 var positions = new Float32Array(3 * 60);
 var quaternions = new Float32Array(4 * 60);
+var bounds = new Float32Array(6 * 60);
 
 var live = false;
 function toWorker()
@@ -142,8 +200,9 @@ function toWorker()
     dt: dt,
     live: live,
     positions: positions,
-    quaternions: quaternions
-  }, [positions.buffer, quaternions.buffer]);
+    quaternions: quaternions,
+    bounds: bounds
+  }, [positions.buffer, quaternions.buffer, bounds.buffer]);
 }
 
 function fromWorker(e)
@@ -151,11 +210,11 @@ function fromWorker(e)
   // Get fresh data from the worker
   positions = e.data.positions;
   quaternions = e.data.quaternions;
+  bounds = e.data.bounds;
 
   var position = vec3.create();
   var quaternion = quat.create();
-
-
+  
   // Update rendering meshes
   for (var i = 0; i !== Game.world.uJenga.length; i++)
   {
@@ -171,6 +230,9 @@ function fromWorker(e)
     mat4.fromQuat(rot, quaternion);
     mat4.translate(trans, trans, position);
     mat4.multiply(Game.world.uJenga[i].uWorld, trans, rot);
+
+    vec3.set(Game.world.uJenga[i].minBB, bounds[6 * i + 0], bounds[6 * i + 1], bounds[6 * i + 2]);
+    vec3.set(Game.world.uJenga[i].maxBB, bounds[6 * i + 3], bounds[6 * i + 4], bounds[6 * i + 5]);
   }
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
@@ -208,6 +270,17 @@ Game.appDraw = function (eye)
   {
     effect.setUniforms(Game.world.uJenga[p]);
     effect.draw(Game.world.jenga.Model);
+  }
+
+  // AABB render for physics debug
+  effect = Game.shaderMan.shaders["boxrender"];
+  effect.bind();
+  effect.bindCamera(eye);
+  effect.setUniforms(Game.world.uScene);
+  var boxmodel = Game.assetMan.assets["boxmodel"];
+  for (var p in Game.world.uJenga) {
+    effect.setUniforms(Game.world.uJenga[p]);
+    effect.draw(boxmodel);
   }
 }
 
