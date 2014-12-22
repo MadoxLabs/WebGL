@@ -73,7 +73,8 @@ Game.loadingStop = function ()
 
   shadowmap = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
   lighteye = new Camera(2048, 2048);
-  lighteye.offset = vec3.fromValues(0.0, 200.0, 0.0);
+  //lighteye.type = CameraType.ortho;
+  lighteye.offset = vec3.fromValues(0.0, 50.0, 0.001); // if z here is 0, it seems to screw up the camera rotations, when using this camera as view camera
   lighteye.setTarget(ball);
   sunpos = 0.0;
 
@@ -143,8 +144,6 @@ Game.appUpdate = function ()
   // SUN MOVEMENT
   sunpos += 0.00001; 
   if (sunpos > (Math.PI * 2.0)) sunpos = 0.0;
-  lighteye.offset[0] = ball.Position[0];
-  lighteye.offset[2] = ball.Position[2];
   lighteye.angles[0] = sunpos;
   lighteye.update();
   uScene.uLightPosition = lighteye.position;
@@ -175,9 +174,10 @@ Game.appUpdate = function ()
   // CAMERA MODE
   if (cameraMode)
   {
-    vec3.copy(Game.camera.target, lighteye.target);
-    vec3.copy(Game.camera.angles, lighteye.angles);
-    vec3.copy(Game.camera.offset, lighteye.offset );
+//    vec3.copy(Game.camera.target, lighteye.target);
+//    vec3.copy(Game.camera.angles, lighteye.angles);
+//    vec3.copy(Game.camera.offset, lighteye.offset);
+    Game.camera = lighteye;
   }
 
   // UPDATE UNIFORMS
