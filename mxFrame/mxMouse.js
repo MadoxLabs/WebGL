@@ -4,6 +4,8 @@ function Mouse(obj)
   this.down = false;
   this.grabbed = false;
   this.pendingout = false;
+  this.X = 0;
+  this.Y = 0;
 
   this.toss = 0;
   this.hammer = null;
@@ -20,9 +22,9 @@ function Mouse(obj)
     this.hammer.on('pinch', function (event) { console.log("pinch"); });
   }
 
-  document.addEventListener('pointerlockchange', function () { mouseObj.pointerLockChange(); }, false);
-  document.addEventListener('mozpointerlockchange', function () { mouseObj.pointerLockChange(); }, false);
-  document.addEventListener('webkitpointerlockchange', function () { mouseObj.pointerLockChange(); }, false);
+  document.addEventListener('pointerlockchange', function (e) { mouseObj.pointerLockChange(e); }, false);
+  document.addEventListener('mozpointerlockchange', function (e) { mouseObj.pointerLockChange(e); }, false);
+  document.addEventListener('webkitpointerlockchange', function (e) { mouseObj.pointerLockChange(e); }, false);
   document.addEventListener('pointerlockerror', function () { mouseObj.pointerLockError(); }, false);
   document.addEventListener('mozpointerlockerror', function () { mouseObj.pointerLockError(); }, false);
   document.addEventListener('webkitpointerlockerror', function () { mouseObj.pointerLockError(); }, false);
@@ -61,18 +63,22 @@ var MouseEvent = { 'Down': 0, 'Up': 1, 'Move': 2, 'In': 3, 'Out': 4, 'Grab': 5, 
 Mouse.prototype.grab = function()
 {
   if (!this.active) return;
+  console.log("grab");
   this.surface.requestPointerLock();
 }
 
 Mouse.prototype.release = function ()
 {
+  console.log("no grab");
   document.exitPointerLock();
 }
 
-Mouse.prototype.pointerLockChange = function ()
+Mouse.prototype.pointerLockChange = function (e)
 {
-  if (document.mozPointerLockElement === this.surface || document.webkitPointerLockElement === this.surface)
+  console.log("mouse grab result");
+  if (document.pointerLockElement === this.surface || document.mozPointerLockElement === this.surface || document.webkitPointerLockElement === this.surface)
   {
+    console.log(" on");
     this.grabbed = true;
     this.toss = 1;
     this.lastMoveX = 0;
@@ -83,6 +89,7 @@ Mouse.prototype.pointerLockChange = function ()
   }
   else
   {
+    console.log(" off");
     this.toss = 2;
     this.grabbed = false;
     Game.handleMouseEvent(MouseEvent.Release, this);
@@ -91,6 +98,7 @@ Mouse.prototype.pointerLockChange = function ()
 
 Mouse.prototype.pointerLockError = function()
 {
+  console.log(" error");
   this.grabbed = false;
   Game.handleMouseEvent(MouseEvent.NoGrab, this);
 }
@@ -189,7 +197,8 @@ Mouse.prototype.mouseMove = function(event)
     this.moveOffsetY = this.Y - this.lastMoveY;
   }
 
-  if (!this.moveOffsetX && !this.moveOffsetY) return;
+  if (!this.moveOffsetX && !this.moveOffsetY) {  return; }
+
   Game.handleMouseEvent(MouseEvent.Move, this);
 }
 
