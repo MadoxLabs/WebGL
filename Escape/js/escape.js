@@ -58,7 +58,7 @@ Game.appInit = function ()
   Game.textureLocation = "assets/"
   Game.loadMeshPNG("floor", "assets/floor.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
-  Game.loadShaderFile("assets/shadowcast.fx");
+//  Game.loadShaderFile("assets/shadowcast.fx");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
 }
