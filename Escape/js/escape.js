@@ -3,11 +3,12 @@ function World()
   this.currentlyPressedKeys = [];
   this.floor = null;
   this.jenga = null;
+  this.table = null;
 
   this.uScene = null;
   this.uFloor = null;
   this.uJenga = [];
-
+  this.uTable = null;
 //
 //  var shadowmap;
   this.lighteye = null;
@@ -57,6 +58,7 @@ Game.appInit = function ()
 
   Game.textureLocation = "assets/"
   Game.loadMeshPNG("floor", "assets/floor.model");
+  Game.loadMeshPNG("table", "assets/table.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
@@ -84,12 +86,19 @@ Game.loadingStop = function ()
   Game.world.uFloor.uWorld = mat4.create();
   mat4.fromRotationTranslation(Game.world.uFloor.uWorld, quat.fromValues(0,0,0,1), Game.world.floor.Position);
 
+  // SET UP TABLE
+  Game.world.table = new GameObject(Game.assetMan.assets["table"]);
+  vec3.set(Game.world.table.Position, 0.0, 1.5, 3.0);
+  Game.world.uTable = {};
+  Game.world.uTable.uWorld = mat4.create();
+  Game.world.uTable.minBB = vec3.create();
+  Game.world.uTable.maxBB = vec3.create();
+  mat4.fromRotationTranslation(Game.world.uTable.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.table.Position);
+
   // SET UP JENGA PEICES
   Game.world.jenga = new GameObject(Game.assetMan.assets["jenga"]);
   for (var layer = 0; layer < 20; ++layer)
   {
-//    var rot = mat4.create();
-//    mat4.rotateY(rot, rot, 1.5708*layer);
     for (var piece = 0; piece < 3; ++piece)
     {
       var uPiece = {};
@@ -105,12 +114,12 @@ Game.loadingStop = function ()
   Game.camera.offset[1] = 0.0;
   Game.camera.offset[2] = -3.0;
   var target = new GameObject(null);
-  target.Position[1] = 1.0;
+  target.Position[1] = 5.0;
   Game.camera.setTarget(target);
 
   // SET UP LIGHT
   Game.world.lighteye = new Camera(2048, 2048);
-  Game.world.lighteye.offset = vec3.fromValues(50.0, 50.0, -50.0);
+  Game.world.lighteye.offset = vec3.fromValues(5.0, 50.0, 5.0);
   Game.world.lighteye.setTarget(Game.world.floor);
 
   // SCENE UNIFORMS
@@ -188,9 +197,9 @@ Game.loadingStop = function ()
 
 var sendTime;
 var dt = 1 / 60;
-var positions = new Float32Array(3 * 60);
-var quaternions = new Float32Array(4 * 60);
-var bounds = new Float32Array(6 * 60);
+var positions = new Float32Array(3 * 61);
+var quaternions = new Float32Array(4 * 61);
+var bounds = new Float32Array(6 * 61);
 
 var live = false;
 function toWorker()
@@ -212,27 +221,31 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
+  vec3.set(Game.world.uTable.minBB, bounds[0], bounds[1], bounds[2]);
+  vec3.set(Game.world.uTable.maxBB, bounds[3], bounds[4], bounds[5]);
+
   var position = vec3.create();
   var quaternion = quat.create();
   
   // Update rendering meshes
   for (var i = 0; i !== Game.world.uJenga.length; i++)
   {
-    vec3.set(position, positions[3 * i + 0],
-                       positions[3 * i + 1],
-                       positions[3 * i + 2]);
-    quat.set(quaternion, quaternions[4 * i + 0],
-                         quaternions[4 * i + 1],
-                         quaternions[4 * i + 2],
-                         quaternions[4 * i + 3]);
+    var ii = i + 1;
+    vec3.set(position, positions[3 * ii + 0],
+                       positions[3 * ii + 1],
+                       positions[3 * ii + 2]);
+    quat.set(quaternion, quaternions[4 * ii + 0],
+                         quaternions[4 * ii + 1],
+                         quaternions[4 * ii + 2],
+                         quaternions[4 * ii + 3]);
     var rot = mat4.create();
     var trans = mat4.create();
     mat4.fromQuat(rot, quaternion);
     mat4.translate(trans, trans, position);
     mat4.multiply(Game.world.uJenga[i].uWorld, trans, rot);
 
-    vec3.set(Game.world.uJenga[i].minBB, bounds[6 * i + 0], bounds[6 * i + 1], bounds[6 * i + 2]);
-    vec3.set(Game.world.uJenga[i].maxBB, bounds[6 * i + 3], bounds[6 * i + 4], bounds[6 * i + 5]);
+    vec3.set(Game.world.uJenga[i].minBB, bounds[6 * ii + 0], bounds[6 * ii + 1], bounds[6 * ii + 2]);
+    vec3.set(Game.world.uJenga[i].maxBB, bounds[6 * ii + 3], bounds[6 * ii + 4], bounds[6 * ii + 5]);
   }
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
@@ -265,6 +278,8 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.uScene);
   effect.setUniforms(Game.world.uFloor);
   effect.draw(Game.world.floor.Model);
+  effect.setUniforms(Game.world.uTable);
+  effect.draw(Game.world.table.Model);
 
   for (var p in Game.world.uJenga)
   {
@@ -282,6 +297,8 @@ Game.appDraw = function (eye)
     effect.setUniforms(Game.world.uJenga[p]);
     effect.draw(boxmodel);
   }
+  effect.setUniforms(Game.world.uTable);
+  effect.draw(boxmodel);
 }
 
 Game.appHandleKeyDown = function (event)
@@ -326,17 +343,14 @@ Game.appHandleKeyUp = function (event)
 var clicked = false;
 Game.appHandleMouseEvent = function(type, mouse)
 {
+  // console.log("Mouse event: " + ['Down', 'Up', 'Move', 'In', 'Out', 'Grab', 'Release', 'NoGrab', 'Wheel'][type]);
   if (mouse.button == 0 && type == MouseEvent.Down)
-  {
     live = true;
-  }
 
   if (mouse.button == 2 && type == MouseEvent.Down)
   { console.log("click"); clicked = true; } //mouse.grab(); }
-  if (mouse.button == 02 && type == MouseEvent.Up)
+  if (mouse.button == 2 && type == MouseEvent.Up)
   { console.log("unclick");  clicked = false; } //mouse.release();
-
-//  if (type == MouseEvent.Out) Game.camera.stop(Direction.all);
 
   if (clicked && type == MouseEvent.Move)
   {

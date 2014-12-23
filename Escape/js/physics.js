@@ -29,6 +29,12 @@ self.onmessage = function (e)
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
     world.add(groundBody);
 
+    var box = new CANNON.Box(new CANNON.Vec3(2.05, 1.55, 1.05));
+    var table = new CANNON.Body({ mass: 10 });
+    table.addShape(box);
+    table.position.set(0.0, 1.5, 3.0);
+    world.add(table);
+
     var shape = new CANNON.Box(new CANNON.Vec3(0.166 / 2.0, 0.083 / 2.0, 0.498 / 2.0));
     var angle = 0;
     for (var layer = 0; layer < 20; ++layer)
@@ -38,8 +44,8 @@ self.onmessage = function (e)
       {
         var body = new CANNON.Body({ mass: 1});
         body.addShape(shape);
-        if (layer % 2) body.position.set(0.166 * piece, 0.083 * layer, 0.0);
-        else body.position.set(0.166, 0.083 * layer, 0.166 * piece - 0.166);
+        if (layer % 2) body.position.set(0.166 * piece, 0.080 * layer + 3.0, 0.0 + 2.5);
+        else body.position.set(0.166, 0.080 * layer + 3.0, 0.166 * piece - 0.166 + 2.5);
         body.quaternion.setFromEuler(0, angle, 0);
         world.add(body);
         body.sleep();

@@ -58,7 +58,8 @@ uniform vec3 emissivecolor;      // group material
 void main(void) 
 {
   float nDotL = dot(normalize(vNormal), normalize(uLightPosition - vec3(vPosition)));
-  vec3 color = ambientcolor + diffusecolor * nDotL;
+  vec3 ac = vec3(0.1, 0.1, 0.1);
+  vec3 color = ac + diffusecolor * nDotL;
 
   gl_FragColor = vec4(color,1.0);
 }
