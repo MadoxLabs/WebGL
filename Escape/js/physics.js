@@ -83,7 +83,7 @@ self.onmessage = function (e)
 
     // Ground plane
     var ground = new JigLib.JPlane();
-    ground.set_y(-1.50);
+    ground.set_y(0);
     ground.set_rotationX(90);
     ground.set_movable(false);
     world.addBody(ground);
@@ -91,7 +91,7 @@ self.onmessage = function (e)
     // table
     var table = new JigLib.JBox(null, 4, 2, 3);
     table.set_mass(10);
-    table.moveTo(new Vector3D(0.0, 0.0, 0.0, 0.0));
+    table.moveTo(new Vector3D(0.0, 1.5, 3.0, 0.0));
     world.addBody(table);
 
     // jenga
@@ -101,7 +101,7 @@ self.onmessage = function (e)
       angle += Math.PI / 2.0;
       for (var piece = 0; piece < 3; ++piece)
       {
-        var body = new JigLib.JBox(null, 0.166 / 2.0, 0.498 / 2.0, 0.083 / 2.0);
+        var body = new JigLib.JBox(null, 0.166, 0.498, 0.083);
         body.set_mass(1);
         if (layer % 2) body.moveTo(new Vector3D(0.166 * piece, 0.080 * layer + 3.0, 0.0 ));
         else body.moveTo(new Vector3D(0.166, 0.080 * layer + 3.0, 0.166 * piece - 0.166 ));

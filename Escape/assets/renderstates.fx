@@ -9,6 +9,12 @@ depthfunc LESS
 [END]
 
 [RENDERSTATE]
+name nodepth
+depth false
+depthfunc LESS
+[END]
+
+[RENDERSTATE]
 name blend
 blend true
 blendfunc SRC_ALPHA ONE_MINUS_SRC_ALPHA

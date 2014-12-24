@@ -130,7 +130,7 @@ Game.loadingStop = function ()
   mat4.multiply(Game.world.uScene.uWorldToLight, Game.world.lighteye.eyes[0].projection, Game.world.lighteye.eyes[0].view);
 
   // SET UP PHYSICS
-  Game.world.physicsWorker = new Worker("js/physics.js");
+  Game.world.physicsWorker = new Worker("js/physics2.js");
   Game.world.physicsWorker.onmessage = fromWorker;
   Game.world.physicsWorker.onerror = function (event) { console.log("ERROR: " + event.message + " (" + event.filename + ":" + event.lineno + ")"); };
   toWorker();
@@ -221,31 +221,12 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  vec3.set(Game.world.uTable.minBB, bounds[0], bounds[1], bounds[2]);
-  vec3.set(Game.world.uTable.maxBB, bounds[3], bounds[4], bounds[5]);
+  updateBody(Game.world.uTable, 0);
 
-  var position = vec3.create();
-  var quaternion = quat.create();
-  
   // Update rendering meshes
   for (var i = 0; i !== Game.world.uJenga.length; i++)
   {
-    var ii = i + 1;
-    vec3.set(position, positions[3 * ii + 0],
-                       positions[3 * ii + 1],
-                       positions[3 * ii + 2]);
-    quat.set(quaternion, quaternions[4 * ii + 0],
-                         quaternions[4 * ii + 1],
-                         quaternions[4 * ii + 2],
-                         quaternions[4 * ii + 3]);
-    var rot = mat4.create();
-    var trans = mat4.create();
-    mat4.fromQuat(rot, quaternion);
-    mat4.translate(trans, trans, position);
-    mat4.multiply(Game.world.uJenga[i].uWorld, trans, rot);
-
-    vec3.set(Game.world.uJenga[i].minBB, bounds[6 * ii + 0], bounds[6 * ii + 1], bounds[6 * ii + 2]);
-    vec3.set(Game.world.uJenga[i].maxBB, bounds[6 * ii + 3], bounds[6 * ii + 4], bounds[6 * ii + 5]);
+    updateBody(Game.world.uJenga[i], i+1);
   }
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
@@ -255,6 +236,29 @@ function fromWorker(e)
     delay = 0;
   }
   setTimeout(toWorker, delay);
+}
+
+function updateBody(body, index)
+{
+  var position = vec3.create();
+  var quaternion = quat.create();
+  var rot = mat4.create();
+  var trans = mat4.create();
+
+  vec3.set(position, positions[3 * index + 0],
+                     positions[3 * index + 1],
+                     positions[3 * index + 2]);
+  quat.set(quaternion, quaternions[4 * index + 0],
+                       quaternions[4 * index + 1],
+                       quaternions[4 * index + 2],
+                       quaternions[4 * index + 3]);
+  mat4.fromQuat(rot, quaternion);
+  mat4.identity(trans);
+  mat4.translate(trans, trans, position);
+  mat4.multiply(body.uWorld, trans, rot);
+
+  vec3.set(body.minBB, bounds[6 * index + 0], bounds[6 * index + 1], bounds[6 * index + 2]);
+  vec3.set(body.maxBB, bounds[6 * index + 3], bounds[6 * index + 4], bounds[6 * index + 5]);
 }
 
 Game.appUpdate = function ()
