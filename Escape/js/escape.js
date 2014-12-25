@@ -4,16 +4,24 @@ function World()
   this.floor = null;
   this.jenga = null;
   this.table = null;
+  this.ceiling = null;
+  this.fan = null;
+  this.light = null;
 
   this.uScene = null;
   this.uFloor = null;
   this.uJenga = [];
+  this.uWalls = [];
   this.uTable = null;
-//
-//  var shadowmap;
+  this.uCeiling = null;
+  this.uFan = null;
+  this.uLight = null;
+
   this.lighteye = null;
 
   this.physicsWorker = null;
+
+  this.fanrot = 0.0;
 }
 
 
@@ -60,8 +68,12 @@ Game.appInit = function ()
   Game.loadMeshPNG("floor", "assets/floor.model");
   Game.loadMeshPNG("table", "assets/table.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
+  Game.loadMeshPNG("ceiling", "assets/ceiling.model");
+  Game.loadMeshPNG("light", "assets/light.model");
+  Game.loadMeshPNG("fan", "assets/fan.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
+  Game.loadShaderFile("assets/lightrender.fx");
   Game.loadShaderFile("assets/boxrender.fx");
 }
 
@@ -85,6 +97,33 @@ Game.loadingStop = function ()
   Game.world.uFloor = {};
   Game.world.uFloor.uWorld = mat4.create();
   mat4.fromRotationTranslation(Game.world.uFloor.uWorld, quat.fromValues(0,0,0,1), Game.world.floor.Position);
+
+  for (var i = 0; i < 4; ++i)
+  {
+    Game.world.uWalls[i] = {};
+    Game.world.uWalls[i].uWorld = mat4.create();
+    Game.world.uWalls[i].minBB = vec3.create();
+    Game.world.uWalls[i].maxBB = vec3.create();
+  }
+
+  Game.world.ceiling = new GameObject(Game.assetMan.assets["ceiling"]);
+  vec3.set(Game.world.ceiling.Position, 0.0, 8.0, 0.0);
+  Game.world.uCeiling = {};
+  Game.world.uCeiling.uWorld = mat4.create();
+  mat4.fromRotationTranslation(Game.world.uCeiling.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.ceiling.Position);
+
+  Game.world.fan = new GameObject(Game.assetMan.assets["fan"]);
+  vec3.set(Game.world.fan.Position, 0.0, 8.0, 0.0);
+  Game.world.uFan = {};
+  Game.world.uFan.uWorld = mat4.create();
+  mat4.fromRotationTranslation(Game.world.uFan.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.fan.Position);
+
+  Game.world.light = new GameObject(Game.assetMan.assets["light"]);
+  vec3.set(Game.world.light.Position, 0.0, 8.0, 0.0);
+  Game.world.uLight = {};
+  Game.world.uLight.uWorld = mat4.create();
+  mat4.fromRotationTranslation(Game.world.uLight.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.light.Position);
+
 
   // SET UP TABLE
   Game.world.table = new GameObject(Game.assetMan.assets["table"]);
@@ -119,7 +158,7 @@ Game.loadingStop = function ()
 
   // SET UP LIGHT
   Game.world.lighteye = new Camera(2048, 2048);
-  Game.world.lighteye.offset = vec3.fromValues(5.0, 50.0, 5.0);
+  Game.world.lighteye.offset = vec3.fromValues(0.0, 7.0, 0.0);
   Game.world.lighteye.setTarget(Game.world.floor);
 
   // SCENE UNIFORMS
@@ -130,7 +169,7 @@ Game.loadingStop = function ()
   mat4.multiply(Game.world.uScene.uWorldToLight, Game.world.lighteye.eyes[0].projection, Game.world.lighteye.eyes[0].view);
 
   // SET UP PHYSICS
-  Game.world.physicsWorker = new Worker("js/physics2.js");
+  Game.world.physicsWorker = new Worker("js/physics.js");
   Game.world.physicsWorker.onmessage = fromWorker;
   Game.world.physicsWorker.onerror = function (event) { console.log("ERROR: " + event.message + " (" + event.filename + ":" + event.lineno + ")"); };
   toWorker();
@@ -197,9 +236,9 @@ Game.loadingStop = function ()
 
 var sendTime;
 var dt = 1 / 60;
-var positions = new Float32Array(3 * 61);
-var quaternions = new Float32Array(4 * 61);
-var bounds = new Float32Array(6 * 61);
+var positions = new Float32Array(3 * 65);
+var quaternions = new Float32Array(4 * 65);
+var bounds = new Float32Array(6 * 65);
 
 var live = false;
 function toWorker()
@@ -221,12 +260,17 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  updateBody(Game.world.uTable, 0);
+  var index = 0;
+  updateBody(Game.world.uTable, index++);
 
   // Update rendering meshes
   for (var i = 0; i !== Game.world.uJenga.length; i++)
   {
-    updateBody(Game.world.uJenga[i], i+1);
+    updateBody(Game.world.uJenga[i], index++);
+  }
+  for (var i = 0; i < 4; ++i)
+  {
+    updateBody(Game.world.uWalls[i], index++);
   }
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
@@ -261,10 +305,17 @@ function updateBody(body, index)
   vec3.set(body.maxBB, bounds[6 * index + 3], bounds[6 * index + 4], bounds[6 * index + 5]);
 }
 
+var fanquat = quat.create();
+
 Game.appUpdate = function ()
 {
   if (Game.loading) return;
   if (!Game.camera) return;
+
+  Game.world.fanrot += Math.PI / 30.0;
+  quat.identity(fanquat);
+  quat.rotateY(fanquat, fanquat, Game.world.fanrot);
+  mat4.fromRotationTranslation(Game.world.uFan.uWorld, fanquat, Game.world.fan.Position);
 }
 
 Game.appDrawAux = function ()
@@ -276,6 +327,13 @@ Game.appDraw = function (eye)
 {
   if (!Game.ready || Game.loading) return;
 
+  effect = Game.shaderMan.shaders["lightrender"];
+  effect.bind();
+  effect.bindCamera(eye);
+  effect.setUniforms(Game.world.uScene);
+  effect.setUniforms(Game.world.uLight);
+  effect.draw(Game.world.light.Model);
+
   effect = Game.shaderMan.shaders["objectrender"];
   effect.bind();
   effect.bindCamera(eye);
@@ -284,6 +342,10 @@ Game.appDraw = function (eye)
   effect.draw(Game.world.floor.Model);
   effect.setUniforms(Game.world.uTable);
   effect.draw(Game.world.table.Model);
+  effect.setUniforms(Game.world.uCeiling);
+  effect.draw(Game.world.ceiling.Model);
+  effect.setUniforms(Game.world.uFan);
+  effect.draw(Game.world.fan.Model);
 
   for (var p in Game.world.uJenga)
   {
@@ -303,6 +365,11 @@ Game.appDraw = function (eye)
   }
   effect.setUniforms(Game.world.uTable);
   effect.draw(boxmodel);
+  for (var i = 0; i < 4; ++i)
+  {
+    effect.setUniforms(Game.world.uWalls[i]);
+    effect.draw(boxmodel);
+  }
 }
 
 Game.appHandleKeyDown = function (event)
@@ -361,7 +428,7 @@ Game.appHandleMouseEvent = function(type, mouse)
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20)
     {
       Game.camera.angles[1] += -0.01 * mouse.moveOffsetX;
-      Game.camera.angles[0] += -0.01 * mouse.moveOffsetY;
+      Game.camera.angles[0] += 0.01 * mouse.moveOffsetY;
     }
   }
 }
