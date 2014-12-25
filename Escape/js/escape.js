@@ -1,58 +1,57 @@
 function World()
 {
   this.currentlyPressedKeys = [];
-  this.floor = null;
-  this.jenga = null;
-  this.table = null;
-  this.ceiling = null;
-  this.fan = null;
-  this.light = null;
+  this.objects = [];
+  this.objectFan;
 
   this.uScene = null;
-  this.uFloor = null;
-  this.uJenga = [];
-  this.uWalls = [];
-  this.uTable = null;
-  this.uCeiling = null;
-  this.uFan = null;
-  this.uLight = null;
 
   this.lighteye = null;
 
   this.physicsWorker = null;
-
-  this.fanrot = 0.0;
 }
 
 
 
 
 
-// Object represent an instance of a model in the world. It contains the object's position and velocity.
-// Velocity gets updated by other classes that control the object.
-// Object supports having a WorldOffset to handle models that do not have the origin set in the right place
-// Object supports having an orientation different than its direction of motion
 function GameObject(model)
 {
-  this.Model = model;
-  this.WorldOffset = vec3.create();
-  this.Position = vec3.create();
-  this.Velocity = vec3.create();
-  this.Orient = mat4.create();
-  mat4.fromYawPitchRoll(this.Orient, 0, 0, 0);
+  this.id = Game.world.objects.length;
+  Game.world.objects.push(this);
 
-  this.World = mat4.create();
-  mat4.createWorld(this.World, vec3.addInline(this.WorldOffset, this.Position), vec3.unitZ, vec3.unitY);
+  this.Model = model;
+  this.Position = vec3.create(); vec3.set(this.Position, 0,0,0);
+  this.Rotation = quat.create(); quat.identity(this.Rotation);
+  this.Velocity = vec3.create();
+
+  this.Trans = mat4.create(); mat4.identity(this.Trans);
+  this.Orient = mat4.create(); mat4.identity(this.Orient);
+
+  this.uniform = {};
+  this.uniform.uWorld = mat4.create();
+  this.uniform.minBB = vec3.create();
+  this.uniform.maxBB = vec3.create();
+}
+
+GameObject.prototype.Place = function (x,y,z)
+{
+  vec3.set(this.Position, x, y, z);
+  this.Update();
+}
+
+GameObject.prototype.Rotate = function (x, y, z, w)
+{
+  quat.set(this.Rotation, x, y, z, w);
+  this.Update();
 }
 
 GameObject.prototype.Update = function (gametime)
 {
-  // update due to the player's motion
-  var vel = vec3.create();
-  vec3.transformMat4(vel, this.Velocity, this.Orient);
-  vec3.add(this.Position, this.Position, vel);
-  this.Place();
-  mat4.createWorld(this.World, vec3.addInline(this.WorldOffset, this.Position), vec3.unitZ, vec3.unitY);
+  mat4.fromQuat(this.Orient, this.Rotation);
+  mat4.identity(this.Trans);
+  mat4.translate(this.Trans, this.Trans, this.Position);
+  mat4.multiply(this.uniform.uWorld, this.Trans, this.Orient);
 }
 
 
@@ -89,77 +88,40 @@ Game.loadingStart = function ()
 Game.loadingStop = function ()
 {
   Game.ready = true;
-
-  // SET UP FLOOR
-  Game.world.floor = new GameObject(Game.assetMan.assets["floor"]);
-  vec3.set(Game.world.floor.Position, 0.0, -0.05, 0.0);
-
-  Game.world.uFloor = {};
-  Game.world.uFloor.uWorld = mat4.create();
-  mat4.fromRotationTranslation(Game.world.uFloor.uWorld, quat.fromValues(0,0,0,1), Game.world.floor.Position);
-
-  for (var i = 0; i < 4; ++i)
-  {
-    Game.world.uWalls[i] = {};
-    Game.world.uWalls[i].uWorld = mat4.create();
-    Game.world.uWalls[i].minBB = vec3.create();
-    Game.world.uWalls[i].maxBB = vec3.create();
-  }
-
-  Game.world.ceiling = new GameObject(Game.assetMan.assets["ceiling"]);
-  vec3.set(Game.world.ceiling.Position, 0.0, 8.0, 0.0);
-  Game.world.uCeiling = {};
-  Game.world.uCeiling.uWorld = mat4.create();
-  mat4.fromRotationTranslation(Game.world.uCeiling.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.ceiling.Position);
-
-  Game.world.fan = new GameObject(Game.assetMan.assets["fan"]);
-  vec3.set(Game.world.fan.Position, 0.0, 8.0, 0.0);
-  Game.world.uFan = {};
-  Game.world.uFan.uWorld = mat4.create();
-  mat4.fromRotationTranslation(Game.world.uFan.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.fan.Position);
-
-  Game.world.light = new GameObject(Game.assetMan.assets["light"]);
-  vec3.set(Game.world.light.Position, 0.0, 8.0, 0.0);
-  Game.world.uLight = {};
-  Game.world.uLight.uWorld = mat4.create();
-  mat4.fromRotationTranslation(Game.world.uLight.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.light.Position);
-
-
-  // SET UP TABLE
-  Game.world.table = new GameObject(Game.assetMan.assets["table"]);
-  vec3.set(Game.world.table.Position, 0.0, 1.5, 3.0);
-  Game.world.uTable = {};
-  Game.world.uTable.uWorld = mat4.create();
-  Game.world.uTable.minBB = vec3.create();
-  Game.world.uTable.maxBB = vec3.create();
-  mat4.fromRotationTranslation(Game.world.uTable.uWorld, quat.fromValues(0, 0, 0, 1), Game.world.table.Position);
-
-  // SET UP JENGA PEICES
-  Game.world.jenga = new GameObject(Game.assetMan.assets["jenga"]);
-  for (var layer = 0; layer < 20; ++layer)
-  {
-    for (var piece = 0; piece < 3; ++piece)
-    {
-      var uPiece = {};
-      uPiece.uWorld = mat4.create();
-      uPiece.minBB = vec3.create();
-      uPiece.maxBB = vec3.create();
-      Game.world.uJenga.push(uPiece);
-    }
-  }
-
+  
   // SET UP CAMERA
   Game.camera.offset[0] = 0.0;
   Game.camera.offset[1] = 0.0;
-  Game.camera.offset[2] = -3.0;
+  Game.camera.offset[2] = -1.0;
   var target = new GameObject(null);
   target.Position[1] = 5.0;
   Game.camera.setTarget(target);
 
+  // SET UP SCENE
+  var light = new GameObject(Game.assetMan.assets["light"]);    // these pieces are not physical
+  light.Place(0.0, 8.0, 0.0);
+  var floor = new GameObject(Game.assetMan.assets["floor"]);    
+  floor.Place(0.0, -0.05, 0.0);
+  var ceiling = new GameObject(Game.assetMan.assets["ceiling"]);
+  ceiling.Place(0.0, 8.0, 0.0);
+  var fan = new GameObject(Game.assetMan.assets["fan"]);
+  fan.Place(0.0, 8.0, 0.0);
+  fan.fanrot = 0;
+  Game.world.objectFan = fan;
+
+  var table = new GameObject(Game.assetMan.assets["table"]);   // from here on match the physical data coming from worker
+  table.Place(0.0, 8.0, 0.0);
+
+  for (var layer = 0; layer < 20; ++layer)
+    for (var piece = 0; piece < 3; ++piece)
+      var jenga = new GameObject(Game.assetMan.assets["jenga"]);
+
+  for (var i = 0; i < 4; ++i) var wall = new GameObject(null); 
+
   // SET UP LIGHT
   Game.world.lighteye = new Camera(2048, 2048);
   Game.world.lighteye.offset = vec3.fromValues(0.0, 7.0, 0.0);
-  Game.world.lighteye.setTarget(Game.world.floor);
+  Game.world.lighteye.setTarget(Game.world.objects[2]);
 
   // SCENE UNIFORMS
   var effect = Game.shaderMan.shaders["objectrender"];
@@ -260,62 +222,31 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  var index = 0;
-  updateBody(Game.world.uTable, index++);
-
-  // Update rendering meshes
-  for (var i = 0; i !== Game.world.uJenga.length; i++)
-  {
-    updateBody(Game.world.uJenga[i], index++);
-  }
-  for (var i = 0; i < 4; ++i)
-  {
-    updateBody(Game.world.uWalls[i], index++);
-  }
+  for (var i = 5, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
   var delay = dt * 1000 - (Date.now() - sendTime);
-  if (delay < 0)
-  {
-    delay = 0;
-  }
+  if (delay < 0)    delay = 0;
   setTimeout(toWorker, delay);
 }
 
 function updateBody(body, index)
 {
-  var position = vec3.create();
-  var quaternion = quat.create();
-  var rot = mat4.create();
-  var trans = mat4.create();
-
-  vec3.set(position, positions[3 * index + 0],
-                     positions[3 * index + 1],
-                     positions[3 * index + 2]);
-  quat.set(quaternion, quaternions[4 * index + 0],
-                       quaternions[4 * index + 1],
-                       quaternions[4 * index + 2],
-                       quaternions[4 * index + 3]);
-  mat4.fromQuat(rot, quaternion);
-  mat4.identity(trans);
-  mat4.translate(trans, trans, position);
-  mat4.multiply(body.uWorld, trans, rot);
-
-  vec3.set(body.minBB, bounds[6 * index + 0], bounds[6 * index + 1], bounds[6 * index + 2]);
-  vec3.set(body.maxBB, bounds[6 * index + 3], bounds[6 * index + 4], bounds[6 * index + 5]);
+  body.Place(positions[3 * index + 0], positions[3 * index + 1], positions[3 * index + 2]);
+  body.Rotate(quaternions[4 * index + 0], quaternions[4 * index + 1], quaternions[4 * index + 2], quaternions[4 * index + 3]);
+  vec3.set(body.uniform.minBB, bounds[6 * index + 0], bounds[6 * index + 1], bounds[6 * index + 2]);
+  vec3.set(body.uniform.maxBB, bounds[6 * index + 3], bounds[6 * index + 4], bounds[6 * index + 5]);
 }
-
-var fanquat = quat.create();
 
 Game.appUpdate = function ()
 {
   if (Game.loading) return;
   if (!Game.camera) return;
 
-  Game.world.fanrot += Math.PI / 30.0;
-  quat.identity(fanquat);
-  quat.rotateY(fanquat, fanquat, Game.world.fanrot);
-  mat4.fromRotationTranslation(Game.world.uFan.uWorld, fanquat, Game.world.fan.Position);
+  Game.world.objectFan.fanrot += Math.PI / 30.0;
+  quat.identity(Game.world.objectFan.Rotation);
+  quat.rotateY(Game.world.objectFan.Rotation, Game.world.objectFan.Rotation, Game.world.objectFan.fanrot);
+  Game.world.objectFan.Update();
 }
 
 Game.appDrawAux = function ()
@@ -331,43 +262,29 @@ Game.appDraw = function (eye)
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
-  effect.setUniforms(Game.world.uLight);
-  effect.draw(Game.world.light.Model);
+  effect.setUniforms(Game.world.objects[1].uniform);
+  effect.draw(Game.world.objects[1].Model);
 
   effect = Game.shaderMan.shaders["objectrender"];
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
-  effect.setUniforms(Game.world.uFloor);
-  effect.draw(Game.world.floor.Model);
-  effect.setUniforms(Game.world.uTable);
-  effect.draw(Game.world.table.Model);
-  effect.setUniforms(Game.world.uCeiling);
-  effect.draw(Game.world.ceiling.Model);
-  effect.setUniforms(Game.world.uFan);
-  effect.draw(Game.world.fan.Model);
-
-  for (var p in Game.world.uJenga)
+  for (var i = 2; i < Game.world.objects.length; ++i)
   {
-    effect.setUniforms(Game.world.uJenga[p]);
-    effect.draw(Game.world.jenga.Model);
+    if (!Game.world.objects[i].Model) continue;
+    effect.setUniforms(Game.world.objects[i].uniform);
+    effect.draw(Game.world.objects[i].Model);
   }
 
   // AABB render for physics debug
+  var boxmodel = Game.assetMan.assets["boxmodel"];
   effect = Game.shaderMan.shaders["boxrender"];
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
-  var boxmodel = Game.assetMan.assets["boxmodel"];
-  for (var p in Game.world.uJenga) {
-    effect.setUniforms(Game.world.uJenga[p]);
-    effect.draw(boxmodel);
-  }
-  effect.setUniforms(Game.world.uTable);
-  effect.draw(boxmodel);
-  for (var i = 0; i < 4; ++i)
+  for (var i = 5; i < Game.world.objects.length; ++i)
   {
-    effect.setUniforms(Game.world.uWalls[i]);
+    effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(boxmodel);
   }
 }
