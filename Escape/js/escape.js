@@ -67,6 +67,8 @@ Game.appInit = function ()
   Game.loadMeshPNG("floor", "assets/floor.model");
   Game.loadMeshPNG("table", "assets/table.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
+  Game.loadMeshPNG("clock", "assets/clock.model");
+  Game.loadMeshPNG("shelf", "assets/shelf.model");
   Game.loadMeshPNG("ceiling", "assets/ceiling.model");
   Game.loadMeshPNG("light", "assets/light.model");
   Game.loadMeshPNG("fan", "assets/fan.model");
@@ -108,6 +110,10 @@ Game.loadingStop = function ()
   fan.Place(0.0, 8.0, 0.0);
   fan.fanrot = 0;
   Game.world.objectFan = fan;
+  var shelf = new GameObject(Game.assetMan.assets["shelf"]);
+  shelf.Place(-4.0, 4.5, 0.0);
+  var clock = new GameObject(Game.assetMan.assets["clock"]);
+  clock.Place(-3.5, 4.8, 0.0);
 
   var table = new GameObject(Game.assetMan.assets["table"]);   // from here on match the physical data coming from worker
   table.Place(0.0, 8.0, 0.0);
@@ -222,7 +228,7 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  for (var i = 5, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
+  for (var i = 7, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
   var delay = dt * 1000 - (Date.now() - sendTime);
