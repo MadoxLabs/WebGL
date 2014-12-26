@@ -72,6 +72,9 @@ Game.appInit = function ()
   Game.loadMeshPNG("ceiling", "assets/ceiling.model");
   Game.loadMeshPNG("light", "assets/light.model");
   Game.loadMeshPNG("fan", "assets/fan.model");
+  Game.loadMeshPNG("dresser", "assets/dresser.model");
+  Game.loadMeshPNG("drawer", "assets/drawer.model");
+  Game.loadMeshPNG("switch", "assets/switch.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/lightrender.fx");
@@ -114,6 +117,15 @@ Game.loadingStop = function ()
   shelf.Place(-4.0, 4.5, 0.0);
   var clock = new GameObject(Game.assetMan.assets["clock"]);
   clock.Place(-3.5, 4.8, 0.0);
+  var dresser = new GameObject(Game.assetMan.assets["dresser"]);
+  quat.rotateY(dresser.Rotation, dresser.Rotation, Math.PI);
+  dresser.Place(3.4, 0.0, 0.0);
+  var drawer = new GameObject(Game.assetMan.assets["drawer"]);
+  quat.rotateY(drawer.Rotation, drawer.Rotation, Math.PI);
+  drawer.Place(3.4, 0.0, 0.0);
+  var lightswitch = new GameObject(Game.assetMan.assets["switch"]);
+  quat.rotateY(lightswitch.Rotation, drawer.Rotation, Math.PI/-2);
+  lightswitch.Place(3.9, 4.5, 0.0);
 
   var table = new GameObject(Game.assetMan.assets["table"]);   // from here on match the physical data coming from worker
   table.Place(0.0, 8.0, 0.0);
@@ -228,7 +240,7 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  for (var i = 7, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
+  for (var i = 10, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
   var delay = dt * 1000 - (Date.now() - sendTime);
