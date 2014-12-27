@@ -114,18 +114,8 @@ Game.loadingStop = function ()
   fan.Place(0.0, 8.0, 0.0);
   fan.fanrot = 0;
   Game.world.objectFan = fan;
-  var shelf = new GameObject(Game.assetMan.assets["shelf"]);
-  shelf.Place(-3.25, 4.5, 0.0);
-  var clock = new GameObject(Game.assetMan.assets["clock"]);
-  clock.Place(-3.5, 4.8, 0.0);
-  var dresser = new GameObject(Game.assetMan.assets["dresser"]);
-  quat.rotateY(dresser.Rotation, dresser.Rotation, Math.PI);
-  dresser.Place(3.4, 0.0, 0.0);
-  var drawer = new GameObject(Game.assetMan.assets["drawer"]);
-  quat.rotateY(drawer.Rotation, drawer.Rotation, Math.PI);
-  drawer.Place(3.4, 0.0, 0.0);
   var lightswitch = new GameObject(Game.assetMan.assets["switch"]);
-  quat.rotateY(lightswitch.Rotation, drawer.Rotation, Math.PI/-2);
+  quat.rotateY(lightswitch.Rotation, lightswitch.Rotation, Math.PI / 2);
   lightswitch.Place(3.9, 4.5, 0.0);
   var door = new GameObject(Game.assetMan.assets["door"]);
   quat.rotateY(door.Rotation, door.Rotation, Math.PI / -2);
@@ -133,6 +123,17 @@ Game.loadingStop = function ()
 
   var table = new GameObject(Game.assetMan.assets["table"]);   // from here on match the physical data coming from worker
   table.Place(0.0, 8.0, 0.0);
+
+  var shelf = new GameObject(Game.assetMan.assets["shelf"]);
+  shelf.Place(-3.25, 4.5, 0.0);
+  var clock = new GameObject(Game.assetMan.assets["clock"]);
+  clock.Place(-3.5, 4.8, 0.0);
+  var dresser = new GameObject(Game.assetMan.assets["dresser"]);
+  quat.rotateY(dresser.Rotation, dresser.Rotation, Math.PI);
+  dresser.Place(3.4, 1.5835, 0.0);
+  var drawer = new GameObject(Game.assetMan.assets["drawer"]);
+  quat.rotateY(drawer.Rotation, drawer.Rotation, Math.PI);
+  drawer.Place(3.2, 2.65, 0.0);
 
   for (var layer = 0; layer < 20; ++layer)
     for (var piece = 0; piece < 3; ++piece)
@@ -220,9 +221,10 @@ Game.loadingStop = function ()
 
 var sendTime;
 var dt = 1 / 60;
-var positions = new Float32Array(3 * 65);
-var quaternions = new Float32Array(4 * 65);
-var bounds = new Float32Array(6 * 65);
+var liveobjects = 69;
+var positions = new Float32Array(3 * liveobjects);
+var quaternions = new Float32Array(4 * liveobjects);
+var bounds = new Float32Array(6 * liveobjects);
 
 var live = false;
 function toWorker()
@@ -244,7 +246,7 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  for (var i = 11, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
+  for (var i = 7, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
   var delay = dt * 1000 - (Date.now() - sendTime);

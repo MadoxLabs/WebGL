@@ -31,12 +31,36 @@ self.onmessage = function (e)
     world.add(groundBody);
 
     // furniture
-    var box = new CANNON.Box(new CANNON.Vec3(2.0, 1.5, 1.0));
     var table = new CANNON.Body({ mass: 10 });
-    table.addShape(box);
+    table.addShape(new CANNON.Box(new CANNON.Vec3(2.0, 1.5, 1.0)));
     table.position.set(0.0, 1.5, 3.0);
     table.type = CANNON.Body.KINEMATIC;
     world.add(table);
+
+    var shelf = new CANNON.Body({ mass: 10 });
+    shelf.addShape(new CANNON.Box(new CANNON.Vec3(0.75, 0.05, 2.0)));
+    shelf.position.set(-3.25, 4.5, 0.0);
+    shelf.type = CANNON.Body.KINEMATIC;
+    world.add(shelf);
+
+    var clock = new CANNON.Body({ mass: 10 });
+    clock.addShape(new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.5)));
+    clock.position.set(-3.5, 4.8, 0.0);
+    world.add(clock);
+
+    var dresser = new CANNON.Body({ mass: 10 });
+    dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 1.6, 1.5)));
+    dresser.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
+    dresser.position.set(3.4, 1.5835, 0.0);
+    dresser.type = CANNON.Body.KINEMATIC;
+    world.add(dresser);
+
+    var drawer = new CANNON.Body({ mass: 10 });
+    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.472, 0.4, 1.25)));
+    drawer.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
+    drawer.position.set(3.2, 2.65, 0.0);
+    drawer.type = CANNON.Body.KINEMATIC;
+    world.add(drawer);
 
     var shape = new CANNON.Box(new CANNON.Vec3(0.166 / 2.0, 0.083 / 2.0, 0.498 / 2.0));
     var angle = 0;
