@@ -72,6 +72,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("ceiling", "assets/ceiling.model");
   Game.loadMeshPNG("light", "assets/light.model");
   Game.loadMeshPNG("fan", "assets/fan.model");
+  Game.loadMeshPNG("door", "assets/door.model");
   Game.loadMeshPNG("dresser", "assets/dresser.model");
   Game.loadMeshPNG("drawer", "assets/drawer.model");
   Game.loadMeshPNG("switch", "assets/switch.model");
@@ -97,7 +98,7 @@ Game.loadingStop = function ()
   // SET UP CAMERA
   Game.camera.offset[0] = 0.0;
   Game.camera.offset[1] = 0.0;
-  Game.camera.offset[2] = -1.0;
+  Game.camera.offset[2] = 1.0;
   var target = new GameObject(null);
   target.Position[1] = 5.0;
   Game.camera.setTarget(target);
@@ -114,7 +115,7 @@ Game.loadingStop = function ()
   fan.fanrot = 0;
   Game.world.objectFan = fan;
   var shelf = new GameObject(Game.assetMan.assets["shelf"]);
-  shelf.Place(-4.0, 4.5, 0.0);
+  shelf.Place(-3.25, 4.5, 0.0);
   var clock = new GameObject(Game.assetMan.assets["clock"]);
   clock.Place(-3.5, 4.8, 0.0);
   var dresser = new GameObject(Game.assetMan.assets["dresser"]);
@@ -126,6 +127,9 @@ Game.loadingStop = function ()
   var lightswitch = new GameObject(Game.assetMan.assets["switch"]);
   quat.rotateY(lightswitch.Rotation, drawer.Rotation, Math.PI/-2);
   lightswitch.Place(3.9, 4.5, 0.0);
+  var door = new GameObject(Game.assetMan.assets["door"]);
+  quat.rotateY(door.Rotation, door.Rotation, Math.PI / -2);
+  door.Place(0.0, 0.0, -3.9);
 
   var table = new GameObject(Game.assetMan.assets["table"]);   // from here on match the physical data coming from worker
   table.Place(0.0, 8.0, 0.0);
@@ -240,7 +244,7 @@ function fromWorker(e)
   quaternions = e.data.quaternions;
   bounds = e.data.bounds;
 
-  for (var i = 10, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
+  for (var i = 11, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
   var delay = dt * 1000 - (Date.now() - sendTime);
