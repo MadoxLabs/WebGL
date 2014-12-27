@@ -3,6 +3,7 @@ objectrender
 [END]
 
 [INCLUDE renderstates]
+[INCLUDE shadowrecieve]
 
 [COMMON]
 varying vec2 vTextureCoord;
@@ -61,7 +62,7 @@ void main(void)
   vec3 ac = vec3(0.1, 0.1, 0.1);
   vec3 color = ac + diffusecolor * nDotL;
 
-  gl_FragColor = vec4(color,1.0);
+  gl_FragColor = vec4(color * IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition) ,1.0);
 }
 
 [END]

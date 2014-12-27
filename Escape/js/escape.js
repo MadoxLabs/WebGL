@@ -80,6 +80,8 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/lightrender.fx");
   Game.loadShaderFile("assets/boxrender.fx");
+  Game.loadShaderFile("assets/shadowcast.fx");
+  Game.loadShaderFile("assets/shadowrecieve.fx");
 }
 
 Game.deviceReady = function ()
@@ -106,14 +108,14 @@ Game.loadingStop = function ()
   // SET UP SCENE
   var light = new GameObject(Game.assetMan.assets["light"]);    // these pieces are not physical
   light.Place(0.0, 8.0, 0.0);
-  var floor = new GameObject(Game.assetMan.assets["floor"]);    
-  floor.Place(0.0, -0.05, 0.0);
   var ceiling = new GameObject(Game.assetMan.assets["ceiling"]);
   ceiling.Place(0.0, 8.0, 0.0);
   var fan = new GameObject(Game.assetMan.assets["fan"]);
   fan.Place(0.0, 8.0, 0.0);
   fan.fanrot = 0;
   Game.world.objectFan = fan;
+  var floor = new GameObject(Game.assetMan.assets["floor"]);
+  floor.Place(0.0, -0.05, 0.0);
   var lightswitch = new GameObject(Game.assetMan.assets["switch"]);
   quat.rotateY(lightswitch.Rotation, lightswitch.Rotation, Math.PI / 2);
   lightswitch.Place(3.9, 4.5, 0.0);
@@ -141,17 +143,38 @@ Game.loadingStop = function ()
 
   for (var i = 0; i < 4; ++i) var wall = new GameObject(null); 
 
-  // SET UP LIGHT
-  Game.world.lighteye = new Camera(2048, 2048);
-  Game.world.lighteye.offset = vec3.fromValues(0.0, 7.0, 0.0);
-  Game.world.lighteye.setTarget(Game.world.objects[2]);
+//  // SET UP LIGHT
+//  Game.world.lighteye = new Camera(2048, 2048);
+//  Game.world.lighteye.offset = vec3.fromValues(0.0, 7.0, 0.0);
+//  Game.world.lighteye.setTarget(Game.world.objects[2]);
+
+  // SET UP LIGHT AND SHADOWS
+  Game.world.shadowUp = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
+  Game.world.shadowDown = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
+
+  Game.world.lighteyeUp = new Camera(2048, 2048);
+  Game.world.lighteyeUp.offset = vec3.fromValues(0.0, -1.0, 0.0001);
+  var target2 = new GameObject(null);
+  target2.Position[1] = 8.0;
+  Game.world.lighteyeUp.setTarget(target2);
+  Game.world.lighteyeUp.update();
+
+  Game.world.lighteyeDown = new Camera(2048, 2048);
+  Game.world.lighteyeDown.fov = Math.PI / 1.5;
+  Game.world.lighteyeDown.far = 10.0;
+  Game.world.lighteyeDown.offset = vec3.fromValues(0.0, 2.0, 0.0001);
+  Game.world.lighteyeDown.setTarget(target);
+  Game.world.lighteyeDown.update();
 
   // SCENE UNIFORMS
   var effect = Game.shaderMan.shaders["objectrender"];
   Game.world.uScene = effect.createUniform('scene');
-  Game.world.uScene.uLightPosition = Game.world.lighteye.position;
-  Game.world.uScene.uWorldToLight = mat4.create();
-  mat4.multiply(Game.world.uScene.uWorldToLight, Game.world.lighteye.eyes[0].projection, Game.world.lighteye.eyes[0].view);
+  Game.world.uScene.uLightPosition = Game.world.lighteyeDown.position;
+  Game.world.uScene.uWorldToLight = null;
+  Game.world.uScene.uWorldToLight1 = mat4.create();
+  Game.world.uScene.uWorldToLight2 = mat4.create();
+  mat4.multiply(Game.world.uScene.uWorldToLight1, Game.world.lighteyeDown.eyes[0].projection, Game.world.lighteyeDown.eyes[0].view);
+  mat4.multiply(Game.world.uScene.uWorldToLight2, Game.world.lighteyeUp.eyes[0].projection, Game.world.lighteyeUp.eyes[0].view);
 
   // SET UP PHYSICS
   Game.world.physicsWorker = new Worker("js/physics.js");
@@ -276,12 +299,37 @@ Game.appUpdate = function ()
 Game.appDrawAux = function ()
 {
   if (Game.loading) return;
+
+  Game.world.lighteyeUp.engage();
+  Game.world.shadowUp.engage();
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  var effect = Game.shaderMan.shaders["shadowcast"];
+  effect.bind();
+  effect.bindCamera(Game.world.lighteyeUp);
+  effect.setUniforms(Game.world.uScene);
+  effect.setUniforms(Game.world.objectFan.uniform);
+  effect.draw(Game.world.objectFan.Model);
+
+  Game.world.lighteyeDown.engage();
+  Game.world.shadowDown.engage();
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  effect.bind();
+  effect.bindCamera(Game.world.lighteyeDown);
+  effect.setUniforms(Game.world.uScene);
+  for (var i = 5; i < Game.world.objects.length; ++i) {
+    if (!Game.world.objects[i].Model) continue;
+    effect.setUniforms(Game.world.objects[i].uniform);
+    effect.draw(Game.world.objects[i].Model);
+  }
 }
 
 Game.appDraw = function (eye)
 {
   if (!Game.ready || Game.loading) return;
 
+  // light has a special shader
   effect = Game.shaderMan.shaders["lightrender"];
   effect.bind();
   effect.bindCamera(eye);
@@ -289,16 +337,32 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.objects[1].uniform);
   effect.draw(Game.world.objects[1].Model);
 
+  // render objects
   effect = Game.shaderMan.shaders["objectrender"];
   effect.bind();
   effect.bindCamera(eye);
+
+  // ceiling and fan use up facing shadow map
+  Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
   effect.setUniforms(Game.world.uScene);
-  for (var i = 2; i < Game.world.objects.length; ++i)
+  effect.bindTexture("shadow", Game.world.shadowUp.texture);  // ceiling
+  effect.setUniforms(Game.world.objects[2].uniform);
+  effect.draw(Game.world.objects[2].Model);
+  effect.setUniforms(Game.world.objects[3].uniform);   // fan
+  effect.draw(Game.world.objects[3].Model);
+
+  // the rest are down facing
+  Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight1;
+  effect.setUniforms(Game.world.uScene);
+  effect.bindTexture("shadow", Game.world.shadowDown.texture);
+  for (var i = 3; i < Game.world.objects.length; ++i)
   {
     if (!Game.world.objects[i].Model) continue;
     effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(Game.world.objects[i].Model);
   }
+
+  return;
 
   // AABB render for physics debug
   var boxmodel = Game.assetMan.assets["boxmodel"];
