@@ -60,9 +60,9 @@ void main(void)
 {
   float nDotL = dot(normalize(vNormal), normalize(uLightPosition - vec3(vPosition)));
   vec3 ac = vec3(0.1, 0.1, 0.1);
-  vec3 color = ac + diffusecolor * nDotL;
+  vec3 color = ac + diffusecolor * nDotL * IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition);
 
-  gl_FragColor = vec4(color * IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition) ,1.0);
+  gl_FragColor = vec4(color, 1.0);
 }
 
 [END]

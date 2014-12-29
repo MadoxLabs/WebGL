@@ -5,6 +5,17 @@ var live = false;
 
 self.onmessage = function (e)
 {
+  if (e.data.near)
+  {
+    var obj = new CANNON.RaycastResult();
+    world.rayTest(e.data.near, e.data.far, obj);
+    self.postMessage({ hit: obj.body.name });
+
+    obj.body.wakeUp();
+    obj.body.applyForce(obj.hitNormalWorld.scale(-200 * obj.body.mass), obj.hitPointWorld);
+    return;
+  }
+
   if (!world)
   {
     // Init physics
@@ -28,6 +39,7 @@ self.onmessage = function (e)
     groundBody.addShape(plane);
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
     groundBody.type = CANNON.Body.STATIC;
+    groundBody.name = "ground";
     world.add(groundBody);
 
     // furniture
@@ -35,17 +47,20 @@ self.onmessage = function (e)
     table.addShape(new CANNON.Box(new CANNON.Vec3(2.0, 1.5, 1.0)));
     table.position.set(0.0, 1.5, 3.0);
     table.type = CANNON.Body.KINEMATIC;
+    table.name = "table";
     world.add(table);
 
     var shelf = new CANNON.Body({ mass: 10 });
     shelf.addShape(new CANNON.Box(new CANNON.Vec3(0.75, 0.05, 2.0)));
     shelf.position.set(-3.25, 4.5, 0.0);
     shelf.type = CANNON.Body.KINEMATIC;
+    shelf.name = "shelf";
     world.add(shelf);
 
-    var clock = new CANNON.Body({ mass: 10 });
+    var clock = new CANNON.Body({ mass: 20 });
     clock.addShape(new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.5)));
     clock.position.set(-3.5, 4.8, 0.0);
+    clock.name = "clock";
     world.add(clock);
 
     var dresser = new CANNON.Body({ mass: 10 });
@@ -53,6 +68,7 @@ self.onmessage = function (e)
     dresser.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
     dresser.position.set(3.4, 1.5835, 0.0);
     dresser.type = CANNON.Body.KINEMATIC;
+    dresser.name = "dresser";
     world.add(dresser);
 
     var drawer = new CANNON.Body({ mass: 10 });
@@ -60,6 +76,7 @@ self.onmessage = function (e)
     drawer.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
     drawer.position.set(3.2, 2.65, 0.0);
     drawer.type = CANNON.Body.KINEMATIC;
+    drawer.name = "drawer";
     world.add(drawer);
 
     var shape = new CANNON.Box(new CANNON.Vec3(0.166 / 2.0, 0.083 / 2.0, 0.498 / 2.0));
@@ -71,9 +88,10 @@ self.onmessage = function (e)
       {
         var body = new CANNON.Body({ mass: 1 });
         body.addShape(shape);
-        if (layer % 2) body.position.set(0.166 * piece, 0.080 * layer + 3.0, 0.0 + 2.5);
-        else body.position.set(0.166, 0.080 * layer + 3.0, 0.166 * piece - 0.166 + 2.5);
+        if (layer % 2) body.position.set((Math.random() * 0.01) + 0.166 * piece, (Math.random() * 0.01) + 0.080 * layer + 3.0, 0.0 + 2.5);
+        else body.position.set((Math.random() * 0.01) + 0.166, (Math.random() * 0.01) + 0.080 * layer + 3.0, 0.166 * piece - 0.166 + 2.5);
         body.quaternion.setFromEuler(0, angle, 0);
+        body.name = "jenga";
         world.add(body);
         body.sleep();
       }
@@ -85,12 +103,14 @@ self.onmessage = function (e)
     wall.addShape(wallbox);
     wall.position.set(0.0, 4.0, 4.0);
     wall.type = CANNON.Body.STATIC;
+    wall.name = "wall";
     world.add(wall);
 
     wall = new CANNON.Body({ mass: 1000000 });
     wall.addShape(wallbox);
     wall.position.set(0.0, 4.0, -4.0);
     wall.type = CANNON.Body.STATIC;
+    wall.name = "wall";
     world.add(wall);
 
     wall = new CANNON.Body({ mass: 1000000 });
@@ -98,6 +118,7 @@ self.onmessage = function (e)
     wall.position.set(-4.0, 4.0, 0.0);
     wall.quaternion.setFromEuler(0, Math.PI/2.0, 0);
     wall.type = CANNON.Body.STATIC;
+    wall.name = "wall";
     world.add(wall);
 
     wall = new CANNON.Body({ mass: 1000000 });
@@ -105,15 +126,16 @@ self.onmessage = function (e)
     wall.position.set(4.0, 4.0, 0.0);
     wall.quaternion.setFromEuler(0, Math.PI / -2.0, 0);
     wall.type = CANNON.Body.STATIC;
+    wall.name = "wall";
     world.add(wall);
   }
 
-  if (e.data.live && !live)
-  {
-    live = true;
-    for (var i = 0; i !== world.bodies.length; i++)
-      if (world.bodies[i].sleepState) world.bodies[i].wakeUp();
-  }
+//  if (e.data.live && !live)
+//  {
+//    live = true;
+//    for (var i = 0; i !== world.bodies.length; i++)
+//      if (world.bodies[i].sleepState) world.bodies[i].wakeUp();
+//  }
 
   // Step the world
   world.step(e.data.dt);

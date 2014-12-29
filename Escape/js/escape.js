@@ -153,14 +153,16 @@ Game.loadingStop = function ()
   Game.world.shadowDown = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
 
   Game.world.lighteyeUp = new Camera(2048, 2048);
-  Game.world.lighteyeUp.offset = vec3.fromValues(0.0, -1.0, 0.0001);
+  Game.world.lighteyeUp.fov = Math.PI / 1.1;
+  Game.world.lighteyeUp.far = 10.0;
+  Game.world.lighteyeUp.offset = vec3.fromValues(0.0, -0.1, 0.0001);
   var target2 = new GameObject(null);
-  target2.Position[1] = 8.0;
+  target2.Position[1] = 7.0;
   Game.world.lighteyeUp.setTarget(target2);
   Game.world.lighteyeUp.update();
 
   Game.world.lighteyeDown = new Camera(2048, 2048);
-  Game.world.lighteyeDown.fov = Math.PI / 1.5;
+  Game.world.lighteyeDown.fov = Math.PI / 1.1;
   Game.world.lighteyeDown.far = 10.0;
   Game.world.lighteyeDown.offset = vec3.fromValues(0.0, 2.0, 0.0001);
   Game.world.lighteyeDown.setTarget(target);
@@ -262,8 +264,18 @@ function toWorker()
   }, [positions.buffer, quaternions.buffer, bounds.buffer]);
 }
 
+function queryPick(near, far)
+{
+  Game.world.physicsWorker.postMessage({
+    near: { x: near[0], y: near[1], z: near[2] },
+    far: { x: far[0], y: far[1], z: far[2] }
+  });
+}
+
 function fromWorker(e)
 {
+  if (e.data.hit) { console.log("Mouse clicked: " + e.data.hit); return; }
+
   // Get fresh data from the worker
   positions = e.data.positions;
   quaternions = e.data.quaternions;
@@ -362,6 +374,9 @@ Game.appDraw = function (eye)
     effect.draw(Game.world.objects[i].Model);
   }
 
+  effect.setUniforms(pickUniform);
+  effect.draw(Game.assetMan.assets["light"]);
+
   return;
 
   // AABB render for physics debug
@@ -389,7 +404,7 @@ Game.appHandleKeyDown = function (event)
   else if (event.keyCode == 39 && Game.camera.target.Position[0] < 100)  // Right cursor key
   {
   }
-  else if (event.keyCode == 38 && Game.camera.target.Position[2] > 0)  // Up cursor key
+  else if (event.keyCode == 38)  // Up cursor key
   {
   }
   else if (event.keyCode == 40 && Game.camera.target.Position[2] < 100)  // Down cursor key
@@ -417,14 +432,36 @@ Game.appHandleKeyUp = function (event)
 }
 
 var clicked = false;
+var pickUniform = { uWorld: mat4.create() };
+
 Game.appHandleMouseEvent = function(type, mouse)
 {
   // console.log("Mouse event: " + ['Down', 'Up', 'Move', 'In', 'Out', 'Grab', 'Release', 'NoGrab', 'Wheel'][type]);
   if (mouse.button == 0 && type == MouseEvent.Down)
+  {
     live = true;
+
+    var unproject = mat4.create();
+    var unproj = mat4.create();
+    var unview = mat4.create();
+    mat4.invert(unproj, Game.camera.eyes[0].projection);
+    mat4.invert(unview, Game.camera.eyes[0].view);
+    mat4.multiply(unproject, unview, unproj);
+
+    var near = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, -1.0, 1.0);
+    vec4.transformMat4(near, near, unproject);
+    vec4.scale(near, near, 1.0/near[3])
+
+    var far = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, 1.0, 1.0);
+    vec4.transformMat4(far, far, unproject);
+    vec4.scale(far, far, 1.0 / far[3])
+
+    queryPick(near, far);
+  }
 
   if (mouse.button == 2 && type == MouseEvent.Down)
   { console.log("click"); clicked = true; } //mouse.grab(); }
+
   if (mouse.button == 2 && type == MouseEvent.Up)
   { console.log("unclick");  clicked = false; } //mouse.release();
 
