@@ -91,7 +91,7 @@ self.onmessage = function (e)
         if (layer % 2) body.position.set((Math.random() * 0.01) + 0.166 * piece, (Math.random() * 0.01) + 0.080 * layer + 3.0, 0.0 + 2.5);
         else body.position.set((Math.random() * 0.01) + 0.166, (Math.random() * 0.01) + 0.080 * layer + 3.0, 0.166 * piece - 0.166 + 2.5);
         body.quaternion.setFromEuler(0, angle, 0);
-        body.name = "jenga";
+        body.name = "jenga"+(piece+layer*3);
         world.add(body);
         body.sleep();
       }
@@ -103,14 +103,14 @@ self.onmessage = function (e)
     wall.addShape(wallbox);
     wall.position.set(0.0, 4.0, 4.0);
     wall.type = CANNON.Body.STATIC;
-    wall.name = "wall";
+    wall.name = "wall0";
     world.add(wall);
 
     wall = new CANNON.Body({ mass: 1000000 });
     wall.addShape(wallbox);
     wall.position.set(0.0, 4.0, -4.0);
     wall.type = CANNON.Body.STATIC;
-    wall.name = "wall";
+    wall.name = "wall1";
     world.add(wall);
 
     wall = new CANNON.Body({ mass: 1000000 });
@@ -118,7 +118,7 @@ self.onmessage = function (e)
     wall.position.set(-4.0, 4.0, 0.0);
     wall.quaternion.setFromEuler(0, Math.PI/2.0, 0);
     wall.type = CANNON.Body.STATIC;
-    wall.name = "wall";
+    wall.name = "wall2";
     world.add(wall);
 
     wall = new CANNON.Body({ mass: 1000000 });
@@ -126,21 +126,15 @@ self.onmessage = function (e)
     wall.position.set(4.0, 4.0, 0.0);
     wall.quaternion.setFromEuler(0, Math.PI / -2.0, 0);
     wall.type = CANNON.Body.STATIC;
-    wall.name = "wall";
+    wall.name = "wall3";
     world.add(wall);
   }
-
-//  if (e.data.live && !live)
-//  {
-//    live = true;
-//    for (var i = 0; i !== world.bodies.length; i++)
-//      if (world.bodies[i].sleepState) world.bodies[i].wakeUp();
-//  }
 
   // Step the world
   world.step(e.data.dt);
 
   // Copy over the data to the buffers
+  var names = [];
   var positions = e.data.positions;
   var quaternions = e.data.quaternions;
   var bounds = e.data.bounds;
@@ -149,7 +143,9 @@ self.onmessage = function (e)
     var b = world.bodies[i],
         p = b.position,
         q = b.quaternion;
-    if (b.shapes[0].type == 2) continue;
+    //    if (b.shapes[0].type == CANNON.Body.STATIC) continue;
+    if (b.aabbNeedsUpdate) b.computeAABB();
+    names.push(b.name);
     positions[3 * j + 0] = p.x;
     positions[3 * j + 1] = p.y;
     positions[3 * j + 2] = p.z;
@@ -168,6 +164,7 @@ self.onmessage = function (e)
 
   // Send data back to the main thread
   self.postMessage({
+    names: names,
     positions: positions,
     quaternions: quaternions,
     bounds: bounds

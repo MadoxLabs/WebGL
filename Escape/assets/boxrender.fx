@@ -30,7 +30,7 @@ void main(void)
   vec3 pos = aVertexPosition;
   vec3 pos2 =  vec3((1.0-pos.x) * minBB.x, (1.0-pos.y) * minBB.y, (1.0-pos.z) * minBB.z) + vec3(pos.x * maxBB.x, pos.y * maxBB.y, pos.z * maxBB.z);
 
-  gl_Position = projection * view * uWorld * localTransform * vec4(pos2, 1.0);
+  gl_Position = projection * view * localTransform * vec4(pos2, 1.0);
 }
 [END]
 

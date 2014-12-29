@@ -1,8 +1,7 @@
 function World()
 {
   this.currentlyPressedKeys = [];
-  this.objects = [];
-  this.objectFan;
+  this.objects = {};
 
   this.uScene = null;
 
@@ -13,15 +12,18 @@ function World()
 
 
 
-
-
-function GameObject(model)
+function GameObject(model, name)
 {
-  this.id = Game.world.objects.length;
-  Game.world.objects.push(this);
+//  this.id = Game.world.objects.length;
+  if (name)
+  {
+    this.name = name;
+    Game.world.objects[name] = this;
+  }
 
   this.Model = model;
-  this.Position = vec3.create(); vec3.set(this.Position, 0,0,0);
+  this.LocalPosition = vec3.fromValues(0, 0, 0);
+  this.Position = vec3.fromValues(0, 0, 0);
   this.Rotation = quat.create(); quat.identity(this.Rotation);
   this.Velocity = vec3.create();
 
@@ -32,33 +34,161 @@ function GameObject(model)
   this.uniform.uWorld = mat4.create();
   this.uniform.minBB = vec3.create();
   this.uniform.maxBB = vec3.create();
+
+  this.dirty = false;
 }
 
 GameObject.prototype.Place = function (x,y,z)
 {
-  vec3.set(this.Position, x, y, z);
-  this.Update();
+  vec3.set(this.LocalPosition, x, y, z);
+  this.dirty = true;
 }
 
 GameObject.prototype.Rotate = function (x, y, z, w)
 {
   quat.set(this.Rotation, x, y, z, w);
-  this.Update();
+  this.dirty = true;
 }
 
 GameObject.prototype.Update = function (gametime)
 {
+  if (!this.dirty && !this.mover) return;
+
+  this.dirty = false;
+  if (this.mover) {
+    this.mover.update();
+    vec3.add(this.Position, this.LocalPosition, this.mover.offset);
+  }
+  else
+    vec3.copy(this.Position, this.LocalPosition);
   mat4.fromQuat(this.Orient, this.Rotation);
   mat4.identity(this.Trans);
   mat4.translate(this.Trans, this.Trans, this.Position);
   mat4.multiply(this.uniform.uWorld, this.Trans, this.Orient);
 }
 
+GameObject.prototype.setMover = function(m)
+{
+  this.mover = m;
+}
+
+
+function PhysicsWorker()
+{
+  this.worker = new Worker("js/physics.js");;
+  this.sendTime = 0;
+  this.dt = 1 / 60;
+  this.liveobjects = 70;
+  this.positions = new Float32Array(3 * this.liveobjects);
+  this.quaternions = new Float32Array(4 * this.liveobjects);
+  this.bounds = new Float32Array(6 * this.liveobjects);
+
+  var self = this;
+  this.worker.onmessage = function (event) { self.fromWorker(event); };
+  this.worker.onerror = function (event) { console.log("ERROR: " + event.message + " (" + event.filename + ":" + event.lineno + ")"); };
+  this.toWorker();
+}
+
+PhysicsWorker.prototype.toWorker = function ()
+{
+  this.sendTime = Date.now();
+  this.worker.postMessage({
+    dt: this.dt,
+    positions: this.positions,
+    quaternions: this.quaternions,
+    bounds: this.bounds
+  }, [this.positions.buffer, this.quaternions.buffer, this.bounds.buffer]);
+}
+
+PhysicsWorker.prototype.queryPick = function (near, far)
+{
+  this.worker.postMessage({
+    near: { x: near[0], y: near[1], z: near[2] },
+    far: { x: far[0], y: far[1], z: far[2] }
+  });
+}
+
+PhysicsWorker.prototype.fromWorker = function (e)
+{
+  if (e.data.hit) { Game.itemClick(e.data.hit); return; }
+
+  // Get fresh data from the worker
+  this.positions = e.data.positions;
+  this.quaternions = e.data.quaternions;
+  this.bounds = e.data.bounds;
+
+  for (var index in e.data.names)
+  {
+    var body = Game.world.objects[e.data.names[index]];
+    if (!body) continue;
+    body.Place(this.positions[3 * index + 0], this.positions[3 * index + 1], this.positions[3 * index + 2]);
+    body.Rotate(this.quaternions[4 * index + 0], this.quaternions[4 * index + 1], this.quaternions[4 * index + 2], this.quaternions[4 * index + 3]);
+    vec3.set(body.uniform.minBB, this.bounds[6 * index + 0], this.bounds[6 * index + 1], this.bounds[6 * index + 2]);
+    vec3.set(body.uniform.maxBB, this.bounds[6 * index + 3], this.bounds[6 * index + 4], this.bounds[6 * index + 5]);
+  }
+
+  // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
+  var delay = this.dt * 1000 - (Date.now() - this.sendTime);
+  var self = this;
+  if (delay < 0) delay = 0;
+  setTimeout(function () { self.toWorker(); }, delay);
+}
 
 
 
+function MoverTranslate(e, t) // vec3 extent, float time
+{
+  this.extent = e;
+  this.time = t;
+  this.step = vec3.create();
+  this.offset = vec3.fromValues(0, 0, 0);
+  this.direction = -1;
+}
+
+MoverTranslate.prototype.start = function()
+{
+  if (this.startTime) return;
+  this.direction = -1 * this.direction;
+  this.startTime = Date.now();
+}
+
+MoverTranslate.prototype.stop = function ()
+{
+  if (this.direction == 1)
+    vec3.copy(this.offset, this.extent);
+  else
+    vec3.set(this.offset, 0, 0, 0);
+  this.startTime = 0;
+}
+
+MoverTranslate.prototype.update = function ()
+{
+  if (!this.startTime) return;
+
+  var now = Date.now();
+  if (now - this.startTime > this.time) { this.stop(); return; }
+
+  vec3.scale(this.step, this.extent, (now - this.startTime) / this.time);
+
+  if (this.direction == 1)
+  {
+         if (Math.abs(this.offset[0] + this.step[0]) > Math.abs(this.extent[0])) this.stop();
+    else if (Math.abs(this.offset[1] + this.step[1]) > Math.abs(this.extent[1])) this.stop();
+    else if (Math.abs(this.offset[2] + this.step[2]) > Math.abs(this.extent[2])) this.stop();
+    else vec3.add(this.offset, this.offset, this.step);
+  }
+  else
+  {
+         if (this.offset[0] * (this.offset[0] - this.step[0]) < 0) this.stop();
+    else if (this.offset[1] * (this.offset[1] - this.step[1]) < 0) this.stop();
+    else if (this.offset[2] * (this.offset[2] - this.step[2]) < 0) this.stop();
+    else vec3.subtract(this.offset, this.offset, this.step);
+  }
+}
 
 
+// MAIN GAME CODE
+// GAME INIT
 Game.appInit = function ()
 {
   Game.world = new World();
@@ -76,6 +206,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("dresser", "assets/dresser.model");
   Game.loadMeshPNG("drawer", "assets/drawer.model");
   Game.loadMeshPNG("switch", "assets/switch.model");
+  Game.loadMeshPNG("flashlight", "assets/flashlight.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/lightrender.fx");
@@ -106,47 +237,45 @@ Game.loadingStop = function ()
   Game.camera.setTarget(target);
 
   // SET UP SCENE
-  var light = new GameObject(Game.assetMan.assets["light"]);    // these pieces are not physical
+  var light = new GameObject(Game.assetMan.assets["light"], "light");    // these pieces are not physical
   light.Place(0.0, 8.0, 0.0);
-  var ceiling = new GameObject(Game.assetMan.assets["ceiling"]);
+  light.skip = true;
+  var ceiling = new GameObject(Game.assetMan.assets["ceiling"], "ceiling");
   ceiling.Place(0.0, 8.0, 0.0);
-  var fan = new GameObject(Game.assetMan.assets["fan"]);
+  ceiling.skip = true;
+  var fan = new GameObject(Game.assetMan.assets["fan"], "fan");
   fan.Place(0.0, 8.0, 0.0);
   fan.fanrot = 0;
-  Game.world.objectFan = fan;
-  var floor = new GameObject(Game.assetMan.assets["floor"]);
+  fan.skip = true;
+  var floor = new GameObject(Game.assetMan.assets["floor"], "floor");
   floor.Place(0.0, -0.05, 0.0);
-  var lightswitch = new GameObject(Game.assetMan.assets["switch"]);
+  var lightswitch = new GameObject(Game.assetMan.assets["switch"], "switch");
   quat.rotateY(lightswitch.Rotation, lightswitch.Rotation, Math.PI / 2);
   lightswitch.Place(3.9, 4.5, 0.0);
-  var door = new GameObject(Game.assetMan.assets["door"]);
+  var door = new GameObject(Game.assetMan.assets["door"], "door");
   quat.rotateY(door.Rotation, door.Rotation, Math.PI / -2);
   door.Place(0.0, 0.0, -3.9);
 
-  var table = new GameObject(Game.assetMan.assets["table"]);   // from here on match the physical data coming from worker
+  var table = new GameObject(Game.assetMan.assets["table"], "table");   // from here on match the physical data coming from worker
   table.Place(0.0, 8.0, 0.0);
 
-  var shelf = new GameObject(Game.assetMan.assets["shelf"]);
+  var shelf = new GameObject(Game.assetMan.assets["shelf"], "shelf");
   shelf.Place(-3.25, 4.5, 0.0);
-  var clock = new GameObject(Game.assetMan.assets["clock"]);
+  var clock = new GameObject(Game.assetMan.assets["clock"], "clock");
   clock.Place(-3.5, 4.8, 0.0);
-  var dresser = new GameObject(Game.assetMan.assets["dresser"]);
+  var dresser = new GameObject(Game.assetMan.assets["dresser"], "dresser");
   quat.rotateY(dresser.Rotation, dresser.Rotation, Math.PI);
   dresser.Place(3.4, 1.5835, 0.0);
-  var drawer = new GameObject(Game.assetMan.assets["drawer"]);
+  var drawer = new GameObject(Game.assetMan.assets["drawer"], "drawer");
   quat.rotateY(drawer.Rotation, drawer.Rotation, Math.PI);
   drawer.Place(3.2, 2.65, 0.0);
+  drawer.setMover(new MoverTranslate(vec3.fromValues(-0.6,0,0),1000));
 
   for (var layer = 0; layer < 20; ++layer)
     for (var piece = 0; piece < 3; ++piece)
-      var jenga = new GameObject(Game.assetMan.assets["jenga"]);
+      var jenga = new GameObject(Game.assetMan.assets["jenga"], "jenga"+(piece+layer*3));
 
-  for (var i = 0; i < 4; ++i) var wall = new GameObject(null); 
-
-//  // SET UP LIGHT
-//  Game.world.lighteye = new Camera(2048, 2048);
-//  Game.world.lighteye.offset = vec3.fromValues(0.0, 7.0, 0.0);
-//  Game.world.lighteye.setTarget(Game.world.objects[2]);
+  for (var i = 0; i < 4; ++i) var wall = new GameObject(null, "wall"+i); 
 
   // SET UP LIGHT AND SHADOWS
   Game.world.shadowUp = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
@@ -179,10 +308,7 @@ Game.loadingStop = function ()
   mat4.multiply(Game.world.uScene.uWorldToLight2, Game.world.lighteyeUp.eyes[0].projection, Game.world.lighteyeUp.eyes[0].view);
 
   // SET UP PHYSICS
-  Game.world.physicsWorker = new Worker("js/physics.js");
-  Game.world.physicsWorker.onmessage = fromWorker;
-  Game.world.physicsWorker.onerror = function (event) { console.log("ERROR: " + event.message + " (" + event.filename + ":" + event.lineno + ")"); };
-  toWorker();
+  Game.world.physicsWorker = new PhysicsWorker();
 
   // MAKE THE AABB BOX
   var aabbvertices = [
@@ -244,69 +370,33 @@ Game.loadingStop = function ()
   Game.assetMan.assets['boxmodel'] = boxModel;
 }
 
-var sendTime;
-var dt = 1 / 60;
-var liveobjects = 69;
-var positions = new Float32Array(3 * liveobjects);
-var quaternions = new Float32Array(4 * liveobjects);
-var bounds = new Float32Array(6 * liveobjects);
 
-var live = false;
-function toWorker()
-{
-  sendTime = Date.now();
-  Game.world.physicsWorker.postMessage({
-    dt: dt,
-    live: live,
-    positions: positions,
-    quaternions: quaternions,
-    bounds: bounds
-  }, [positions.buffer, quaternions.buffer, bounds.buffer]);
-}
-
-function queryPick(near, far)
-{
-  Game.world.physicsWorker.postMessage({
-    near: { x: near[0], y: near[1], z: near[2] },
-    far: { x: far[0], y: far[1], z: far[2] }
-  });
-}
-
-function fromWorker(e)
-{
-  if (e.data.hit) { console.log("Mouse clicked: " + e.data.hit); return; }
-
-  // Get fresh data from the worker
-  positions = e.data.positions;
-  quaternions = e.data.quaternions;
-  bounds = e.data.bounds;
-
-  for (var i = 7, index = 0; i < Game.world.objects.length; ++i) updateBody(Game.world.objects[i], index++);
-
-  // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
-  var delay = dt * 1000 - (Date.now() - sendTime);
-  if (delay < 0)    delay = 0;
-  setTimeout(toWorker, delay);
-}
-
-function updateBody(body, index)
-{
-  body.Place(positions[3 * index + 0], positions[3 * index + 1], positions[3 * index + 2]);
-  body.Rotate(quaternions[4 * index + 0], quaternions[4 * index + 1], quaternions[4 * index + 2], quaternions[4 * index + 3]);
-  vec3.set(body.uniform.minBB, bounds[6 * index + 0], bounds[6 * index + 1], bounds[6 * index + 2]);
-  vec3.set(body.uniform.maxBB, bounds[6 * index + 3], bounds[6 * index + 4], bounds[6 * index + 5]);
-}
+// GAME UPDATES
 
 Game.appUpdate = function ()
 {
   if (Game.loading) return;
   if (!Game.camera) return;
 
-  Game.world.objectFan.fanrot += Math.PI / 30.0;
-  quat.identity(Game.world.objectFan.Rotation);
-  quat.rotateY(Game.world.objectFan.Rotation, Game.world.objectFan.Rotation, Game.world.objectFan.fanrot);
-  Game.world.objectFan.Update();
+  var fan = Game.world.objects['fan'];
+  fan.fanrot += Math.PI / 30.0;
+  quat.identity(fan.Rotation);
+  quat.rotateY(fan.Rotation, fan.Rotation, fan.fanrot);
+  fan.dirty = true;
+//  fan.Update();
+
+  for (var i in Game.world.objects) Game.world.objects[i].Update();
 }
+
+Game.itemClick = function(name)
+{
+  if (name == 'drawer')
+  {
+    Game.world.objects['drawer'].mover.start();
+  }
+}
+
+//GAME RENDERING
 
 Game.appDrawAux = function ()
 {
@@ -320,8 +410,8 @@ Game.appDrawAux = function ()
   effect.bind();
   effect.bindCamera(Game.world.lighteyeUp);
   effect.setUniforms(Game.world.uScene);
-  effect.setUniforms(Game.world.objectFan.uniform);
-  effect.draw(Game.world.objectFan.Model);
+  effect.setUniforms(Game.world.objects['fan'].uniform);
+  effect.draw(Game.world.objects['fan'].Model);
 
   Game.world.lighteyeDown.engage();
   Game.world.shadowDown.engage();
@@ -330,8 +420,11 @@ Game.appDrawAux = function ()
   effect.bind();
   effect.bindCamera(Game.world.lighteyeDown);
   effect.setUniforms(Game.world.uScene);
-  for (var i = 5; i < Game.world.objects.length; ++i) {
-    if (!Game.world.objects[i].Model) continue;
+
+  for (var i in Game.world.objects)
+  {
+//  for (var i = 5; i < Game.world.objects.length; ++i) {
+    if (Game.world.objects[i].skip || !Game.world.objects[i].Model) continue;
     effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(Game.world.objects[i].Model);
   }
@@ -346,8 +439,8 @@ Game.appDraw = function (eye)
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
-  effect.setUniforms(Game.world.objects[1].uniform);
-  effect.draw(Game.world.objects[1].Model);
+  effect.setUniforms(Game.world.objects['light'].uniform);
+  effect.draw(Game.world.objects['light'].Model);
 
   // render objects
   effect = Game.shaderMan.shaders["objectrender"];
@@ -358,26 +451,22 @@ Game.appDraw = function (eye)
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowUp.texture);  // ceiling
-  effect.setUniforms(Game.world.objects[2].uniform);
-  effect.draw(Game.world.objects[2].Model);
-  effect.setUniforms(Game.world.objects[3].uniform);   // fan
-  effect.draw(Game.world.objects[3].Model);
+  effect.setUniforms(Game.world.objects['ceiling'].uniform);
+  effect.draw(Game.world.objects['ceiling'].Model);
+  effect.setUniforms(Game.world.objects['fan'].uniform);   // fan
+  effect.draw(Game.world.objects['fan'].Model);
 
   // the rest are down facing
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight1;
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowDown.texture);
-  for (var i = 3; i < Game.world.objects.length; ++i)
+  for (var i in Game.world.objects)
+//  for (var i = 3; i < Game.world.objects.length; ++i)
   {
-    if (!Game.world.objects[i].Model) continue;
+    if (Game.world.objects[i].skip || !Game.world.objects[i].Model) continue;
     effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(Game.world.objects[i].Model);
   }
-
-  effect.setUniforms(pickUniform);
-  effect.draw(Game.assetMan.assets["light"]);
-
-  return;
 
   // AABB render for physics debug
   var boxmodel = Game.assetMan.assets["boxmodel"];
@@ -385,12 +474,16 @@ Game.appDraw = function (eye)
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
-  for (var i = 5; i < Game.world.objects.length; ++i)
+  for (var i in Game.world.objects)
   {
+    if (Game.world.objects[i].skip) continue;
     effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(boxmodel);
   }
 }
+
+
+// USER INTERACTION
 
 Game.appHandleKeyDown = function (event)
 {
@@ -432,7 +525,6 @@ Game.appHandleKeyUp = function (event)
 }
 
 var clicked = false;
-var pickUniform = { uWorld: mat4.create() };
 
 Game.appHandleMouseEvent = function(type, mouse)
 {
@@ -456,7 +548,7 @@ Game.appHandleMouseEvent = function(type, mouse)
     vec4.transformMat4(far, far, unproject);
     vec4.scale(far, far, 1.0 / far[3])
 
-    queryPick(near, far);
+    Game.world.physicsWorker.queryPick(near, far);
   }
 
   if (mouse.button == 2 && type == MouseEvent.Down)
