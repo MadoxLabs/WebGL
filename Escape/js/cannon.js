@@ -5264,7 +5264,7 @@ Body.prototype.computeAABB = function(){
         orientation = tmpQuat,
         bodyQuat = this.quaternion,
         aabb = this.aabb,
-        shapeAABB = computeAABB_shapeAABB;
+        shapeAABB = null;
 
     for(var i=0; i!==N; i++){
         var shape = shapes[i];
@@ -5280,6 +5280,8 @@ Body.prototype.computeAABB = function(){
         // vec2.add(offset, offset, this.position);
 
         // Get shape AABB
+        if (!shape.aabb) shape.aabb = new AABB();
+        shapeAABB = shape.aabb;
         shape.calculateWorldAABB(offset, orientation, shapeAABB.lowerBound, shapeAABB.upperBound);
 
         if(i === 0){

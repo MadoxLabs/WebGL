@@ -4,10 +4,13 @@ function World()
   this.objects = {};
 
   this.uScene = null;
+  this.uAABB = [];
 
   this.lighteye = null;
+  this.lighton = true;
 
   this.physicsWorker = null;
+  this.debug = false;
 }
 
 
@@ -32,8 +35,6 @@ function GameObject(model, name)
 
   this.uniform = {};
   this.uniform.uWorld = mat4.create();
-  this.uniform.minBB = vec3.create();
-  this.uniform.maxBB = vec3.create();
 
   this.dirty = false;
 }
@@ -55,12 +56,11 @@ GameObject.prototype.Update = function (gametime)
   if (!this.dirty && !this.mover) return;
 
   this.dirty = false;
+  vec3.copy(this.Position, this.LocalPosition);
   if (this.mover) {
     this.mover.update();
-    vec3.add(this.Position, this.LocalPosition, this.mover.offset);
+    this.mover.apply(this);
   }
-  else
-    vec3.copy(this.Position, this.LocalPosition);
   mat4.fromQuat(this.Orient, this.Rotation);
   mat4.identity(this.Trans);
   mat4.translate(this.Trans, this.Trans, this.Position);
@@ -73,12 +73,13 @@ GameObject.prototype.setMover = function(m)
 }
 
 
+
 function PhysicsWorker()
 {
   this.worker = new Worker("js/physics.js");;
   this.sendTime = 0;
   this.dt = 1 / 60;
-  this.liveobjects = 70;
+  this.liveobjects = 80;
   this.positions = new Float32Array(3 * this.liveobjects);
   this.quaternions = new Float32Array(4 * this.liveobjects);
   this.bounds = new Float32Array(6 * this.liveobjects);
@@ -117,14 +118,28 @@ PhysicsWorker.prototype.fromWorker = function (e)
   this.quaternions = e.data.quaternions;
   this.bounds = e.data.bounds;
 
+  for (var i = Game.world.uAABB.length; i < e.data.boundslen; ++i)
+  {
+    var w = {};
+    w.minBB = vec3.create();
+    w.maxBB = vec3.create();
+    Game.world.uAABB.push(w);
+  }
+
   for (var index in e.data.names)
   {
     var body = Game.world.objects[e.data.names[index]];
     if (!body) continue;
+//    if (body.name == 'drawer' && Game.world.objects["drawer"].mover.startTime) continue;
     body.Place(this.positions[3 * index + 0], this.positions[3 * index + 1], this.positions[3 * index + 2]);
+    if (body.name == 'lightswitch') continue;
     body.Rotate(this.quaternions[4 * index + 0], this.quaternions[4 * index + 1], this.quaternions[4 * index + 2], this.quaternions[4 * index + 3]);
-    vec3.set(body.uniform.minBB, this.bounds[6 * index + 0], this.bounds[6 * index + 1], this.bounds[6 * index + 2]);
-    vec3.set(body.uniform.maxBB, this.bounds[6 * index + 3], this.bounds[6 * index + 4], this.bounds[6 * index + 5]);
+  }
+
+  for (var index = 0; index < e.data.boundslen; ++index)
+  {
+    vec3.set(Game.world.uAABB[index].minBB, this.bounds[6 * index + 0], this.bounds[6 * index + 1], this.bounds[6 * index + 2]);
+    vec3.set(Game.world.uAABB[index].maxBB, this.bounds[6 * index + 3], this.bounds[6 * index + 4], this.bounds[6 * index + 5]);
   }
 
   // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
@@ -136,29 +151,36 @@ PhysicsWorker.prototype.fromWorker = function (e)
 
 
 
-function MoverTranslate(e, t) // vec3 extent, float time
+function MoverTranslate(from, to, t) // vec3 extent, float time
 {
-  this.extent = e;
-  this.time = t;
+  this.from = from;
+  this.to = to;
+  this.time = t * 1000.0;
+
   this.step = vec3.create();
-  this.offset = vec3.fromValues(0, 0, 0);
-  this.direction = -1;
+  this.pos = vec3.create();
+  vec3.copy(this.pos, this.from);
+  this.tmp = vec3.create();
 }
 
 MoverTranslate.prototype.start = function()
 {
   if (this.startTime) return;
-  this.direction = -1 * this.direction;
   this.startTime = Date.now();
+
+  vec3.subtract(this.step, this.to, this.from);
+  vec3.scale(this.step, this.step, 1.0 / this.time);
+  this.timestep = 0;
+  vec3.copy(this.pos, this.from);
 }
 
 MoverTranslate.prototype.stop = function ()
 {
-  if (this.direction == 1)
-    vec3.copy(this.offset, this.extent);
-  else
-    vec3.set(this.offset, 0, 0, 0);
   this.startTime = 0;
+  vec3.copy(this.pos, this.to);
+  vec3.copy(this.tmp, this.from);
+  vec3.copy(this.from, this.to);
+  vec3.copy(this.to, this.tmp);
 }
 
 MoverTranslate.prototype.update = function ()
@@ -166,24 +188,51 @@ MoverTranslate.prototype.update = function ()
   if (!this.startTime) return;
 
   var now = Date.now();
-  if (now - this.startTime > this.time) { this.stop(); return; }
+  var elapsed = now - this.startTime;
 
-  vec3.scale(this.step, this.extent, (now - this.startTime) / this.time);
+  if (this.timestep + elapsed > this.time) { this.stop(); return; }
+  this.timestep = this.timestep + elapsed;
+  vec3.scale(this.tmp, this.step, elapsed);
+  vec3.add(this.pos, this.pos, this.tmp);
+}
 
-  if (this.direction == 1)
-  {
-         if (Math.abs(this.offset[0] + this.step[0]) > Math.abs(this.extent[0])) this.stop();
-    else if (Math.abs(this.offset[1] + this.step[1]) > Math.abs(this.extent[1])) this.stop();
-    else if (Math.abs(this.offset[2] + this.step[2]) > Math.abs(this.extent[2])) this.stop();
-    else vec3.add(this.offset, this.offset, this.step);
-  }
-  else
-  {
-         if (this.offset[0] * (this.offset[0] - this.step[0]) < 0) this.stop();
-    else if (this.offset[1] * (this.offset[1] - this.step[1]) < 0) this.stop();
-    else if (this.offset[2] * (this.offset[2] - this.step[2]) < 0) this.stop();
-    else vec3.subtract(this.offset, this.offset, this.step);
-  }
+MoverTranslate.prototype.apply = function (body)
+{
+  vec3.copy(body.Position, this.pos);
+}
+
+
+
+function MoverRotate(angle) 
+{
+  this.step = angle;
+  this.quat = quat.create();
+  this.angle = 0;
+}
+
+MoverRotate.prototype.start = function ()
+{
+  if (this.startTime) return;
+  this.startTime = Date.now();
+}
+
+MoverRotate.prototype.stop = function ()
+{
+  this.startTime = 0;
+}
+
+MoverRotate.prototype.update = function ()
+{
+  if (!this.startTime) return;
+
+  this.angle += this.step;
+  quat.identity(this.quat);
+  quat.rotateY(this.quat, this.quat, this.angle);
+}
+
+MoverRotate.prototype.apply = function (body)
+{
+  quat.copy(body.Rotation, this.quat);
 }
 
 
@@ -207,6 +256,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("drawer", "assets/drawer.model");
   Game.loadMeshPNG("switch", "assets/switch.model");
   Game.loadMeshPNG("flashlight", "assets/flashlight.model");
+  Game.loadMeshPNG("key", "assets/key.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/lightrender.fx");
@@ -245,11 +295,12 @@ Game.loadingStop = function ()
   ceiling.skip = true;
   var fan = new GameObject(Game.assetMan.assets["fan"], "fan");
   fan.Place(0.0, 8.0, 0.0);
-  fan.fanrot = 0;
+  fan.setMover(new MoverRotate(Math.PI / 30.0));
+  fan.mover.start();
   fan.skip = true;
   var floor = new GameObject(Game.assetMan.assets["floor"], "floor");
   floor.Place(0.0, -0.05, 0.0);
-  var lightswitch = new GameObject(Game.assetMan.assets["switch"], "switch");
+  var lightswitch = new GameObject(Game.assetMan.assets["switch"], "lightswitch");
   quat.rotateY(lightswitch.Rotation, lightswitch.Rotation, Math.PI / 2);
   lightswitch.Place(3.9, 4.5, 0.0);
   var door = new GameObject(Game.assetMan.assets["door"], "door");
@@ -257,23 +308,19 @@ Game.loadingStop = function ()
   door.Place(0.0, 0.0, -3.9);
 
   var table = new GameObject(Game.assetMan.assets["table"], "table");   // from here on match the physical data coming from worker
-  table.Place(0.0, 8.0, 0.0);
-
   var shelf = new GameObject(Game.assetMan.assets["shelf"], "shelf");
-  shelf.Place(-3.25, 4.5, 0.0);
   var clock = new GameObject(Game.assetMan.assets["clock"], "clock");
-  clock.Place(-3.5, 4.8, 0.0);
   var dresser = new GameObject(Game.assetMan.assets["dresser"], "dresser");
-  quat.rotateY(dresser.Rotation, dresser.Rotation, Math.PI);
-  dresser.Place(3.4, 1.5835, 0.0);
   var drawer = new GameObject(Game.assetMan.assets["drawer"], "drawer");
-  quat.rotateY(drawer.Rotation, drawer.Rotation, Math.PI);
-  drawer.Place(3.2, 2.65, 0.0);
-  drawer.setMover(new MoverTranslate(vec3.fromValues(-0.6,0,0),1000));
+//  drawer.setMover(new MoverTranslate(vec3.fromValues(3.3, 2.55, 0.0), vec3.fromValues(2.7, 2.55, 0), 1));
+  var flashlight = new GameObject(Game.assetMan.assets["flashlight"], "flashlight");
 
   for (var layer = 0; layer < 20; ++layer)
     for (var piece = 0; piece < 3; ++piece)
-      var jenga = new GameObject(Game.assetMan.assets["jenga"], "jenga"+(piece+layer*3));
+      if (piece + layer * 3 == 31)
+        var jenga = new GameObject(Game.assetMan.assets["key"], "jenga" + (piece + layer * 3));
+      else
+        var jenga = new GameObject(Game.assetMan.assets["jenga"], "jenga" + (piece + layer * 3));
 
   for (var i = 0; i < 4; ++i) var wall = new GameObject(null, "wall"+i); 
 
@@ -378,21 +425,31 @@ Game.appUpdate = function ()
   if (Game.loading) return;
   if (!Game.camera) return;
 
-  var fan = Game.world.objects['fan'];
-  fan.fanrot += Math.PI / 30.0;
-  quat.identity(fan.Rotation);
-  quat.rotateY(fan.Rotation, fan.Rotation, fan.fanrot);
-  fan.dirty = true;
-//  fan.Update();
-
   for (var i in Game.world.objects) Game.world.objects[i].Update();
+
+//  if (Game.world.objects["drawer"].mover.startTime)
+//  {
+//    Game.world.physicsWorker.worker.postMessage({
+//      setPosition: Game.world.objects["drawer"].Position,
+//      id: 5
+//    });
+//  }
 }
 
 Game.itemClick = function(name)
 {
   if (name == 'drawer')
   {
-    Game.world.objects['drawer'].mover.start();
+//    Game.world.objects['drawer'].mover.start();
+  }
+  else if (name == 'lightswitch')
+  {
+    var lightswitch = Game.world.objects[name];
+    quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
+    lightswitch.dirty = true;
+    Game.world.lighton = !Game.world.lighton;
+    if (!Game.world.lighton) Game.world.objects['fan'].mover.stop();
+    else Game.world.objects['fan'].mover.start();
   }
 }
 
@@ -468,16 +525,17 @@ Game.appDraw = function (eye)
     effect.draw(Game.world.objects[i].Model);
   }
 
+  if (!Game.world.debug) return;
+
   // AABB render for physics debug
   var boxmodel = Game.assetMan.assets["boxmodel"];
   effect = Game.shaderMan.shaders["boxrender"];
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
-  for (var i in Game.world.objects)
+  for (var i in Game.world.uAABB)
   {
-    if (Game.world.objects[i].skip) continue;
-    effect.setUniforms(Game.world.objects[i].uniform);
+    effect.setUniforms(Game.world.uAABB[i]);
     effect.draw(boxmodel);
   }
 }
@@ -491,18 +549,6 @@ Game.appHandleKeyDown = function (event)
   Game.world.currentlyPressedKeys[event.keyCode] = true;
 
   if ([33, 34].indexOf(event.keyCode) > -1) event.preventDefault();
-  else if (event.keyCode == 37 && Game.camera.target.Position[0] > 0)  // Left cursor key
-  {
-  }
-  else if (event.keyCode == 39 && Game.camera.target.Position[0] < 100)  // Right cursor key
-  {
-  }
-  else if (event.keyCode == 38)  // Up cursor key
-  {
-  }
-  else if (event.keyCode == 40 && Game.camera.target.Position[2] < 100)  // Down cursor key
-  {
-  }
 }
 
 Game.appHandleKeyUp = function (event)
@@ -510,18 +556,8 @@ Game.appHandleKeyUp = function (event)
   Game.world.currentlyPressedKeys[event.keyCode] = false;
 
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
-  else if (event.keyCode == 37)
-  {
-  }
-  else if (event.keyCode == 39)
-  {
-  }
-  else if (event.keyCode == 38)
-  {
-  }
-  else if (event.keyCode == 40)
-  {
-  }
+  else if (event.keyCode == 81)
+    Game.world.debug = !Game.world.debug;
 }
 
 var clicked = false;
@@ -552,10 +588,10 @@ Game.appHandleMouseEvent = function(type, mouse)
   }
 
   if (mouse.button == 2 && type == MouseEvent.Down)
-  { console.log("click"); clicked = true; } //mouse.grab(); }
+  {  clicked = true; } //mouse.grab(); }
 
   if (mouse.button == 2 && type == MouseEvent.Up)
-  { console.log("unclick");  clicked = false; } //mouse.release();
+  {   clicked = false; } //mouse.release();
 
   if (clicked && type == MouseEvent.Move)
   {

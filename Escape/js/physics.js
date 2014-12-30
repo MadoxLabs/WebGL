@@ -1,7 +1,6 @@
 importScripts('cannon.js');
 
 var world;
-var live = false;
 
 self.onmessage = function (e)
 {
@@ -11,8 +10,15 @@ self.onmessage = function (e)
     world.rayTest(e.data.near, e.data.far, obj);
     self.postMessage({ hit: obj.body.name });
 
+    var force = obj.body.name == "drawer" ? 400 : -200;
     obj.body.wakeUp();
-    obj.body.applyForce(obj.hitNormalWorld.scale(-200 * obj.body.mass), obj.hitPointWorld);
+    obj.body.applyForce(obj.hitNormalWorld.scale(force * obj.body.mass), obj.hitPointWorld);
+    return;
+  }
+
+  if (e.data.setPosition)
+  {
+    world.bodies[e.data.id].position.set(e.data.setPosition[0], e.data.setPosition[1], e.data.setPosition[2]);
     return;
   }
 
@@ -21,10 +27,11 @@ self.onmessage = function (e)
     // Init physics
     world = new CANNON.World();
     world.broadphase = new CANNON.NaiveBroadphase();
+    world.broadphase.useBoundingBoxes = true;
     world.gravity.set(0, -10, 0);
     var solver = new CANNON.GSSolver();
-    solver.iterations = 7;
-    solver.tolerance = 0.1;
+    solver.iterations = 15;
+    solver.tolerance = 0.01;
     world.solver = solver;
     world.defaultContactMaterial.contactEquationStiffness = 1e9;
     world.defaultContactMaterial.contactEquationRegularization = 4;
@@ -57,6 +64,14 @@ self.onmessage = function (e)
     shelf.name = "shelf";
     world.add(shelf);
 
+    var lightswitch = new CANNON.Body({ mass: 10 });
+    lightswitch.addShape(new CANNON.Box(new CANNON.Vec3(0.25, 0.41, 0.066)));
+    lightswitch.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
+    lightswitch.position.set(3.9, 4.5, 0.0);
+    lightswitch.type = CANNON.Body.KINEMATIC;
+    lightswitch.name = "lightswitch";
+    world.add(lightswitch);
+
     var clock = new CANNON.Body({ mass: 20 });
     clock.addShape(new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.5)));
     clock.position.set(-3.5, 4.8, 0.0);
@@ -64,20 +79,32 @@ self.onmessage = function (e)
     world.add(clock);
 
     var dresser = new CANNON.Body({ mass: 10 });
-    dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 1.6, 1.5)));
+    dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 0.05, 1.5)));
+    dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 1.05, 1.5)), new CANNON.Vec3(0,-2.05,0));
     dresser.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
-    dresser.position.set(3.4, 1.5835, 0.0);
+    dresser.position.set(3.35, 3.05, 0.0);
     dresser.type = CANNON.Body.KINEMATIC;
     dresser.name = "dresser";
     world.add(dresser);
 
     var drawer = new CANNON.Body({ mass: 10 });
-    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.472, 0.4, 1.25)));
+    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.472, 0.05, 1.25)), new CANNON.Vec3(0, -0.35, 0));
+    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.382, 0.4, 0.05)), new CANNON.Vec3(0, 0, 1.2));
+    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.382, 0.4, 0.05)), new CANNON.Vec3(0, 0, -1.2));
+    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.05, 0.4, 1.25)), new CANNON.Vec3(0.377, 0, 0));
+    drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.05, 0.4, 1.25)), new CANNON.Vec3(-0.377, 0, 0));
     drawer.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
-    drawer.position.set(3.2, 2.65, 0.0);
-    drawer.type = CANNON.Body.KINEMATIC;
+    drawer.position.set(3.3, 2.55, 0.0);
+//    drawer.type = CANNON.Body.KINEMATIC;
     drawer.name = "drawer";
     world.add(drawer);
+
+    var flashlight = new CANNON.Body({ mass: 2 });
+    flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.6, 0.1, 0.1)));
+    flashlight.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI/2);
+    flashlight.position.set(2.95, 2.5, 0.0);
+    flashlight.name = "flashlight";
+    world.add(flashlight);
 
     var shape = new CANNON.Box(new CANNON.Vec3(0.166 / 2.0, 0.083 / 2.0, 0.498 / 2.0));
     var angle = 0;
@@ -138,6 +165,7 @@ self.onmessage = function (e)
   var positions = e.data.positions;
   var quaternions = e.data.quaternions;
   var bounds = e.data.bounds;
+  var boundslen = 0;
   for (var i = 0, j = 0; i !== world.bodies.length; i++)
   {
     var b = world.bodies[i],
@@ -153,12 +181,17 @@ self.onmessage = function (e)
     quaternions[4 * j + 1] = q.y;
     quaternions[4 * j + 2] = q.z;
     quaternions[4 * j + 3] = q.w;
-    bounds[6 * j + 0] = b.aabb.lowerBound.x;
-    bounds[6 * j + 1] = b.aabb.lowerBound.y;
-    bounds[6 * j + 2] = b.aabb.lowerBound.z;
-    bounds[6 * j + 3] = b.aabb.upperBound.x;
-    bounds[6 * j + 4] = b.aabb.upperBound.y;
-    bounds[6 * j + 5] = b.aabb.upperBound.z;
+
+    for (var s = 0; s < b.shapes.length; ++s)
+    {
+      bounds[6 * boundslen + 0] = b.shapes[s].aabb.lowerBound.x;
+      bounds[6 * boundslen + 1] = b.shapes[s].aabb.lowerBound.y;
+      bounds[6 * boundslen + 2] = b.shapes[s].aabb.lowerBound.z;
+      bounds[6 * boundslen + 3] = b.shapes[s].aabb.upperBound.x;
+      bounds[6 * boundslen + 4] = b.shapes[s].aabb.upperBound.y;
+      bounds[6 * boundslen + 5] = b.shapes[s].aabb.upperBound.z;
+      boundslen++;
+    }
     ++j;
   }
 
@@ -167,7 +200,8 @@ self.onmessage = function (e)
     names: names,
     positions: positions,
     quaternions: quaternions,
-    bounds: bounds
+    bounds: bounds,
+    boundslen: boundslen
   }, [positions.buffer,
       quaternions.buffer,
       bounds.buffer]);

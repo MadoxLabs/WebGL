@@ -9,7 +9,7 @@ varying vec4 vPosition;
 [END]
 
 [APPLY]
-plain
+nodepth
 [END]
 
 [VERTEX]
