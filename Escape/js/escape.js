@@ -257,8 +257,11 @@ Game.appInit = function ()
   Game.loadMeshPNG("switch", "assets/switch.model");
   Game.loadMeshPNG("flashlight", "assets/flashlight.model");
   Game.loadMeshPNG("key", "assets/key.model");
+  Game.loadMeshPNG("lock", "assets/lock.model");
+  Game.loadMeshPNG("lockbox", "assets/lockbox.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
+  Game.loadShaderFile("assets/transparentrender.fx");
   Game.loadShaderFile("assets/lightrender.fx");
   Game.loadShaderFile("assets/boxrender.fx");
   Game.loadShaderFile("assets/shadowcast.fx");
@@ -312,7 +315,10 @@ Game.loadingStop = function ()
   var clock = new GameObject(Game.assetMan.assets["clock"], "clock");
   var dresser = new GameObject(Game.assetMan.assets["dresser"], "dresser");
   var drawer = new GameObject(Game.assetMan.assets["drawer"], "drawer");
-//  drawer.setMover(new MoverTranslate(vec3.fromValues(3.3, 2.55, 0.0), vec3.fromValues(2.7, 2.55, 0), 1));
+  //  drawer.setMover(new MoverTranslate(vec3.fromValues(3.3, 2.55, 0.0), vec3.fromValues(2.7, 2.55, 0), 1));
+  var lock = new GameObject(Game.assetMan.assets["lock"], "lock");
+  var lockbox = new GameObject(Game.assetMan.assets["lockbox"], "lockbox");
+  lockbox.transparent = true;
   var flashlight = new GameObject(Game.assetMan.assets["flashlight"], "flashlight");
 
   for (var layer = 0; layer < 20; ++layer)
@@ -348,7 +354,7 @@ Game.loadingStop = function ()
   var effect = Game.shaderMan.shaders["objectrender"];
   Game.world.uScene = effect.createUniform('scene');
   Game.world.uScene.uLightPosition = Game.world.lighteyeDown.position;
-  Game.world.uScene.lighton = vec3.fromValues(1.0,0.0,0.0);
+  Game.world.uScene.lighton = vec3.fromValues(1.0,1.0,0.0);
   Game.world.uScene.uWorldToLight = null;
   Game.world.uScene.uWorldToLight1 = mat4.create();
   Game.world.uScene.uWorldToLight2 = mat4.create();
@@ -523,9 +529,18 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowDown.texture);
   for (var i in Game.world.objects)
-//  for (var i = 3; i < Game.world.objects.length; ++i)
   {
-    if (Game.world.objects[i].skip || !Game.world.objects[i].Model) continue;
+    if (Game.world.objects[i].skip || Game.world.objects[i].transparent || !Game.world.objects[i].Model) continue;
+    effect.setUniforms(Game.world.objects[i].uniform);
+    effect.draw(Game.world.objects[i].Model);
+  }
+
+  effect = Game.shaderMan.shaders["transparentrender"];
+  effect.bind();
+  effect.bindCamera(eye);
+  effect.setUniforms(Game.world.uScene);
+  for (var i in Game.world.objects) {
+    if (Game.world.objects[i].skip || !Game.world.objects[i].transparent || !Game.world.objects[i].Model) continue;
     effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(Game.world.objects[i].Model);
   }

@@ -1,5 +1,5 @@
 [NAME]
-objectrender
+transparentrender
 [END]
 
 [INCLUDE renderstates]
@@ -12,7 +12,7 @@ varying vec3 vNormal;
 [END]
 
 [APPLY]
-plain
+blend
 [END]
 
 [VERTEX]
@@ -67,7 +67,7 @@ void main(void)
   vec3 ac = vec3(0.1, 0.1, 0.1);
   vec3 color = ac + lighton.x * diffusecolor * nDotL * shadow;
 
-  gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = vec4(color, 0.2);
 }
 
 [END]

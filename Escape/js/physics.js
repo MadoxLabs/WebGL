@@ -13,6 +13,7 @@ self.onmessage = function (e)
     var force = obj.body.name == "drawer" ? 200 : -200;
     obj.body.wakeUp();
     if (obj.body.name == "drawer") obj.body.type = CANNON.Body.DYNAMIC;
+    if (obj.body.name == "lock") world.bodies[4].type = CANNON.Body.DYNAMIC;
     obj.body.applyForce(obj.hitNormalWorld.scale(force * obj.body.mass), obj.hitPointWorld);
     return;
   }
@@ -72,6 +73,22 @@ self.onmessage = function (e)
     lightswitch.type = CANNON.Body.KINEMATIC;
     lightswitch.name = "lightswitch";
     world.add(lightswitch);
+
+    var lockbox = new CANNON.Body({ mass: 10 });
+    lockbox.addShape(new CANNON.Box(new CANNON.Vec3(0.5845, 0.5345, 0.3075)));
+    lockbox.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
+    lockbox.position.set(3.4, 4.5, 0.0);
+    lockbox.type = CANNON.Body.KINEMATIC;
+    lockbox.name = "lockbox";
+    world.add(lockbox);
+
+    var lock = new CANNON.Body({ mass: 10 });
+    lock.addShape(new CANNON.Box(new CANNON.Vec3(0.17, 0.17, 0.06)));
+    lock.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
+    lock.position.set(3.9, 4.5, 0.8);
+    lock.type = CANNON.Body.KINEMATIC;
+    lock.name = "lock";
+    world.add(lock);
 
     var clock = new CANNON.Body({ mass: 20 });
     clock.addShape(new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.5)));
