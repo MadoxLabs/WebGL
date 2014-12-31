@@ -10,8 +10,9 @@ self.onmessage = function (e)
     world.rayTest(e.data.near, e.data.far, obj);
     self.postMessage({ hit: obj.body.name });
 
-    var force = obj.body.name == "drawer" ? 400 : -200;
+    var force = obj.body.name == "drawer" ? 200 : -200;
     obj.body.wakeUp();
+    if (obj.body.name == "drawer") obj.body.type = CANNON.Body.DYNAMIC;
     obj.body.applyForce(obj.hitNormalWorld.scale(force * obj.body.mass), obj.hitPointWorld);
     return;
   }
@@ -94,8 +95,8 @@ self.onmessage = function (e)
     drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.05, 0.4, 1.25)), new CANNON.Vec3(0.377, 0, 0));
     drawer.addShape(new CANNON.Box(new CANNON.Vec3(0.05, 0.4, 1.25)), new CANNON.Vec3(-0.377, 0, 0));
     drawer.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
-    drawer.position.set(3.3, 2.55, 0.0);
-//    drawer.type = CANNON.Body.KINEMATIC;
+    drawer.position.set(3.22, 2.57, 0.0);
+    drawer.type = CANNON.Body.KINEMATIC;
     drawer.name = "drawer";
     world.add(drawer);
 
