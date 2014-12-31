@@ -7108,8 +7108,10 @@ Box.prototype.updateConvexPolyhedronRepresentation = function(){
                                          new V( 0,-1, 0),
                                          new V( 0, 1, 0),
                                          new V(-1, 0, 0),
-                                         new V( 1, 0, 0)]);
+                                         new V(1, 0, 0)]);
+    h.parent = this;
     this.convexPolyhedronRepresentation = h;
+
 };
 
 /**

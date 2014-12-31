@@ -8,6 +8,19 @@ self.onmessage = function (e)
   {
     var obj = new CANNON.RaycastResult();
     world.rayTest(e.data.near, e.data.far, obj);
+
+    if (obj.shape.parent.name == "clockbattery") {
+      self.postMessage({ hit: obj.shape.parent.name });
+
+      var battery = new CANNON.Body({ mass: 1 });
+      battery.addShape(new CANNON.Box(new CANNON.Vec3(0.095, 0.095, 0.177)));
+      battery.position.set(obj.body.position.x, obj.body.position.y + 0.3, obj.body.position.z);
+      battery.name = "battery";
+      world.add(battery);
+
+      return;
+    }
+
     self.postMessage({ hit: obj.body.name });
 
     var force = obj.body.name == "drawer" ? 200 : -200;
@@ -92,6 +105,9 @@ self.onmessage = function (e)
 
     var clock = new CANNON.Body({ mass: 20 });
     clock.addShape(new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.5)));
+    var batt = new CANNON.Box(new CANNON.Vec3(0.095, 0.095, 0.177));
+    batt.name = "clockbattery";
+    clock.addShape(batt, new CANNON.Vec3(-0.17, -0.14, -0.009));
     clock.position.set(-3.5, 4.8, 0.0);
     clock.name = "clock";
     world.add(clock);

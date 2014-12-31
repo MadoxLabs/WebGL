@@ -259,6 +259,8 @@ Game.appInit = function ()
   Game.loadMeshPNG("key", "assets/key.model");
   Game.loadMeshPNG("lock", "assets/lock.model");
   Game.loadMeshPNG("lockbox", "assets/lockbox.model");
+  Game.loadMeshPNG("battery", "assets/battery.model");
+  Game.loadMeshPNG("clockdead", "assets/clockdead.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/transparentrender.fx");
@@ -320,6 +322,8 @@ Game.loadingStop = function ()
   var lockbox = new GameObject(Game.assetMan.assets["lockbox"], "lockbox");
   lockbox.transparent = true;
   var flashlight = new GameObject(Game.assetMan.assets["flashlight"], "flashlight");
+  var battery = new GameObject(Game.assetMan.assets["battery"], "battery");
+  battery.Place(0.0, -4.5, 0.0);
 
   for (var layer = 0; layer < 20; ++layer)
     for (var piece = 0; piece < 3; ++piece)
@@ -459,6 +463,10 @@ Game.itemClick = function(name)
     if (!Game.world.lighton) Game.world.objects['fan'].mover.stop();
     else Game.world.objects['fan'].mover.start();
   }
+  else if (name == 'clockbattery')
+  {
+    Game.world.objects['clock'].Model = Game.assetMan.assets["clockdead"];
+  }
 }
 
 //GAME RENDERING
@@ -535,14 +543,16 @@ Game.appDraw = function (eye)
     effect.draw(Game.world.objects[i].Model);
   }
 
-  effect = Game.shaderMan.shaders["transparentrender"];
-  effect.bind();
-  effect.bindCamera(eye);
-  effect.setUniforms(Game.world.uScene);
-  for (var i in Game.world.objects) {
-    if (Game.world.objects[i].skip || !Game.world.objects[i].transparent || !Game.world.objects[i].Model) continue;
-    effect.setUniforms(Game.world.objects[i].uniform);
-    effect.draw(Game.world.objects[i].Model);
+  if (Game.world.lighton) {
+    effect = Game.shaderMan.shaders["transparentrender"];
+    effect.bind();
+    effect.bindCamera(eye);
+    effect.setUniforms(Game.world.uScene);
+    for (var i in Game.world.objects) {
+      if (Game.world.objects[i].skip || !Game.world.objects[i].transparent || !Game.world.objects[i].Model) continue;
+      effect.setUniforms(Game.world.objects[i].uniform);
+      effect.draw(Game.world.objects[i].Model);
+    }
   }
 
   if (!Game.world.debug) return;
