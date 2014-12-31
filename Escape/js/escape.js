@@ -348,6 +348,7 @@ Game.loadingStop = function ()
   var effect = Game.shaderMan.shaders["objectrender"];
   Game.world.uScene = effect.createUniform('scene');
   Game.world.uScene.uLightPosition = Game.world.lighteyeDown.position;
+  Game.world.uScene.lighton = vec3.fromValues(1.0,0.0,0.0);
   Game.world.uScene.uWorldToLight = null;
   Game.world.uScene.uWorldToLight1 = mat4.create();
   Game.world.uScene.uWorldToLight2 = mat4.create();
@@ -448,6 +449,7 @@ Game.itemClick = function(name)
     quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
     lightswitch.dirty = true;
     Game.world.lighton = !Game.world.lighton;
+    Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.03;
     if (!Game.world.lighton) Game.world.objects['fan'].mover.stop();
     else Game.world.objects['fan'].mover.start();
   }
@@ -492,12 +494,15 @@ Game.appDraw = function (eye)
   if (!Game.ready || Game.loading) return;
 
   // light has a special shader
-  effect = Game.shaderMan.shaders["lightrender"];
-  effect.bind();
-  effect.bindCamera(eye);
-  effect.setUniforms(Game.world.uScene);
-  effect.setUniforms(Game.world.objects['light'].uniform);
-  effect.draw(Game.world.objects['light'].Model);
+  if (Game.world.lighton)
+  {
+    effect = Game.shaderMan.shaders["lightrender"];
+    effect.bind();
+    effect.bindCamera(eye);
+    effect.setUniforms(Game.world.uScene);
+    effect.setUniforms(Game.world.objects['light'].uniform);
+    effect.draw(Game.world.objects['light'].Model);
+  }
 
   // render objects
   effect = Game.shaderMan.shaders["objectrender"];

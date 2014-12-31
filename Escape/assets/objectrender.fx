@@ -44,6 +44,7 @@ uniform vec3 partcolor;         // group perpart
 
 uniform mat4 uWorldToLight;      // group scene
 uniform vec3 uLightPosition;     // group scene
+uniform vec3 lighton;           // group scene
 
 uniform vec3 camera;             // group camera
 
@@ -59,8 +60,12 @@ uniform vec3 emissivecolor;      // group material
 void main(void) 
 {
   float nDotL = dot(normalize(vNormal), normalize(uLightPosition - vec3(vPosition)));
+  
+  float shadow = 1.0;
+  if (lighton.x > 0.5) shadow = IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition);
+
   vec3 ac = vec3(0.1, 0.1, 0.1);
-  vec3 color = ac + diffusecolor * nDotL * IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition);
+  vec3 color = ac + lighton.x * diffusecolor * nDotL * shadow;
 
   gl_FragColor = vec4(color, 1.0);
 }

@@ -43,6 +43,7 @@ uniform vec3 partcolor;         // group perpart
 
 uniform mat4 uWorldToLight;      // group scene
 uniform vec3 uLightPosition;     // group scene
+uniform vec3 lighton;            // group scene
 
 uniform vec3 camera;             // group camera
 
@@ -57,7 +58,7 @@ uniform vec3 emissivecolor;      // group material
 
 void main(void) 
 {
-  gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+  gl_FragColor = vec4(lighton.x,lighton.x,lighton.x,1.0);
 }
 
 [END]
