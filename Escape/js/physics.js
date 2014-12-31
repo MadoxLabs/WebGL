@@ -1,15 +1,28 @@
 importScripts('cannon.js');
 
 var world;
+var batteryOut = false;
+var pickup = 0;
 
 self.onmessage = function (e)
 {
+  if (e.data.drop)
+  {
+    var body = world.bodies[pickup]
+    body.type = CANNON.Body.DYNAMIC;
+    body.position.set(e.data.droploc.x, e.data.droploc.y, e.data.droploc.z);
+    pickup = 0;
+    return;
+  }
+
   if (e.data.near)
   {
     var obj = new CANNON.RaycastResult();
+    // get the picked piece
     world.rayTest(e.data.near, e.data.far, obj);
 
-    if (obj.shape.parent.name == "clockbattery") {
+    // if it is the battery in the clock, set the battery free!
+    if (!batteryOut && obj.shape.parent && obj.shape.parent.name == "clockbattery") {
       self.postMessage({ hit: obj.shape.parent.name });
 
       var battery = new CANNON.Body({ mass: 1 });
@@ -17,25 +30,39 @@ self.onmessage = function (e)
       battery.position.set(obj.body.position.x, obj.body.position.y + 0.3, obj.body.position.z);
       battery.name = "battery";
       world.add(battery);
+      batteryOut = true;
 
       return;
     }
 
+    // report on the picked piece
     self.postMessage({ hit: obj.body.name });
 
+    // if a piece is picked up, move it to the hand
+    if (!pickup && (obj.body.name == 'battery' || obj.body.name == 'jenga31' || obj.body.name == 'flashlight')) {
+      obj.body.type = CANNON.Body.KINEMATIC;
+      obj.body.position.set(0, 4.6, 0);
+      pickup = obj.body.id;
+      return;
+    }
+
+    if (obj.body.name == "drawer") obj.body.type = CANNON.Body.DYNAMIC;        // make the drawer responsive
+    if (obj.body.name == "lock" && pickup == 41) world.bodies[4].type = CANNON.Body.DYNAMIC;   // clicking the lock with the key drops the lockbox
+
+    // push the piece, but pull the drawer
     var force = obj.body.name == "drawer" ? 200 : -200;
-    obj.body.wakeUp();
-    if (obj.body.name == "drawer") obj.body.type = CANNON.Body.DYNAMIC;
-    if (obj.body.name == "lock") world.bodies[4].type = CANNON.Body.DYNAMIC;
+    obj.body.wakeUp();                                                         // tetris peices are asleep
     obj.body.applyForce(obj.hitNormalWorld.scale(force * obj.body.mass), obj.hitPointWorld);
+
     return;
   }
 
-  if (e.data.setPosition)
-  {
-    world.bodies[e.data.id].position.set(e.data.setPosition[0], e.data.setPosition[1], e.data.setPosition[2]);
-    return;
-  }
+  // was for moving drawer
+//  if (e.data.setPosition)
+//  {
+//    world.bodies[e.data.id].position.set(e.data.setPosition[0], e.data.setPosition[1], e.data.setPosition[2]);
+//    return;
+//  }
 
   if (!world)
   {
@@ -134,8 +161,8 @@ self.onmessage = function (e)
     world.add(drawer);
 
     var flashlight = new CANNON.Body({ mass: 2 });
-    flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.6, 0.1, 0.1)));
-    flashlight.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI/2);
+    flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.1, 0.1, 0.6)));
+    flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.15, 0.1)), new CANNON.Vec3(0.1,0,-0.6));
     flashlight.position.set(2.95, 2.5, 0.0);
     flashlight.name = "flashlight";
     world.add(flashlight);

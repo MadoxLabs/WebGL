@@ -101,6 +101,22 @@ PhysicsWorker.prototype.toWorker = function ()
   }, [this.positions.buffer, this.quaternions.buffer, this.bounds.buffer]);
 }
 
+PhysicsWorker.prototype.dropItem = function()
+{
+  // get camera forward, ahead 2 feet is drop location
+  var loc = vec3.create();
+  vec3.copy(loc, Game.camera.position);
+  vec3.subtract(loc, loc, Game.camera.forward); // why is this backwards
+  vec3.subtract(loc, loc, Game.camera.forward);
+  vec3.subtract(loc, loc, Game.camera.forward);
+  vec3.subtract(loc, loc, Game.camera.forward);
+
+  this.worker.postMessage({
+    drop: true,
+    droploc: { x: loc[0], y: loc[1], z: loc[2]}
+  });
+}
+
 PhysicsWorker.prototype.queryPick = function (near, far)
 {
   this.worker.postMessage({
@@ -130,6 +146,7 @@ PhysicsWorker.prototype.fromWorker = function (e)
   {
     var body = Game.world.objects[e.data.names[index]];
     if (!body) continue;
+    if (body.name == Game.world.pickup) continue;
 //    if (body.name == 'drawer' && Game.world.objects["drawer"].mover.startTime) continue;
     body.Place(this.positions[3 * index + 0], this.positions[3 * index + 1], this.positions[3 * index + 2]);
     if (body.name == 'lightswitch') continue;
@@ -261,6 +278,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("lockbox", "assets/lockbox.model");
   Game.loadMeshPNG("battery", "assets/battery.model");
   Game.loadMeshPNG("clockdead", "assets/clockdead.model");
+  Game.loadMeshPNG("titlepage", "assets/title.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/transparentrender.fx");
@@ -292,6 +310,10 @@ Game.loadingStop = function ()
   Game.camera.setTarget(target);
 
   // SET UP SCENE
+  var title = new GameObject(Game.assetMan.assets["titlepage"], "title");
+  title.Place(0.0, 5.0, -0.3);
+  title.transparent = true;
+
   var light = new GameObject(Game.assetMan.assets["light"], "light");    // these pieces are not physical
   light.Place(0.0, 8.0, 0.0);
   light.skip = true;
@@ -438,6 +460,17 @@ Game.appUpdate = function ()
 
   for (var i in Game.world.objects) Game.world.objects[i].Update();
 
+  // rotate test piece to follow camera
+  if (Game.world.pickup)
+  {
+    var test = Game.world.objects[Game.world.pickup];
+    test.Place(0, 4.6, 0);
+    mat4.copy(test.Orient, Game.camera.orientation);
+    mat4.identity(test.Trans);
+    mat4.translate(test.Trans, test.Trans, test.Position);
+    mat4.multiply(test.uniform.uWorld, test.Trans, test.Orient);
+  }
+
 //  if (Game.world.objects["drawer"].mover.startTime)
 //  {
 //    Game.world.physicsWorker.worker.postMessage({
@@ -451,7 +484,7 @@ Game.itemClick = function(name)
 {
   if (name == 'drawer')
   {
-//    Game.world.objects['drawer'].mover.start();
+    //    Game.world.objects['drawer'].mover.start();
   }
   else if (name == 'lightswitch')
   {
@@ -467,6 +500,10 @@ Game.itemClick = function(name)
   {
     Game.world.objects['clock'].Model = Game.assetMan.assets["clockdead"];
   }
+
+    // battery, key, flashlight can be picked up
+  else if (!Game.world.pickup && (name == 'battery' || name == 'jenga31' || name == 'flashlight')) Game.world.pickup = name;
+
 }
 
 //GAME RENDERING
@@ -591,31 +628,51 @@ Game.appHandleKeyUp = function (event)
 }
 
 var clicked = false;
+var started = false;
 
 Game.appHandleMouseEvent = function(type, mouse)
 {
   // console.log("Mouse event: " + ['Down', 'Up', 'Move', 'In', 'Out', 'Grab', 'Release', 'NoGrab', 'Wheel'][type]);
   if (mouse.button == 0 && type == MouseEvent.Down)
   {
-    live = true;
+    if (!started)
+    {
+      Game.world.objects['title'].skip = true;
+      started = true;
+    }
 
-    var unproject = mat4.create();
-    var unproj = mat4.create();
-    var unview = mat4.create();
-    mat4.invert(unproj, Game.camera.eyes[0].projection);
-    mat4.invert(unview, Game.camera.eyes[0].view);
-    mat4.multiply(unproject, unview, unproj);
+    // drop item?
+    if (Game.world.pickup)
+    {
+      if ((mouse.Y / Game.camera.height > 0.8) && ((mouse.X / Game.camera.width > 0.4) || (mouse.X / Game.camera.width < 0.6)))
+      {
+        Game.world.pickup = null;
+        Game.world.physicsWorker.dropItem();
+        return;
+      }
+    }
 
-    var near = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, -1.0, 1.0);
-    vec4.transformMat4(near, near, unproject);
-    vec4.scale(near, near, 1.0/near[3])
+    {
+      var unproject = mat4.create();
+      var unproj = mat4.create();
+      var unview = mat4.create();
+      mat4.invert(unproj, Game.camera.eyes[0].projection);
+      mat4.invert(unview, Game.camera.eyes[0].view);
+      mat4.multiply(unproject, unview, unproj);
 
-    var far = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, 1.0, 1.0);
-    vec4.transformMat4(far, far, unproject);
-    vec4.scale(far, far, 1.0 / far[3])
+      var near = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, -1.0, 1.0);
+      vec4.transformMat4(near, near, unproject);
+      vec4.scale(near, near, 1.0 / near[3])
 
-    Game.world.physicsWorker.queryPick(near, far);
+      var far = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, 1.0, 1.0);
+      vec4.transformMat4(far, far, unproject);
+      vec4.scale(far, far, 1.0 / far[3])
+
+      Game.world.physicsWorker.queryPick(near, far);
+    }
   }
+
+  if (!started) return;
 
   if (mouse.button == 2 && type == MouseEvent.Down)
   {  clicked = true; } //mouse.grab(); }

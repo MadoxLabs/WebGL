@@ -44,8 +44,7 @@ uniform vec3 partcolor;         // group perpart
 
 uniform mat4 uWorldToLight;      // group scene
 uniform vec3 uLightPosition;     // group scene
-uniform vec3 lighton;           // group scene
-
+uniform vec3 lighton;            // group scene - x: light is on/off
 uniform vec3 camera;             // group camera
 
 // material options are: x: texture y/n   y: specular exponant  z: n/a   w: n/a
@@ -55,7 +54,7 @@ uniform vec3 diffusecolor;       // group material
 uniform vec3 specularcolor;      // group material
 uniform vec3 emissivecolor;      // group material
 
-// uniform sampler2D uTexture; // mag LINEAR, min LINEAR_MIPMAP_LINEAR
+uniform sampler2D uTexture; // mag LINEAR, min LINEAR_MIPMAP_LINEAR
 
 void main(void) 
 {
@@ -67,7 +66,11 @@ void main(void)
   vec3 ac = vec3(0.1, 0.1, 0.1);
   vec3 color = ac + lighton.x * diffusecolor * nDotL * shadow;
 
-  gl_FragColor = vec4(color, 1.0);
+  vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
+  if (materialoptions.x > 0.0)    // has a texture
+    tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
+
+  gl_FragColor = tex * vec4(color, 1.0);
 }
 
 [END]
