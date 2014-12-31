@@ -11,6 +11,9 @@ function World()
 
   this.physicsWorker = null;
   this.debug = false;
+
+  this.doorcode = [];
+  this.doorsolution = [];
 }
 
 
@@ -79,7 +82,7 @@ function PhysicsWorker()
   this.worker = new Worker("js/physics.js");;
   this.sendTime = 0;
   this.dt = 1 / 60;
-  this.liveobjects = 80;
+  this.liveobjects = 100;
   this.positions = new Float32Array(3 * this.liveobjects);
   this.quaternions = new Float32Array(4 * this.liveobjects);
   this.bounds = new Float32Array(6 * this.liveobjects);
@@ -259,6 +262,9 @@ Game.appInit = function ()
 {
   Game.world = new World();
 
+  for (var i = 0; i < 4; ++i)
+    Game.world.doorsolution.push("button"+((Math.random() * 16)|0));
+
   Game.textureLocation = "assets/"
   Game.loadMeshPNG("floor", "assets/floor.model");
   Game.loadMeshPNG("table", "assets/table.model");
@@ -279,6 +285,8 @@ Game.appInit = function ()
   Game.loadMeshPNG("battery", "assets/battery.model");
   Game.loadMeshPNG("clockdead", "assets/clockdead.model");
   Game.loadMeshPNG("titlepage", "assets/title.model");
+  Game.loadMeshPNG("button", "assets/button.model");
+  Game.loadMeshPNG("winpage", "assets/win.model");
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/transparentrender.fx");
@@ -313,6 +321,10 @@ Game.loadingStop = function ()
   var title = new GameObject(Game.assetMan.assets["titlepage"], "title");
   title.Place(0.0, 5.0, -0.3);
   title.transparent = true;
+  var win = new GameObject(Game.assetMan.assets["winpage"], "win");
+  win.Place(0.0, 5.0, -0.3);
+  win.transparent = true;
+  win.skip = true;
 
   var light = new GameObject(Game.assetMan.assets["light"], "light");    // these pieces are not physical
   light.Place(0.0, 8.0, 0.0);
@@ -355,6 +367,8 @@ Game.loadingStop = function ()
         var jenga = new GameObject(Game.assetMan.assets["jenga"], "jenga" + (piece + layer * 3));
 
   for (var i = 0; i < 4; ++i) var wall = new GameObject(null, "wall"+i); 
+
+  for (var i = 0; i < 16; ++i) var button = new GameObject(Game.assetMan.assets["button"], "button" + i);
 
   // SET UP LIGHT AND SHADOWS
   Game.world.shadowUp = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
@@ -504,6 +518,30 @@ Game.itemClick = function(name)
     // battery, key, flashlight can be picked up
   else if (!Game.world.pickup && (name == 'battery' || name == 'jenga31' || name == 'flashlight')) Game.world.pickup = name;
 
+  else if (name.substr(0,6) == "button")
+  {
+    Game.world.doorcode.push(name);
+    if (Game.world.doorcode.length == 4)
+    {
+      var ok = true;
+      for (var i = 0; i < 4; ++i)
+      {
+        if (Game.world.doorcode[i] != Game.world.doorsolution[i]) {
+          console.log("FAIL");
+          ok = false;
+          break;
+        }
+      }
+      if (ok)
+      {
+        Game.camera.angles[0] = 0;
+        Game.camera.angles[1] = 0;
+        Game.camera.angles[2] = 0;
+        Game.world.objects["win"].skip = false;
+      }
+      Game.world.doorcode = [];
+    }
+  }
 }
 
 //GAME RENDERING
@@ -686,6 +724,9 @@ Game.appHandleMouseEvent = function(type, mouse)
     {
       Game.camera.angles[1] += -0.01 * mouse.moveOffsetX;
       Game.camera.angles[0] += 0.01 * mouse.moveOffsetY;
+
+      if (Game.camera.angles[0] < -1.2) Game.camera.angles[0] = -1.2;
+      if (Game.camera.angles[0] > 1.2) Game.camera.angles[0] = 1.2;
     }
   }
 }

@@ -140,7 +140,7 @@ self.onmessage = function (e)
     world.add(clock);
 
     var dresser = new CANNON.Body({ mass: 10 });
-    dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 0.05, 1.5)));
+    dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 0.1, 1.5)));
     dresser.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 1.05, 1.5)), new CANNON.Vec3(0,-2.05,0));
     dresser.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
     dresser.position.set(3.35, 3.05, 0.0);
@@ -183,6 +183,23 @@ self.onmessage = function (e)
         world.add(body);
         body.sleep();
       }
+    }
+
+    var buttony = 3.84; // + 0.2;
+    shape = new CANNON.Box(new CANNON.Vec3(0.05, 0.05, 0.05));
+    for (var layer = 0; layer < 4; ++layer) {
+      var buttonx = 0.94;// - 0.15;
+      for (var piece = 0; piece < 4; ++piece) {
+        var body = new CANNON.Body({ mass: 1 });
+        body.addShape(shape);
+        body.position.set(buttonx, buttony, -3.75);
+        body.quaternion.setFromEuler(0, Math.PI / -2, 0);
+        body.name = "button" + (piece + layer * 4);
+        body.type = CANNON.Body.KINEMATIC;
+        world.add(body);
+        buttonx += 0.12;
+      }
+      buttony -= 0.12;
     }
 
     // walls
