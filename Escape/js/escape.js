@@ -394,10 +394,12 @@ Game.loadingStop = function ()
   var effect = Game.shaderMan.shaders["objectrender"];
   Game.world.uScene = effect.createUniform('scene');
   Game.world.uScene.uLightPosition = Game.world.lighteyeDown.position;
-  Game.world.uScene.lighton = vec3.fromValues(1.0,1.0,0.0);
+  Game.world.uScene.lighton = vec3.fromValues(1.0,0.0,0.0);
   Game.world.uScene.uWorldToLight = null;
   Game.world.uScene.uWorldToLight1 = mat4.create();
   Game.world.uScene.uWorldToLight2 = mat4.create();
+  Game.world.uScene.spotlightPos = vec3.create();
+  Game.world.uScene.spotlightDir = vec3.create();
   mat4.multiply(Game.world.uScene.uWorldToLight1, Game.world.lighteyeDown.eyes[0].projection, Game.world.lighteyeDown.eyes[0].view);
   mat4.multiply(Game.world.uScene.uWorldToLight2, Game.world.lighteyeUp.eyes[0].projection, Game.world.lighteyeUp.eyes[0].view);
 
@@ -466,6 +468,7 @@ Game.loadingStop = function ()
 
 
 // GAME UPDATES
+var forward = vec3.fromValues(0, 0, 1);
 
 Game.appUpdate = function ()
 {
@@ -485,22 +488,13 @@ Game.appUpdate = function ()
     mat4.multiply(test.uniform.uWorld, test.Trans, test.Orient);
   }
 
-//  if (Game.world.objects["drawer"].mover.startTime)
-//  {
-//    Game.world.physicsWorker.worker.postMessage({
-//      setPosition: Game.world.objects["drawer"].Position,
-//      id: 5
-//    });
-//  }
+  vec3.copy(Game.world.uScene.spotlightPos, Game.world.objects['flashlight'].Position);
+  vec3.transformMat4(Game.world.uScene.spotlightDir, forward, Game.world.objects['flashlight'].Orient);
 }
 
 Game.itemClick = function(name)
 {
-  if (name == 'drawer')
-  {
-    //    Game.world.objects['drawer'].mover.start();
-  }
-  else if (name == 'lightswitch')
+  if (name == 'lightswitch')
   {
     var lightswitch = Game.world.objects[name];
     quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
@@ -517,6 +511,12 @@ Game.itemClick = function(name)
 
     // battery, key, flashlight can be picked up
   else if (!Game.world.pickup && (name == 'battery' || name == 'jenga31' || name == 'flashlight')) Game.world.pickup = name;
+
+  else if (Game.world.pickup == "battery" && name == "flashlight")
+  {
+    Game.world.uScene.lighton[1] = 1.0;
+    Game.world.pickup = null;
+  }
 
   else if (name.substr(0,6) == "button")
   {

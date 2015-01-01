@@ -48,9 +48,14 @@ self.onmessage = function (e)
 
     if (obj.body.name == "drawer") obj.body.type = CANNON.Body.DYNAMIC;        // make the drawer responsive
     if (obj.body.name == "lock" && pickup == 41) world.bodies[4].type = CANNON.Body.DYNAMIC;   // clicking the lock with the key drops the lockbox
-
+    if (obj.body.name == "flashlight" && pickup == 90)
+    {
+      world.bodies[90].type = CANNON.Body.KINEMATIC;
+      world.bodies[90].position.set(0, -10, 0);
+      pickup = 0;
+    }
     // push the piece, but pull the drawer
-    var force = obj.body.name == "drawer" ? 200 : -200;
+    var force = obj.body.name == "drawer" ? 300 : -200;
     obj.body.wakeUp();                                                         // tetris peices are asleep
     obj.body.applyForce(obj.hitNormalWorld.scale(force * obj.body.mass), obj.hitPointWorld);
 

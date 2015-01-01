@@ -44,7 +44,10 @@ uniform vec3 partcolor;         // group perpart
 
 uniform mat4 uWorldToLight;      // group scene
 uniform vec3 uLightPosition;     // group scene
-uniform vec3 lighton;            // group scene - x: light is on/off
+uniform vec3 lighton;            // group scene - x: light is on/off y: flashlight is on off
+uniform vec3 spotlightDir;       // group scene
+uniform vec3 spotlightPos;       // group scene
+
 uniform vec3 camera;             // group camera
 
 // material options are: x: texture y/n   y: specular exponant  z: n/a   w: n/a
@@ -66,6 +69,32 @@ void main(void)
   vec3 ac = vec3(0.1, 0.1, 0.1);
   vec3 color = ac + lighton.x * diffusecolor * nDotL * shadow;
 
+  // spotlight section
+    float intensity = 0.0;
+    vec4 spec = vec4(0.0);
+ 
+    vec3 ld = normalize(spotlightPos - vec3(vPosition));
+    vec3 sd = normalize(spotlightDir);  
+ 
+    // inside the cone?
+    if (dot(sd,ld) > 0.9)   // 30ish degrees
+    {
+        vec3 n = normalize(normalize(vNormal));
+        intensity = max(dot(n,ld), 0.0);
+ 
+        // specular
+//        if (intensity > 0.0) {
+//            vec3 eye = normalize(DataIn.eye);
+//            vec3 h = normalize(ld + eye);
+//            float intSpec = max(dot(h,n), 0.0);
+//            spec = specular * pow(intSpec, shininess);
+//        }
+
+        color = color + lighton.y * intensity * diffusecolor * 0.5;
+    }
+  // end spotlight
+
+  // textureing
   vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
   if (materialoptions.x > 0.0)    // has a texture
     tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
