@@ -266,7 +266,7 @@ Game.appInit = function ()
     Game.world.doorsolution.push("button"+((Math.random() * 16)|0));
 
   Game.textureLocation = "assets/"
-  Game.loadMeshPNG("floor", "assets/floor.model");
+  Game.loadMeshPNG("room", "assets/floor.model");
   Game.loadMeshPNG("table", "assets/table.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
   Game.loadMeshPNG("clock", "assets/clock.model");
@@ -337,7 +337,7 @@ Game.loadingStop = function ()
   fan.setMover(new MoverRotate(Math.PI / 30.0));
   fan.mover.start();
   fan.skip = true;
-  var floor = new GameObject(Game.assetMan.assets["floor"], "floor");
+  var floor = new GameObject(Game.assetMan.assets["room"], "floor");
   floor.Place(0.0, -0.05, 0.0);
   var lightswitch = new GameObject(Game.assetMan.assets["switch"], "lightswitch");
   quat.rotateY(lightswitch.Rotation, lightswitch.Rotation, Math.PI / 2);
