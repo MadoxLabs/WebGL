@@ -14,6 +14,7 @@ function World()
 
   this.doorcode = [];
   this.doorsolution = [];
+  this.dooruniform = vec4.create();
 }
 
 
@@ -263,7 +264,11 @@ Game.appInit = function ()
   Game.world = new World();
 
   for (var i = 0; i < 4; ++i)
-    Game.world.doorsolution.push("button"+((Math.random() * 16)|0));
+  {
+    val = (Math.random() * 15) | 0;
+    Game.world.doorsolution.push("button" + val);
+    Game.world.dooruniform[i] = val + 0.0;
+  }
 
   Game.textureLocation = "assets/"
   Game.loadMeshPNG("room", "assets/floor.model");
@@ -295,6 +300,7 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/boxrender.fx");
   Game.loadShaderFile("assets/shadowcast.fx");
   Game.loadShaderFile("assets/shadowrecieve.fx");
+  Game.loadShaderFile("assets/fanrender.fx");
 }
 
 Game.deviceReady = function ()
@@ -340,6 +346,7 @@ Game.loadingStop = function ()
   fan.setMover(new MoverRotate(Math.PI * 3.0));
   fan.mover.start();
   fan.skip = true;
+  fan.uniform.uCode = Game.world.dooruniform;
   var floor = new GameObject(Game.assetMan.assets["room"], "floor");
   floor.Place(0.0, -0.05, 0.0);
   var lightswitch = new GameObject(Game.assetMan.assets["switch"], "lightswitch");
@@ -505,7 +512,7 @@ Game.itemClick = function(name)
     quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
     lightswitch.dirty = true;
     Game.world.lighton = !Game.world.lighton;
-    Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.03;
+    Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.0;
     if (!Game.world.lighton) Game.world.objects['fan'].mover.stop();
     else Game.world.objects['fan'].mover.start();
   }
@@ -608,19 +615,28 @@ Game.appDraw = function (eye)
     effect.draw(Game.world.objects['light'].Model);
   }
 
-  // render objects
+  // ceiling and fan use up facing shadow map
+  Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
+
+  // fan is special object with its own shader
+  effect = Game.shaderMan.shaders["fanrender"];
+  effect.bind();
+  effect.bindCamera(eye);
+  effect.setUniforms(Game.world.uScene);
+  effect.bindTexture("shadow", Game.world.shadowUp.texture);
+  effect.setUniforms(Game.world.objects['fan'].uniform);
+  effect.draw(Game.world.objects['fan'].Model);
+  
+  // change to normal object shader
   effect = Game.shaderMan.shaders["objectrender"];
   effect.bind();
   effect.bindCamera(eye);
 
-  // ceiling and fan use up facing shadow map
-  Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
+  // still using upwards shadow map
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowUp.texture);  // ceiling
   effect.setUniforms(Game.world.objects['ceiling'].uniform);
   effect.draw(Game.world.objects['ceiling'].Model);
-  effect.setUniforms(Game.world.objects['fan'].uniform);   // fan
-  effect.draw(Game.world.objects['fan'].Model);
 
   // the rest are down facing
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight1;
@@ -632,7 +648,8 @@ Game.appDraw = function (eye)
     effect.setUniforms(Game.world.objects[i].uniform);
     effect.draw(Game.world.objects[i].Model);
   }
-
+  
+  // now do clear things
   if (Game.world.lighton) {
     effect = Game.shaderMan.shaders["transparentrender"];
     effect.bind();
@@ -676,8 +693,8 @@ Game.appHandleKeyUp = function (event)
   Game.world.currentlyPressedKeys[event.keyCode] = false;
 
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
-  else if (event.keyCode == 81)
-    Game.world.debug = !Game.world.debug;
+  else if (event.keyCode == 81) Game.world.debug = !Game.world.debug;
+  else if (event.keyCode == 82) Game.world.objects['fan'].mover.stop();
 }
 
 var clicked = false;
