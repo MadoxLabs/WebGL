@@ -307,6 +307,8 @@ Game.loadingStart = function ()
 
 Game.loadingStop = function ()
 {
+  doneLoading();
+
   Game.ready = true;
   
   // SET UP CAMERA

@@ -4,6 +4,9 @@ var world;
 var batteryOut = false;
 var pickup = 0;
 
+// cached new's - dont keep renewing them
+var raycastresult = new CANNON.RaycastResult();
+
 self.onmessage = function (e)
 {
   if (e.data.drop)
@@ -17,17 +20,16 @@ self.onmessage = function (e)
 
   if (e.data.near)
   {
-    var obj = new CANNON.RaycastResult();
     // get the picked piece
-    world.rayTest(e.data.near, e.data.far, obj);
+    world.rayTest(e.data.near, e.data.far, raycastresult);
 
     // if it is the battery in the clock, set the battery free!
-    if (!batteryOut && obj.shape.parent && obj.shape.parent.name == "clockbattery") {
-      self.postMessage({ hit: obj.shape.parent.name });
+    if (!batteryOut && raycastresult.shape.parent && raycastresult.shape.parent.name == "clockbattery") {
+      self.postMessage({ hit: raycastresult.shape.parent.name });
 
       var battery = new CANNON.Body({ mass: 1 });
       battery.addShape(new CANNON.Box(new CANNON.Vec3(0.095, 0.095, 0.177)));
-      battery.position.set(obj.body.position.x, obj.body.position.y + 0.3, obj.body.position.z);
+      battery.position.set(raycastresult.body.position.x, raycastresult.body.position.y + 0.3, raycastresult.body.position.z);
       battery.name = "battery";
       world.add(battery);
       batteryOut = true;
@@ -36,28 +38,28 @@ self.onmessage = function (e)
     }
 
     // report on the picked piece
-    self.postMessage({ hit: obj.body.name });
+    self.postMessage({ hit: raycastresult.body.name });
 
     // if a piece is picked up, move it to the hand
-    if (!pickup && (obj.body.name == 'battery' || obj.body.name == 'jenga31' || obj.body.name == 'flashlight')) {
-      obj.body.type = CANNON.Body.KINEMATIC;
-      obj.body.position.set(0, 4.6, 0);
-      pickup = obj.body.id;
+    if (!pickup && (raycastresult.body.name == 'battery' || raycastresult.body.name == 'jenga31' || raycastresult.body.name == 'flashlight')) {
+      raycastresult.body.type = CANNON.Body.KINEMATIC;
+      raycastresult.body.position.set(0, 4.6, 0);
+      pickup = raycastresult.body.id;
       return;
     }
 
-    if (obj.body.name == "drawer") obj.body.type = CANNON.Body.DYNAMIC;        // make the drawer responsive
-    if (obj.body.name == "lock" && pickup == 41) world.bodies[4].type = CANNON.Body.DYNAMIC;   // clicking the lock with the key drops the lockbox
-    if (obj.body.name == "flashlight" && pickup == 90)
+    if (raycastresult.body.name == "drawer") raycastresult.body.type = CANNON.Body.DYNAMIC;        // make the drawer responsive
+    if (raycastresult.body.name == "lock" && pickup == 41) world.bodies[4].type = CANNON.Body.DYNAMIC;   // clicking the lock with the key drops the lockbox
+    if (raycastresult.body.name == "flashlight" && pickup == 90)
     {
       world.bodies[90].type = CANNON.Body.KINEMATIC;
       world.bodies[90].position.set(0, -10, 0);
       pickup = 0;
     }
     // push the piece, but pull the drawer
-    var force = obj.body.name == "drawer" ? 300 : -200;
-    obj.body.wakeUp();                                                         // tetris peices are asleep
-    obj.body.applyForce(obj.hitNormalWorld.scale(force * obj.body.mass), obj.hitPointWorld);
+    var force = raycastresult.body.name == "drawer" ? 300 : -200;
+    raycastresult.body.wakeUp();                                                         // tetris peices are asleep
+    raycastresult.body.applyForce(raycastresult.hitNormalWorld.scale(force * raycastresult.body.mass), raycastresult.hitPointWorld);
 
     return;
   }

@@ -3,8 +3,21 @@
     <title>MadoxLabs Escape Room demo</title>
     <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
     <script src="../mxFrame/mxFrame.js"></script>
+    <script>
+      function reportLoading(value)
+      {
+        var out = document.getElementById("loading");
+        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go..."
+      }
+
+      function doneLoading()
+      {
+        document.getElementById("loading").style.visibility = "hidden";
+      }
+    </script>
   </head>
   <body style="margin:0;padding:0;" onload="launchApp(['js/cannon.js', 'js/escape.js'], '../mxFrame', WITH_MXFRAME);">
     <div><canvas id='surface'></div>
+    <div id="loading"></div>
   </body>
 </html>

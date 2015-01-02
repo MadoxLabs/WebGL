@@ -1,6 +1,7 @@
 body {
     margin: 0;
     padding: 0;
+    background-color: black;
 }
 
 #surface {
@@ -8,4 +9,13 @@ body {
     width: 800px;
     height: 600px;
     cursor: none;
+}
+
+#loading {
+  width: 300px;
+  margin: 0 auto;
+  color: red;
+  font-size: x-large;
+  position: absolute;
+  top: 0px;
 }

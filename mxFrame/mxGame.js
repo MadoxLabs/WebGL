@@ -16,6 +16,9 @@ var ext = {};
 var xAxis;
 var yAxis;
 var zAxis;
+var xAxisNegative;
+var yAxisNegative;
+var zAxisNegative;
 
 var Game = {};
 
@@ -27,6 +30,9 @@ Game.init = function ()
   xAxis = vec3.fromValues(1, 0, 0);
   yAxis = vec3.fromValues(0, 1, 0);
   zAxis = vec3.fromValues(0, 0, 1);
+  xAxisNegative = vec3.fromValues(-1, 0, 0);
+  yAxisNegative = vec3.fromValues(0, -1, 0);
+  zAxisNegative = vec3.fromValues(0, 0, -1);
 
   // initial set up of the game object, init gl, create helpers
   this.loading = 0;
@@ -270,6 +276,7 @@ Game.drawEachEye = function()
 }
 
 var adjust = 0;
+var drawEyeMouseUniform = { location: vec2.create(), size: vec2.fromValues(32,32), screensize: vec2.create() };
 
 Game.drawEye = function(eye)
 {
@@ -280,14 +287,13 @@ Game.drawEye = function(eye)
   if (Game.mouse.grabbed) return;
 
   // MOUSE AREA
-  var uniforms = {};
-  uniforms.location = vec2.fromValues(Game.mouse.X + eye.ipd * 100 * adjust, Game.mouse.Y);
-  uniforms.size = vec2.fromValues(32,32);
-  uniforms.screensize = vec2.fromValues(eye.viewport[2], eye.viewport[3]);
+  vec2.set(drawEyeMouseUniform.location, Game.mouse.X + eye.ipd * 100 * adjust, Game.mouse.Y);
+//  vec2.set(drawEyeMouseUniform.size, 32, 32);
+  vec2.set(drawEyeMouseUniform.screensize, eye.viewport[2], eye.viewport[3]);
 
   var effect = Game.shaderMan.shaders['sprite'];
   effect.bind();
-  effect.setUniforms(uniforms);
+  effect.setUniforms(drawEyeMouseUniform);
   effect.bindTexture("uSpriteTex", Game.assetMan.assets['mouse'].texture);
   effect.draw(Game.assetMan.assets['sprite']);
   // END MOUSE AREA
@@ -298,20 +304,20 @@ Game.drawEachEyeOculusEffect = function ()
   for (var eye in Game.camera.eyes) Game.drawEyeOculusEffect(Game.camera.eyes[eye]);
 }
 
+var oculusEffectUniform = { distortionscale: 0.8, aspect: 0, ScreenCenter: 0, LensCenter: 0};
+
 Game.drawEyeOculusEffect = function (eye)
 {
   if (libtype & WITH_OCULUS == 0) return;
 
   eye.engage();
-  var uniforms = {};
-  uniforms.distortionscale = 0.8;
-  uniforms.aspect = Game.oculus.hResolution * 0.5 / Game.oculus.vResolution;
-  uniforms.ScreenCenter = eye.center;
-  uniforms.LensCenter = eye.lenscenter;
+  oculusEffectUniform.aspect = Game.oculus.hResolution * 0.5 / Game.oculus.vResolution;
+  oculusEffectUniform.ScreenCenter = eye.center;
+  oculusEffectUniform.LensCenter = eye.lenscenter;
 
   var effect = Game.shaderMan.shaders[Game.postprocessShader];
   effect.bind();
-  effect.setUniforms(uniforms);
+  effect.setUniforms(oculusEffectUniform);
   effect.bindTexture("uFrontbuffer", Game.frontbuffer.texture);
   effect.draw(Game.assetMan.assets[eye.fsq]);
 }
@@ -388,8 +394,7 @@ function handleSizeChange()
 
 Game.now = function ()
 {
-  var d = new Date();
-  return d.getTime();
+  return Date.now();
 }
 
 Game.loadShaderFile = function (name)
@@ -454,6 +459,8 @@ Game.loadingIncr = function()
 
 Game.loadingDecr = function ()
 {
+  if (reportLoading) reportLoading(Game.loading);
+
   if (Game.loading == 1) { Game.shaderMan.processEffects(); Game.loadingStop(); }
   Game.loading -= 1;
 }

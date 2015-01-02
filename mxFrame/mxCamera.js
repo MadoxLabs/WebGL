@@ -209,9 +209,9 @@ Camera.prototype.update = function ()
   vec3.transformMat4(this.position, this.offset, this.orientation);
   vec3.add(this.position, this.position, this.target.Position);
 
-  vec3.transformMat4(this.up, vec3.fromValues(0, 1, 0), this.orientation);
-  vec3.transformMat4(this.left, vec3.fromValues(-1, 0, 0), this.orientation);
-  vec3.transformMat4(this.forward, vec3.fromValues(0, 0, 1), this.orientation);
+  vec3.transformMat4(this.up, yAxis, this.orientation);
+  vec3.transformMat4(this.left, xAxisNegative, this.orientation);
+  vec3.transformMat4(this.forward, zAxis, this.orientation);
 
   this.updateEyes();
 }
