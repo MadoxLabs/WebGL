@@ -333,7 +333,7 @@ Game.oculusMode = function (state)
     Game.postprocess("oculus");
     Game.camera.splitscreen(true);
     Game.isOculus = true;
-    showhelp(false);
+//    showhelp(false);
   }
   else if (!state && Game.isOculus)
   {
@@ -342,7 +342,7 @@ Game.oculusMode = function (state)
     Game.postprocess(null);
     Game.camera.splitscreen(false);
     Game.isOculus = false;
-    showhelp(true);
+//    showhelp(true);
   }
 }
 
@@ -358,7 +358,7 @@ Game.fullscreenMode = function(state)
     Game.surface.style.width = "100%";
     Game.surface.style.height = "100%";
     Game.isFullscreen = true;
-    showhelp(false);
+//    showhelp(false);
   }
   else if (!state && Game.isFullscreen)
   {
@@ -369,7 +369,7 @@ Game.fullscreenMode = function(state)
     Game.surface.style.width = "800px";
     Game.surface.style.height = "600px";
     Game.isFullscreen = false;
-    showhelp(true);
+//    showhelp(true);
   }
 }
 

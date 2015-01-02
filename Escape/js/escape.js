@@ -54,7 +54,7 @@ GameObject.prototype.Rotate = function (x, y, z, w)
   this.dirty = true;
 }
 
-GameObject.prototype.Update = function (gametime)
+GameObject.prototype.Update = function ()
 {
   if (!this.dirty && !this.mover) return;
 
@@ -225,7 +225,7 @@ MoverTranslate.prototype.apply = function (body)
 
 function MoverRotate(angle) 
 {
-  this.step = angle;
+  this.step = angle / 1000.0;  // angle per second
   this.quat = quat.create();
   this.angle = 0;
 }
@@ -245,7 +245,7 @@ MoverRotate.prototype.update = function ()
 {
   if (!this.startTime) return;
 
-  this.angle += this.step;
+  this.angle += this.step * Game.elapsed;
   quat.identity(this.quat);
   quat.rotateY(this.quat, this.quat, this.angle);
 }
@@ -287,6 +287,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("titlepage", "assets/title.model");
   Game.loadMeshPNG("button", "assets/button.model");
   Game.loadMeshPNG("winpage", "assets/win.model");
+  Game.loadTextureFile("clock2tex", "clock2tex.png", true);
   Game.loadShaderFile("assets/renderstates.fx");
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/transparentrender.fx");
@@ -336,7 +337,7 @@ Game.loadingStop = function ()
   ceiling.skip = true;
   var fan = new GameObject(Game.assetMan.assets["fan"], "fan");
   fan.Place(0.0, 8.0, 0.0);
-  fan.setMover(new MoverRotate(Math.PI / 30.0));
+  fan.setMover(new MoverRotate(Math.PI * 3.0));
   fan.mover.start();
   fan.skip = true;
   var floor = new GameObject(Game.assetMan.assets["room"], "floor");
@@ -466,6 +467,8 @@ Game.loadingStop = function ()
   var boxModel = new Mesh();
   boxModel.loadFromArrays(aabbvertices, null, { 'POS': 0 }, gl.LINES, aabbvertices.length / 3.0, 0);
   Game.assetMan.assets['boxmodel'] = boxModel;
+
+  setInterval(function () { Game.flashClock(); }, 1000);
 }
 
 
@@ -511,15 +514,17 @@ Game.itemClick = function(name)
     Game.world.objects['clock'].Model = Game.assetMan.assets["clockdead"];
   }
 
-    // battery, key, flashlight can be picked up
+  // battery, key, flashlight can be picked up
   else if (!Game.world.pickup && (name == 'battery' || name == 'jenga31' || name == 'flashlight')) Game.world.pickup = name;
 
+  // battery turns on the flashlight
   else if (Game.world.pickup == "battery" && name == "flashlight")
   {
     Game.world.uScene.lighton[1] = 1.0;
     Game.world.pickup = null;
   }
 
+  // user is entering a solution
   else if (name.substr(0,6) == "button")
   {
     Game.world.doorcode.push(name);
@@ -544,6 +549,14 @@ Game.itemClick = function(name)
       Game.world.doorcode = [];
     }
   }
+}
+
+Game.flashClock = function ()
+{
+  if (Game.assetMan.assets['clock'].groups[1].texture == "clocktex")
+    Game.assetMan.assets['clock'].groups[1].texture = "clock2tex";
+  else
+    Game.assetMan.assets['clock'].groups[1].texture = "clocktex";
 }
 
 //GAME RENDERING

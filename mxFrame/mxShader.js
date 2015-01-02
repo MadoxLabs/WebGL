@@ -115,7 +115,7 @@ function draw(mesh)
     {
       if (group.texture)
       {
-        if (Game.assetMan.assets[group.texture]) this.bindTexture('uTexture', Game.assetMan.assets[group.texture].texture);
+        if (Game.assetMan.assets[group.texture]) { this.bindTexture('uTexture', Game.assetMan.assets[group.texture].texture); }
         else this.bindTexture('uTexture', Game.assetMan.assets["missing"].texture);
       }
       else this.bindTexture('uTexture', null);
