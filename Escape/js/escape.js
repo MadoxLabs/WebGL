@@ -581,10 +581,10 @@ Game.unlightAllButtons = function ()
 
 Game.flashClock = function ()
 {
-  if (Game.assetMan.assets['clock'].groups[1].texture == "clocktex")
-    Game.assetMan.assets['clock'].groups[1].texture = "clock2tex";
+  if (Game.assetMan.assets['clock'].groups[0].texture == "clocktex")
+    Game.assetMan.assets['clock'].groups[0].texture = "clock2tex";
   else
-    Game.assetMan.assets['clock'].groups[1].texture = "clocktex";
+    Game.assetMan.assets['clock'].groups[0].texture = "clocktex";
 }
 
 //GAME RENDERING
@@ -788,7 +788,7 @@ Game.appHandleMouseEvent = function(type, mouse)
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20)
     {
       Game.camera.angles[1] += -0.01 * mouse.moveOffsetX;
-      Game.camera.angles[0] += 0.01 * mouse.moveOffsetY;
+      Game.camera.angles[0] += -0.01 * mouse.moveOffsetY;
 
       if (Game.camera.angles[0] < -1.2) Game.camera.angles[0] = -1.2;
       if (Game.camera.angles[0] > 1.2) Game.camera.angles[0] = 1.2;

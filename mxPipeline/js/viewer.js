@@ -23,6 +23,8 @@ var loadingTextures = false;
 
 var currentlyPressedKeys = {};
 
+function reportLoading() { }
+
 function degToRad(degrees)
 {
   return degrees * Math.PI / 180;
