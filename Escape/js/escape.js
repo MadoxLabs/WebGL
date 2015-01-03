@@ -318,7 +318,7 @@ Game.loadingStop = function ()
   doneLoading();
 
   Game.ready = true;
-  
+
   // SET UP CAMERA
   Game.camera.offset[0] = 0.0;
   Game.camera.offset[1] = 0.0;
@@ -538,7 +538,7 @@ Game.itemClick = function(name)
   }
 
   // user is entering a solution
-  else if (name.substr(0,6) == "button")
+  else if (Game.world.lighton && name.substr(0, 6) == "button")
   {
     Game.world.objects[name].uniform.uState[1] = 2;
     setTimeout(function () { Game.unlightButton(name); }, 200 );
