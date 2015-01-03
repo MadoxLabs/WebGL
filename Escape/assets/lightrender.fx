@@ -58,7 +58,7 @@ uniform vec3 emissivecolor;      // group material
 
 void main(void) 
 {
-  gl_FragColor = vec4(lighton.x,lighton.x,lighton.x,1.0);
+  gl_FragColor = vec4(diffusecolor,1.0);
 }
 
 [END]

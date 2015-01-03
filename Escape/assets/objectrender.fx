@@ -44,6 +44,7 @@ uniform vec3 partcolor;         // group perpart
 
 uniform mat4 uWorldToLight;      // group scene
 uniform vec3 uLightPosition;     // group scene
+uniform vec3 uLight2Position;     // group scene
 uniform vec3 lighton;            // group scene - x: light is on/off y: flashlight is on off
 uniform vec3 spotlightDir;       // group scene
 uniform vec3 spotlightPos;       // group scene
@@ -61,7 +62,9 @@ uniform sampler2D uTexture; // mag LINEAR, min LINEAR_MIPMAP_LINEAR
 
 void main(void) 
 {
-  float nDotL = dot(normalize(vNormal), normalize(uLightPosition - vec3(vPosition)));
+  vec3 lightdist = uLightPosition - vec3(vPosition);
+  vec3 light2dist = uLight2Position - vec3(vPosition);
+  float nDotL = dot(normalize(vNormal), normalize(lightdist));
   
   float shadow = 1.0;
   if (lighton.x > 0.5) shadow = IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition);
@@ -100,7 +103,15 @@ void main(void)
   if (materialoptions.x > 0.0)    // has a texture
     tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
 
-  gl_FragColor = tex * vec4(color * lighton.x + spotlight, 1.0);
+  if (lighton.x < 0.5 && length(light2dist) < 1.0)
+  {
+    if (length(light2dist) < 0.8) { color.r = 0.0; color.b = 0.0; color.g = color.g * 0.1; }
+    else if (length(light2dist) < 0.85) { color.r = 0.0; color.b = 0.0; color.g = color.g * 0.09; }
+    else if (length(light2dist) < 0.9) { color.r = 0.0; color.b = 0.0; color.g = color.g * 0.08; }
+    else if (length(light2dist) < 1.0) { color.r = 0.0; color.b = 0.0; color.g = color.g * 0.04; }
+  }
+  else color = color * lighton.x;
+  gl_FragColor = tex * vec4(color + spotlight, 1.0);
 }
 
 [END]
