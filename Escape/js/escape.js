@@ -301,6 +301,7 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/shadowcast.fx");
   Game.loadShaderFile("assets/shadowrecieve.fx");
   Game.loadShaderFile("assets/fanrender.fx");
+  Game.loadShaderFile("assets/buttonrender.fx");
 }
 
 Game.deviceReady = function ()
@@ -378,7 +379,12 @@ Game.loadingStop = function ()
 
   for (var i = 0; i < 4; ++i) var wall = new GameObject(null, "wall"+i); 
 
-  for (var i = 0; i < 16; ++i) var button = new GameObject(Game.assetMan.assets["button"], "button" + i);
+  for (var i = 0; i < 16; ++i)
+  {
+    var button = new GameObject(Game.assetMan.assets["button"], "button" + i);
+    button.uniform.uState = vec2.fromValues(i, 0);
+    button.skip = true;
+  }
 
   // SET UP LIGHT AND SHADOWS
   Game.world.shadowUp = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
@@ -534,6 +540,9 @@ Game.itemClick = function(name)
   // user is entering a solution
   else if (name.substr(0,6) == "button")
   {
+    Game.world.objects[name].uniform.uState[1] = 2;
+    setTimeout(function () { Game.unlightButton(name); }, 200 );
+
     Game.world.doorcode.push(name);
     if (Game.world.doorcode.length == 4)
     {
@@ -541,7 +550,8 @@ Game.itemClick = function(name)
       for (var i = 0; i < 4; ++i)
       {
         if (Game.world.doorcode[i] != Game.world.doorsolution[i]) {
-          console.log("FAIL");
+          for (var i = 0; i < 16; ++i) Game.world.objects["button" + i].uniform.uState[1] = 1;
+          setTimeout(function () { Game.unlightAllButtons(); }, 200);
           ok = false;
           break;
         }
@@ -556,6 +566,17 @@ Game.itemClick = function(name)
       Game.world.doorcode = [];
     }
   }
+}
+
+Game.unlightButton = function(button)
+{
+  Game.world.objects[button].uniform.uState[1] = 0;
+}
+
+Game.unlightAllButtons = function ()
+{
+  for (var i = 0; i < 16; ++i)
+     Game.world.objects["button"+i].uniform.uState[1] = 0;
 }
 
 Game.flashClock = function ()
@@ -649,6 +670,18 @@ Game.appDraw = function (eye)
     effect.draw(Game.world.objects[i].Model);
   }
   
+  // now do button which are down facing and special shader
+  effect = Game.shaderMan.shaders["buttonrender"];
+  effect.bind();
+  effect.bindCamera(eye);
+  effect.setUniforms(Game.world.uScene);
+  effect.bindTexture("shadow", Game.world.shadowDown.texture);
+  for (var i = 0; i < 16; ++i)
+  {
+    effect.setUniforms(Game.world.objects['button'+i].uniform);
+    effect.draw(Game.world.objects['button'+i].Model);
+  }
+
   // now do clear things
   if (Game.world.lighton) {
     effect = Game.shaderMan.shaders["transparentrender"];

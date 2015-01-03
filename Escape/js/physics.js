@@ -192,21 +192,21 @@ self.onmessage = function (e)
       }
     }
 
-    var buttony = 3.84; // + 0.2;
+    var buttony = 4.0; // + 0.2;
     shape = new CANNON.Box(new CANNON.Vec3(0.05, 0.05, 0.05));
     for (var layer = 0; layer < 4; ++layer) {
-      var buttonx = 0.94;// - 0.15;
+      var buttonx = 0.85;// - 0.15;
       for (var piece = 0; piece < 4; ++piece) {
         var body = new CANNON.Body({ mass: 1 });
         body.addShape(shape);
         body.position.set(buttonx, buttony, -3.75);
-        body.quaternion.setFromEuler(0, Math.PI / -2, 0);
+      //  body.quaternion.setFromEuler(0, Math.PI / -2, 0);
         body.name = "button" + (piece + layer * 4);
         body.type = CANNON.Body.KINEMATIC;
         world.add(body);
-        buttonx += 0.12;
+        buttonx += 0.162;
       }
-      buttony -= 0.12;
+      buttony -= 0.162;
     }
 
     // walls
