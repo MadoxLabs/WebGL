@@ -396,6 +396,7 @@ ShaderManager.prototype.processEffect = function(src)
   if (usestate) shaderProgram.renderstate = this.renderstates[usestate];
   shaderProgram.attributes = [];
   shaderProgram.stride = 0;
+  shaderProgram.names = {};
 
   var numAttribs = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
   var numUniforms = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
@@ -406,7 +407,7 @@ ShaderManager.prototype.processEffect = function(src)
     gl.getError();
     if (!info) break;
 
-    shaderProgram[info.name] = gl.getAttribLocation(shaderProgram, info.name);
+    shaderProgram.names[info.name] = gl.getAttribLocation(shaderProgram, info.name);
     shaderProgram.attributes[i] = {};
     shaderProgram.attributes[i].size = uniformSizes[info.type - 0x8b50];
     shaderProgram.attributes[i].type = uniformTypes[info.type - 0x8b50];   // convert uniform type to data type
@@ -414,7 +415,7 @@ ShaderManager.prototype.processEffect = function(src)
 
     var code = this.findCode(src, info.name);
     if (!code) alert("missing code for " + info.name);
-    shaderProgram.attributes[code] = shaderProgram[info.name];
+    shaderProgram.attributes[code] = shaderProgram.names[info.name];
   }
 
   // 
@@ -439,28 +440,19 @@ ShaderManager.prototype.processEffect = function(src)
       shaderProgram.textures[t].min = this.findTexParam(src, info.name, 'min', gl.NEAREST_MIPMAP_LINEAR);
       shaderProgram.textures[t].wraps = this.findTexParam(src, info.name, 'wrapu', gl.REPEAT);
       shaderProgram.textures[t].wrapt = this.findTexParam(src, info.name, 'wrapv', gl.REPEAT);
-      shaderProgram[info.name] = t;
+      shaderProgram.names[info.name] = t;
       t += 1;
     }
     else
     {
-      shaderProgram[info.name] = gl.getUniformLocation(shaderProgram, info.name);
-      shaderProgram[info.name].type = info.type;
+      shaderProgram.names[info.name] = gl.getUniformLocation(shaderProgram, info.name);
+      shaderProgram.names[info.name].type = info.type;
       shaderProgram.uniforms[u] = {};
       shaderProgram.uniforms[u].name = info.name;
       shaderProgram.uniforms[u].group = this.findParam(src, info.name, 'group', '');
       u += 1;
     }
   }
-
-  shaderProgram.bind = bind;
-  shaderProgram.bindCamera = bindCamera;
-  shaderProgram.bindMesh = bindMesh;
-  shaderProgram.bindInstanceData = bindInstanceData;
-  shaderProgram.bindTexture = bindTexture;
-  shaderProgram.draw = draw;
-  shaderProgram.createUniform = createUniform;
-  shaderProgram.setUniforms = setUniforms;
 
   this.shaders[name] = shaderProgram;
 }

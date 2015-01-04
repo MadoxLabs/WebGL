@@ -1,7 +1,7 @@
 //
 // These functions get added to each WebGL shader object
-
-function bind()
+WebGLProgram.prototype.bind = function()
+//function bind()
 {
   if (!this.uMat)
   {
@@ -20,13 +20,15 @@ function bind()
   }
 }
 
-function bindCamera(eye)
+WebGLProgram.prototype.bindCamera = function (eye)
+//function bindCamera(eye)
 {
   if (eye.eyes) eye = eye.eyes[0];
   this.setUniforms(eye.uniforms);
 }
 
-function bindMesh(mesh)
+WebGLProgram.prototype.bindMesh = function (mesh)
+//function bindMesh(mesh)
 {
   if (mesh.indexbuffer) gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexbuffer);
   else gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -44,7 +46,8 @@ function bindMesh(mesh)
   }
 }
 
-function bindInstanceData(mesh)
+WebGLProgram.prototype.bindInstanceData = function (mesh)
+//function bindInstanceData(mesh)
 {
   if (!mesh.instanceBuffer) return;
 
@@ -61,9 +64,10 @@ function bindInstanceData(mesh)
   }
 }
 
-function bindTexture(name, texture, mag, min, wraps, wrapt)
+WebGLProgram.prototype.bindTexture = function (name, texture, mag, min, wraps, wrapt)
+//function bindTexture(name, texture, mag, min, wraps, wrapt)
 {
-  var tnum = this[name];
+  var tnum = this.names[name];
   if (tnum === undefined) return;
   var t = this.textures[tnum];
 
@@ -87,13 +91,15 @@ function bindTexture(name, texture, mag, min, wraps, wrapt)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, fwrapt);
 }
 
-function setUniforms(vals)
+WebGLProgram.prototype.setUniforms = function (vals)
+//function setUniforms(vals)
 {
   for (var name in vals)
-    Game.shaderMan.enableUniform(name, this[name], vals[name]);
+    Game.shaderMan.enableUniform(name, this.names[name], vals[name]);
 }
 
-function createUniform(group)
+WebGLProgram.prototype.createUniform = function (group)
+//function createUniform(group)
 {
   var ret = {};
   for (var i = 0; i < this.uniforms.length; ++i)
@@ -104,7 +110,8 @@ function createUniform(group)
   return ret;
 }
 
-function draw(mesh)
+WebGLProgram.prototype.draw = function (mesh)
+//function draw(mesh)
 {
   for (var i = 0; i < mesh.groups.length; ++i)
   {
