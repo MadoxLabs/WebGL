@@ -303,6 +303,24 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/shadowrecieve.fx");
   Game.loadShaderFile("assets/fanrender.fx");
   Game.loadShaderFile("assets/buttonrender.fx");
+
+  Game.world.sounds = {};
+  Game.world.sounds.radio = new buzz.sound("assets/radio", { formats: ["mp3"] });
+  Game.world.sounds.radio.loop();
+  Game.world.sounds.radio.setVolume(30);
+  Game.world.sounds.buttonok = new buzz.sound("assets/buttonok", { formats: ["wav"] });
+  Game.world.sounds.buttonok.setVolume(100);
+  Game.world.sounds.buttonbad = new buzz.sound("assets/buttonbad", { formats: ["wav"] });
+  Game.world.sounds.buttonbad.setVolume(100);
+
+  Game.world.sounds.fan = new buzz.sound("assets/fan", { formats: ["mp3"] });
+  Game.world.sounds.fan.loop();
+  Game.world.sounds.fan.setVolume(20);
+  Game.world.sounds.fanOn = new buzz.sound("assets/fanSwitchOn", { formats: ["mp3"] });
+  Game.world.sounds.fanOn.setVolume(20);
+  Game.world.sounds.fanOn.bind('ended', function () { Game.world.sounds.fan.togglePlay(); });
+  Game.world.sounds.fanOff = new buzz.sound("assets/fanSwitchOff", { formats: ["mp3"] });
+  Game.world.sounds.fanOff.setVolume(20);
 }
 
 Game.deviceReady = function ()
@@ -523,12 +541,22 @@ Game.itemClick = function(name)
     lightswitch.dirty = true;
     Game.world.lighton = !Game.world.lighton;
     Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.0;
-    if (!Game.world.lighton) Game.world.objects['fan'].mover.stop();
-    else Game.world.objects['fan'].mover.start();
+    if (!Game.world.lighton)
+    {
+      Game.world.sounds.fan.togglePlay();
+      Game.world.sounds.fanOff.play();
+      Game.world.objects['fan'].mover.stop();
+    }
+    else
+    {
+      Game.world.sounds.fanOn.play();
+      Game.world.objects['fan'].mover.start();
+    }
   }
   else if (name == 'clockbattery')
   {
     Game.world.objects['clock'].Model = Game.assetMan.assets["clockdead"];
+    Game.world.sounds.radio.stop();
   }
 
   // battery, key, flashlight can be picked up
@@ -557,6 +585,7 @@ Game.itemClick = function(name)
           for (var i = 0; i < 16; ++i) Game.world.objects["button" + i].uniform.uState[1] = 1;
           setTimeout(function () { Game.unlightAllButtons(); }, 200);
           ok = false;
+          Game.world.sounds.buttonbad.play();
           break;
         }
       }
@@ -566,9 +595,12 @@ Game.itemClick = function(name)
         Game.camera.angles[1] = 0;
         Game.camera.angles[2] = 0;
         Game.world.objects["win"].skip = false;
+        Game.world.sounds.fan.stop();
       }
       Game.world.doorcode = [];
     }
+    else Game.world.sounds.buttonok.play();
+
   }
 }
 
@@ -746,6 +778,8 @@ Game.appHandleMouseEvent = function(type, mouse)
     {
       Game.world.objects['title'].skip = true;
       started = true;
+      Game.world.sounds.radio.play();
+      Game.world.sounds.fan.play();
     }
 
     // drop item?
