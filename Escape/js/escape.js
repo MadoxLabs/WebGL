@@ -410,10 +410,10 @@ Game.appDrawAux = function ()
 
   for (var i in Game.world.objects)
   {
-//  for (var i = 5; i < Game.world.objects.length; ++i) {
-    if (Game.world.objects[i].skip || !Game.world.objects[i].Model) continue;
-    effect.setUniforms(Game.world.objects[i].uniform);
-    effect.draw(Game.world.objects[i].Model);
+    var obj = Game.world.objects[i];
+    if (obj.skip || !obj.Model) continue;
+    effect.setUniforms(obj.uniform);
+    effect.draw(obj.Model);
   }
 }
 
@@ -421,17 +421,21 @@ Game.appDraw = function (eye)
 {
   if (!Game.ready || Game.loading) return;
 
+  var obj;
+
   // light has a special shader
   effect = Game.shaderMan.shaders["lightrender"];
   effect.bind();
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
   if (Game.world.lighton) {
-    effect.setUniforms(Game.world.objects['light'].uniform);
-    effect.draw(Game.world.objects['light'].Model);
+    obj = Game.world.objects['light'];
+    effect.setUniforms(obj.uniform);
+    effect.draw(obj.Model);
   }
-  effect.setUniforms(Game.world.objects['light2'].uniform);
-  effect.draw(Game.world.objects['light2'].Model);
+  obj = Game.world.objects['light2'];
+  effect.setUniforms(obj.uniform);
+  effect.draw(obj.Model);
 
   // ceiling and fan use up facing shadow map
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
@@ -442,8 +446,9 @@ Game.appDraw = function (eye)
   effect.bindCamera(eye);
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowUp.texture);
-  effect.setUniforms(Game.world.objects['fan'].uniform);
-  effect.draw(Game.world.objects['fan'].Model);
+  obj = Game.world.objects['fan'];
+  effect.setUniforms(obj.uniform);
+  effect.draw(obj.Model);
   
   // change to normal object shader
   effect = Game.shaderMan.shaders["objectrender"];
@@ -453,8 +458,9 @@ Game.appDraw = function (eye)
   // still using upwards shadow map
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowUp.texture);  // ceiling
-  effect.setUniforms(Game.world.objects['ceiling'].uniform);
-  effect.draw(Game.world.objects['ceiling'].Model);
+  obj = Game.world.objects['ceiling'];
+  effect.setUniforms(obj.uniform);
+  effect.draw(obj.Model);
 
   // the rest are down facing
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight1;
@@ -462,9 +468,10 @@ Game.appDraw = function (eye)
   effect.bindTexture("shadow", Game.world.shadowDown.texture);
   for (var i in Game.world.objects)
   {
-    if (Game.world.objects[i].skip || Game.world.objects[i].transparent || !Game.world.objects[i].Model) continue;
-    effect.setUniforms(Game.world.objects[i].uniform);
-    effect.draw(Game.world.objects[i].Model);
+    obj = Game.world.objects[i];
+    if (obj.skip || obj.transparent || !obj.Model) continue;
+    effect.setUniforms(obj.uniform);
+    effect.draw(obj.Model);
   }
   
   // now do button which are down facing and special shader
@@ -475,8 +482,9 @@ Game.appDraw = function (eye)
   effect.bindTexture("shadow", Game.world.shadowDown.texture);
   for (var i = 0; i < 16; ++i)
   {
-    effect.setUniforms(Game.world.objects['button'+i].uniform);
-    effect.draw(Game.world.objects['button'+i].Model);
+    obj = Game.world.objects['button' + i];
+    effect.setUniforms(obj.uniform);
+    effect.draw(obj.Model);
   }
 
   // now do clear things
@@ -486,9 +494,10 @@ Game.appDraw = function (eye)
     effect.bindCamera(eye);
     effect.setUniforms(Game.world.uScene);
     for (var i in Game.world.objects) {
-      if (Game.world.objects[i].skip || !Game.world.objects[i].transparent || !Game.world.objects[i].Model) continue;
-      effect.setUniforms(Game.world.objects[i].uniform);
-      effect.draw(Game.world.objects[i].Model);
+      obj = Game.world.objects[i];
+      if (obj.skip || !obj.transparent || !obj.Model) continue;
+      effect.setUniforms(obj.uniform);
+      effect.draw(obj.Model);
     }
   }
 
