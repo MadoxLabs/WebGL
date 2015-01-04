@@ -39,8 +39,6 @@ Game.init = function ()
   this.ready = false;
   this.isOculus = false;
   this.isFullscreen = false;
-  this.shaderMan = new ShaderManager();
-  this.assetMan = new AssetManager();
 
   this.surface = document.getElementById("surface");
   this.mouse = new Mouse(this.surface);
@@ -68,6 +66,10 @@ Game.init = function ()
   
   // GL is ready, graphics specific init now happens
   gl.clearColor(0.05, 0.05, 0.05, 1.0);
+
+  this.shaderMan = new ShaderManager();
+  this.assetMan = new AssetManager();
+
   Game.camera = new Camera(gl.viewportWidth, gl.viewportHeight);
   Game.makeFSQ();
 

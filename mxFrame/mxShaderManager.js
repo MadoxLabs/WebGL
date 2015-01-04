@@ -95,6 +95,40 @@ var ShaderManager = function()
   this.enabledAttrs = 0;
   this.enabledUniforms = {};
 
+  this.checkFunctions = {};
+  this.checkFunctions[gl.FLOAT] = checkvalue;
+  this.checkFunctions[gl.BOOL] = checkvalue;
+  this.checkFunctions[gl.INT] = checkvalue;
+  this.checkFunctions[gl.FLOAT_VEC2] = checkarray;
+  this.checkFunctions[gl.FLOAT_VEC3] = checkarray;
+  this.checkFunctions[gl.FLOAT_VEC4] = checkarray;
+  this.checkFunctions[gl.BOOL_VEC2] = checkarray;
+  this.checkFunctions[gl.BOOL_VEC3] = checkarray;
+  this.checkFunctions[gl.BOOL_VEC4] = checkarray;
+  this.checkFunctions[gl.INT_VEC2] = checkarray;
+  this.checkFunctions[gl.INT_VEC3] = checkarray;
+  this.checkFunctions[gl.INT_VEC4] = checkarray;
+  this.checkFunctions[gl.FLOAT_MAT2] = checkarray;
+  this.checkFunctions[gl.FLOAT_MAT3] = checkarray;
+  this.checkFunctions[gl.FLOAT_MAT4] = checkarray;
+
+  this.setFunctions = {};
+  this.setFunctions[gl.FLOAT]      = function(n, v) { gl.uniform1f(n, v); };
+  this.setFunctions[gl.BOOL]       = function(n, v) { gl.uniform1i(n, v); };
+  this.setFunctions[gl.INT]        = function(n, v) { gl.uniform1i(n, v); };
+  this.setFunctions[gl.FLOAT_VEC2] = function(n, v) { gl.uniform2fv(n, v); };
+  this.setFunctions[gl.FLOAT_VEC3] = function(n, v) { gl.uniform3fv(n, v); };
+  this.setFunctions[gl.FLOAT_VEC4] = function(n, v) { gl.uniform4fv(n, v); };
+  this.setFunctions[gl.BOOL_VEC2]  = function(n, v) { gl.uniform2iv(n, v); };
+  this.setFunctions[gl.BOOL_VEC3]  = function(n, v) { gl.uniform3iv(n, v); };
+  this.setFunctions[gl.BOOL_VEC4]  = function(n, v) { gl.uniform4iv(n, v); };
+  this.setFunctions[gl.INT_VEC2]   = function(n, v) { gl.uniform2iv(n, v); };
+  this.setFunctions[gl.INT_VEC3]   = function(n, v) { gl.uniform3iv(n, v); };
+  this.setFunctions[gl.INT_VEC4]   = function(n, v) { gl.uniform4iv(n, v); };
+  this.setFunctions[gl.FLOAT_MAT2] = function(n, v) { gl.uniformMatrix2fv(n, false, v); };
+  this.setFunctions[gl.FLOAT_MAT3] = function(n, v) { gl.uniformMatrix3fv(n, false, v); };
+  this.setFunctions[gl.FLOAT_MAT4] = function(n, v) { gl.uniformMatrix4fv(n, false, v); };
+
   this.log = false;
 }
 
@@ -110,7 +144,7 @@ ShaderManager.prototype.enableAttibutes = function(num)
   this.enabledAttrs = num;
 }
 
-ShaderManager.prototype.checkarray = function(v1, v2)
+function checkarray(v1, v2)
 {
   if (!v1) return false;
   var l = v1.length;
@@ -119,116 +153,23 @@ ShaderManager.prototype.checkarray = function(v1, v2)
   return true;
 }
 
+function checkvalue(v1, v2)
+{
+  if (!v1) return false;
+  return (v1 === v2);
+}
+
 var skip = false;
 
 ShaderManager.prototype.enableUniform = function(name, n, value)
 {
   if (!n) return;
 
-  switch (n.type) {
-    case gl.FLOAT:
-      if (this.log) console.log("setting " + name + " to " + value);
-      if (skip || this.enabledUniforms[name] !== value)
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform1f(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.FLOAT_VEC2:
-      if (this.log) console.log("setting " + name + " to " + vec2.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform2fv(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.FLOAT_VEC3:
-      if (this.log) console.log("setting " + name + " to " + vec3.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform3fv(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.FLOAT_VEC4:
-      if (this.log) console.log("setting " + name + " to " + vec4.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform4fv(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.BOOL:
-    case gl.INT:
-      if (this.log) console.log("setting " + name + " to " + value);
-      if (skip || this.enabledUniforms[name] !== value)
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform1i(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.BOOL_VEC2:
-    case gl.INT_VEC2:
-      if (this.log) console.log("setting " + name + " to " + vec3(value));
-      if (!skip || this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform2iv(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.BOOL_VEC3:
-    case gl.INT_VEC3:
-      if (this.log) console.log("setting " + name + " to " + vec3.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform3iv(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.BOOL_VEC4:
-    case gl.INT_VEC4:
-      if (this.log) console.log("setting " + name + " to " + vec4.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniform4iv(n, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.FLOAT_MAT2:
-      if (this.log) console.log("setting " + name + " to " + mat2.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniformMatrix2fv(n, false, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.FLOAT_MAT3:
-      if (this.log) console.log("setting " + name + " to " + mat3.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniformMatrix3fv(n, false, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
-    case gl.FLOAT_MAT4:
-      if (this.log) console.log("setting " + name + " to " + mat4.str(value));
-      if (skip || !this.checkarray(this.enabledUniforms[name], value))
-      {
-        if (this.log) console.log("  ok");
-        gl.uniformMatrix4fv(n, false, value);
-        this.enabledUniforms[name] = value;
-      }
-      break;
+  if (this.log) console.log("setting " + name + " to " + value + " type "+ n.type);
+  if (skip || !this.checkFunctions[n.type](this.enabledUniforms[name],value)) {
+    if (this.log) console.log("  ok");
+    this.setFunctions[n.type](n, value);
+    this.enabledUniforms[name] = value;
   }
 }
 
