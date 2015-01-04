@@ -131,6 +131,12 @@ PhysicsWorker.prototype.queryPick = function (near, far)
 
 PhysicsWorker.prototype.fromWorker = function (e)
 {
+  if (e.data.collide) {
+//    console.log("Collidion: " + e.data.obj1 + " hit " + e.data.obj2 + " at " + e.data.force);
+    if (e.data.force < -0.01) Game.world.sounds.hit.play();
+    return;
+  }
+
   if (e.data.hit) { Game.itemClick(e.data.hit); return; }
 
   // Get fresh data from the worker
@@ -312,15 +318,16 @@ Game.appInit = function ()
   Game.world.sounds.buttonok.setVolume(100);
   Game.world.sounds.buttonbad = new buzz.sound("assets/buttonbad", { formats: ["wav"] });
   Game.world.sounds.buttonbad.setVolume(100);
-
   Game.world.sounds.fan = new buzz.sound("assets/fan", { formats: ["mp3"] });
   Game.world.sounds.fan.loop();
-  Game.world.sounds.fan.setVolume(20);
+  Game.world.sounds.fan.setVolume(10);
   Game.world.sounds.fanOn = new buzz.sound("assets/fanSwitchOn", { formats: ["mp3"] });
   Game.world.sounds.fanOn.setVolume(20);
   Game.world.sounds.fanOn.bind('ended', function () { Game.world.sounds.fan.togglePlay(); });
   Game.world.sounds.fanOff = new buzz.sound("assets/fanSwitchOff", { formats: ["mp3"] });
   Game.world.sounds.fanOff.setVolume(20);
+  Game.world.sounds.hit = new buzz.sound("assets/hit", { formats: ["mp3"] });
+  Game.world.sounds.hit.setVolume(100);
 }
 
 Game.deviceReady = function ()
@@ -505,7 +512,6 @@ Game.loadingStop = function ()
 
   setInterval(function () { Game.flashClock(); }, 1000);
 }
-
 
 // GAME UPDATES
 var forward = vec3.fromValues(0, 0, 1);

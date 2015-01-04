@@ -7,6 +7,12 @@ var pickup = 0;
 // cached new's - dont keep renewing them
 var raycastresult = new CANNON.RaycastResult();
 
+
+function collideHandler(e)
+{
+  self.postMessage({ collide: true, obj1: e.body.name, obj2: e.target.name, force: e.contact.penetration });
+}
+
 self.onmessage = function (e)
 {
   if (e.data.drop)
@@ -96,6 +102,7 @@ self.onmessage = function (e)
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
     groundBody.type = CANNON.Body.STATIC;
     groundBody.name = "ground";
+    groundBody.addEventListener('collide', collideHandler);
     world.add(groundBody);
 
     // furniture
@@ -104,6 +111,7 @@ self.onmessage = function (e)
     table.position.set(0.0, 1.5, 3.0);
     table.type = CANNON.Body.KINEMATIC;
     table.name = "table";
+    table.addEventListener('collide', collideHandler);
     world.add(table);
 
     var shelf = new CANNON.Body({ mass: 10 });
@@ -111,6 +119,7 @@ self.onmessage = function (e)
     shelf.position.set(-3.25, 4.5, 0.0);
     shelf.type = CANNON.Body.KINEMATIC;
     shelf.name = "shelf";
+    shelf.addEventListener('collide', collideHandler);
     world.add(shelf);
 
     var lightswitch = new CANNON.Body({ mass: 10 });
@@ -153,6 +162,7 @@ self.onmessage = function (e)
     dresser.position.set(3.35, 3.05, 0.0);
     dresser.type = CANNON.Body.KINEMATIC;
     dresser.name = "dresser";
+    dresser.addEventListener('collide', collideHandler);
     world.add(dresser);
 
     var drawer = new CANNON.Body({ mass: 10 });
@@ -165,6 +175,7 @@ self.onmessage = function (e)
     drawer.position.set(3.22, 2.57, 0.0);
     drawer.type = CANNON.Body.KINEMATIC;
     drawer.name = "drawer";
+    drawer.addEventListener('collide', collideHandler);
     world.add(drawer);
 
     var flashlight = new CANNON.Body({ mass: 2 });
@@ -187,6 +198,7 @@ self.onmessage = function (e)
         else body.position.set((Math.random() * 0.01) + 0.166, (Math.random() * 0.01) + 0.080 * layer + 3.0, 0.166 * piece - 0.166 + 2.5);
         body.quaternion.setFromEuler(0, angle, 0);
         body.name = "jenga"+(piece+layer*3);
+        body.addEventListener('collide', collideHandler);
         world.add(body);
         body.sleep();
       }
