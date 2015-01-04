@@ -109,5 +109,5 @@ PhysicsWorker.prototype.nextPhysicsTick = function (index, name)
 PhysicsWorker.prototype.handleCollision = function (force, obj1, obj2)
 {
   //    console.log("Collidion: " + obj1 + " hit " + obj2 + " at " + force);
-  if (force < -0.01) Game.world.sounds.hit.play();
+  if (force < -0.01) Game.playHit();
 }

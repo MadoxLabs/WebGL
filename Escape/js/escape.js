@@ -80,8 +80,22 @@ Game.appInit = function ()
   Game.world.sounds.fanOn.bind('ended', function () { Game.world.sounds.fan.togglePlay(); });
   Game.world.sounds.fanOff = new buzz.sound("assets/fanSwitchOff", { formats: ["mp3"] });
   Game.world.sounds.fanOff.setVolume(20);
-  Game.world.sounds.hit = new buzz.sound("assets/hit", { formats: ["mp3"] });
-  Game.world.sounds.hit.setVolume(100);
+
+  Game.world.sounds.hit = [];
+  for (var i = 0; i < 10; ++i)
+  {
+    var hit = new buzz.sound("assets/hit", { formats: ["mp3"] });
+    hit.setVolume(100);
+    Game.world.sounds.hit.push(hit);
+  }
+}
+
+Game.playHit = function()
+{
+  for (var i = 0; i < 10; ++i)
+  {
+    if (Game.world.sounds.hit[i].isPaused()) { Game.world.sounds.hit[i].play(); return; }
+  }
 }
 
 Game.deviceReady = function ()
