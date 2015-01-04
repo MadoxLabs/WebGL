@@ -18,6 +18,7 @@ PhysicsWorker.prototype.toWorker = function ()
 {
   this.sendTime = Date.now();
   this.worker.postMessage({
+    camera: Game.camera.quat,
     dt: this.dt,
     positions: this.positions,
     quaternions: this.quaternions,

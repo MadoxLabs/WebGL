@@ -11,6 +11,7 @@ function World()
 
   this.physicsWorker = null;
   this.debug = false;
+  this.shadow = true;
 
   this.doorcode = [];
   this.doorsolution = [];
@@ -92,6 +93,7 @@ Game.appInit = function ()
 
 Game.playHit = function()
 {
+  if (!started) return;
   for (var i = 0; i < 10; ++i)
   {
     if (Game.world.sounds.hit[i].isPaused()) { Game.world.sounds.hit[i].play(); return; }
@@ -333,6 +335,12 @@ Game.itemClick = function(name)
     Game.world.sounds.radio.stop();
   }
 
+    // drop
+  else if (name == Game.world.pickup) 
+  {
+    Game.world.pickup = null;
+    Game.world.physicsWorker.dropItem();
+  }
   // battery, key, flashlight can be picked up
   else if (!Game.world.pickup && (name == 'battery' || name == 'jenga31' || name == 'flashlight')) Game.world.pickup = name;
 
@@ -360,6 +368,7 @@ Game.itemClick = function(name)
           setTimeout(function () { Game.unlightAllButtons(); }, 200);
           ok = false;
           Game.world.sounds.buttonbad.play();
+          started = false;
           break;
         }
       }
@@ -407,27 +416,32 @@ Game.appDrawAux = function ()
   Game.world.shadowUp.engage();
   gl.clearColor(1.0, 1.0, 1.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  var effect = Game.shaderMan.shaders["shadowcast"];
-  effect.bind();
-  effect.bindCamera(Game.world.lighteyeUp);
-  effect.setUniforms(Game.world.uScene);
-  effect.setUniforms(Game.world.objects['fan'].uniform);
-  effect.draw(Game.world.objects['fan'].Model);
+  if (Game.world.shadow)
+  {
+    var effect = Game.shaderMan.shaders["shadowcast"];
+    effect.bind();
+    effect.bindCamera(Game.world.lighteyeUp);
+    effect.setUniforms(Game.world.uScene);
+    effect.setUniforms(Game.world.objects['fan'].uniform);
+    effect.draw(Game.world.objects['fan'].Model);
+  }
 
   Game.world.lighteyeDown.engage();
   Game.world.shadowDown.engage();
   gl.clearColor(1.0, 1.0, 1.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  effect.bind();
-  effect.bindCamera(Game.world.lighteyeDown);
-  effect.setUniforms(Game.world.uScene);
-
-  for (var i in Game.world.objects)
+  if (Game.world.shadow)
   {
-    var obj = Game.world.objects[i];
-    if (obj.skip || !obj.Model) continue;
-    effect.setUniforms(obj.uniform);
-    effect.draw(obj.Model);
+    effect.bind();
+    effect.bindCamera(Game.world.lighteyeDown);
+    effect.setUniforms(Game.world.uScene);
+
+    for (var i in Game.world.objects) {
+      var obj = Game.world.objects[i];
+      if (obj.skip || !obj.Model) continue;
+      effect.setUniforms(obj.uniform);
+      effect.draw(obj.Model);
+    }
   }
 }
 
@@ -547,6 +561,7 @@ Game.appHandleKeyUp = function (event)
 
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
   else if (event.keyCode == 81) Game.world.debug = !Game.world.debug;
+  else if (event.keyCode == 83) Game.world.shadow = !Game.world.shadow;
 }
 
 var clicked = false;
@@ -566,15 +581,15 @@ Game.appHandleMouseEvent = function(type, mouse)
     }
 
     // drop item?
-    if (Game.world.pickup)
-    {
-      if ((mouse.Y / Game.camera.height > 0.8) && ((mouse.X / Game.camera.width > 0.4) || (mouse.X / Game.camera.width < 0.6)))
-      {
-        Game.world.pickup = null;
-        Game.world.physicsWorker.dropItem();
-        return;
-      }
-    }
+//    if (Game.world.pickup)
+//    {
+//      if ((mouse.Y / Game.camera.height > 0.8) && ((mouse.X / Game.camera.width > 0.4) || (mouse.X / Game.camera.width < 0.6)))
+//      {
+//        Game.world.pickup = null;
+//        Game.world.physicsWorker.dropItem();
+//        return;
+//      }
+//    }
 
     {
       var unproject = mat4.create();

@@ -28,6 +28,7 @@ self.onmessage = function (e)
   {
     // get the picked piece
     world.rayTest(e.data.near, e.data.far, raycastresult);
+    if (!raycastresult.body) return;
 
     // if it is the battery in the clock, set the battery free!
     if (!batteryOut && raycastresult.shape.parent && raycastresult.shape.parent.name == "clockbattery") {
@@ -51,6 +52,8 @@ self.onmessage = function (e)
       raycastresult.body.type = CANNON.Body.KINEMATIC;
       raycastresult.body.position.set(0, 4.6, 0);
       pickup = raycastresult.body.id;
+      raycastresult.body.velocity.set(0, 0, 0);
+      raycastresult.body.angularvelocity.set(0, 0, 0);
       return;
     }
 
@@ -254,6 +257,11 @@ self.onmessage = function (e)
     world.add(wall);
   }
 
+  if (pickup)
+  {
+    var body = world.bodies[pickup];
+    body.quaternion.set(e.data.camera[0], e.data.camera[1], e.data.camera[2], e.data.camera[3]);
+  }
   // Step the world
   world.step(e.data.dt);
 
