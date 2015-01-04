@@ -16,7 +16,12 @@
       }
     </script>
   </head>
-  <body style="margin:0;padding:0;" onload="launchApp(['js/cannon.js', 'js/buzz.min.js', 'js/escape.js'], '../mxFrame', WITH_MXFRAME);">
+  <body style="margin:0;padding:0;" onload="launchApp(['js/lib/cannon.js', 
+                                                       'js/lib/buzz.min.js', 
+                                                       'js/gameObject.js', 
+                                                       'js/movers.js', 
+                                                       'js/physicsHandler.js', 
+                                                       'js/escape.js'], '../mxFrame', WITH_MXFRAME);">
     <div><canvas id='surface'></div>
     <div id="loading"></div>
   </body>

@@ -1,4 +1,4 @@
-importScripts('cannon.js');
+importScripts('lib/cannon.js');
 
 var world;
 var batteryOut = false;
