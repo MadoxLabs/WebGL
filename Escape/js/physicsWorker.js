@@ -53,7 +53,7 @@ self.onmessage = function (e)
       raycastresult.body.position.set(0, 4.6, 0);
       pickup = raycastresult.body.id;
       raycastresult.body.velocity.set(0, 0, 0);
-      raycastresult.body.angularvelocity.set(0, 0, 0);
+      raycastresult.body.angularVelocity.set(0, 0, 0);
       return;
     }
 
