@@ -159,7 +159,6 @@ Mouse.prototype.mouseUp = function (event)
 Mouse.prototype.mouseOver = function (event)
 {
   if (this.active) return;
-  console.log("MOUSE IN");
   this.active = true;
   Game.handleMouseEvent(MouseEvent.In, this);
 }
@@ -177,7 +176,7 @@ Mouse.prototype.mouseOut = function (event)
 
 Mouse.prototype.mouseMove = function(event)
 {
-  if (!this.active) { console.log("MISSED IN"); this.mouseOver(event); }
+  if (!this.active) { this.mouseOver(event); }
 
   if (this.grabbed)
   {
