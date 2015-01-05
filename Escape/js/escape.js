@@ -31,7 +31,8 @@ Game.appInit = function ()
     Game.world.dooruniform[i] = val + 0.0;
   }
 
-  Game.textureLocation = "assets/"
+  Game.textureLocation = "assets/"  // autoloaded textures live here
+  // MODELS
   Game.loadMeshPNG("room", "assets/floor.model");
   Game.loadMeshPNG("table", "assets/table.model");
   Game.loadMeshPNG("jenga", "assets/jenga.model");
@@ -54,17 +55,24 @@ Game.appInit = function ()
   Game.loadMeshPNG("button", "assets/button.model");
   Game.loadMeshPNG("winpage", "assets/win.model");
   Game.loadMeshPNG("light2", "assets/light2.model");
+  // TEXTURES
   Game.loadTextureFile("clock2tex", "clock2tex.png", true);
-  Game.loadShaderFile("assets/renderstates.fx");
+  // SHADER PARTS to be included
+  Game.loadShaderFile("assets/partRenderstates.fx");
+  Game.loadShaderFile("assets/partShadowrecieve.fx");
+  Game.loadShaderFile("assets/partVertexDef.fx");
+  Game.loadShaderFile("assets/partPixelDef.fx");
+  Game.loadShaderFile("assets/partPlainVertexShader.fx");
+  Game.loadShaderFile("assets/partPlainPixelShader.fx");
+  // SHADERS that include the parts
   Game.loadShaderFile("assets/objectrender.fx");
   Game.loadShaderFile("assets/transparentrender.fx");
   Game.loadShaderFile("assets/lightrender.fx");
   Game.loadShaderFile("assets/boxrender.fx");
   Game.loadShaderFile("assets/shadowcast.fx");
-  Game.loadShaderFile("assets/shadowrecieve.fx");
   Game.loadShaderFile("assets/fanrender.fx");
   Game.loadShaderFile("assets/buttonrender.fx");
-
+  // AUDIO
   Game.world.sounds = {};
   Game.world.sounds.radio = new buzz.sound("assets/radio", { formats: ["mp3"] });
   Game.world.sounds.radio.loop();
