@@ -376,7 +376,6 @@ Game.itemClick = function(name)
           setTimeout(function () { Game.unlightAllButtons(); }, 200);
           ok = false;
           Game.world.sounds.buttonbad.play();
-          started = false;
           break;
         }
       }
@@ -387,6 +386,7 @@ Game.itemClick = function(name)
         Game.camera.angles[2] = 0;
         Game.world.objects["win"].skip = false;
         Game.world.sounds.fan.stop();
+        started = false;
       }
       Game.world.doorcode = [];
     }
