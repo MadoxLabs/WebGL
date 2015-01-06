@@ -56,6 +56,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("winpage", "assets/win.model");
   Game.loadMeshPNG("light2", "assets/light2.model");
   // TEXTURES
+  Game.loadTextureFile("button2tex", "button2tex.png", true);
   Game.loadTextureFile("clock2tex", "clock2tex.png", true);
   Game.loadTextureFile("clock3tex", "clock3tex.png", true);
   Game.loadTextureFile("clock4tex", "clock4tex.png", true);
@@ -356,7 +357,11 @@ Game.itemClick = function(name)
         Game.assetMan.assets['clock'].groups[0].texture = "clocktex";
       else if ((Game.assetMan.assets['clock'].groups[0].texture == "clocktex") || (Game.assetMan.assets['clock'].groups[0].texture == "clock2tex"))
         Game.assetMan.assets['clock'].groups[0].texture = "clock3tex";
-      }
+      if (Game.assetMan.assets['button'].groups[0].texture == "buttontex")
+        Game.assetMan.assets['button'].groups[0].texture = "button2tex";
+      else
+        Game.assetMan.assets['button'].groups[0].texture = "buttontex";
+    }
   }
   else if (name == 'clockbattery')
   {
