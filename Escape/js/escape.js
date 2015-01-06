@@ -303,14 +303,14 @@ Game.appUpdate = function ()
   if (!Game.camera) return;
 
   // keyboard camera rotation section
-  if (Game.world.currentlyPressedKeys[37]) Game.camera.angles[1] += 0.02;
-  if (Game.world.currentlyPressedKeys[39]) Game.camera.angles[1] -= 0.02;
-  if (Game.world.currentlyPressedKeys[38]) Game.camera.angles[0] += 0.02;
-  if (Game.world.currentlyPressedKeys[40]) Game.camera.angles[0] -= 0.02;
-  if (Game.world.currentlyPressedKeys[65]) Game.camera.angles[1] += 0.02;
-  if (Game.world.currentlyPressedKeys[68]) Game.camera.angles[1] -= 0.02;
-  if (Game.world.currentlyPressedKeys[87]) Game.camera.angles[0] += 0.02;
-  if (Game.world.currentlyPressedKeys[83]) Game.camera.angles[0] -= 0.02;
+  if (Game.world.currentlyPressedKeys[37]) Game.camera.angles[1] += 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[39]) Game.camera.angles[1] -= 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[38]) Game.camera.angles[0] += 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[40]) Game.camera.angles[0] -= 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[65]) Game.camera.angles[1] += 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[68]) Game.camera.angles[1] -= 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[87]) Game.camera.angles[0] += 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[83]) Game.camera.angles[0] -= 0.002 * Game.elapsed;
   if (Game.camera.angles[0] < -1.2) Game.camera.angles[0] = -1.2;
   if (Game.camera.angles[0] > 1.2) Game.camera.angles[0] = 1.2;
 
