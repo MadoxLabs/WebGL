@@ -57,6 +57,8 @@ Game.appInit = function ()
   Game.loadMeshPNG("light2", "assets/light2.model");
   // TEXTURES
   Game.loadTextureFile("clock2tex", "clock2tex.png", true);
+  Game.loadTextureFile("clock3tex", "clock3tex.png", true);
+  Game.loadTextureFile("clock4tex", "clock4tex.png", true);
   // SHADER PARTS to be included
   Game.loadShaderFile("assets/partRenderstates.fx");
   Game.loadShaderFile("assets/partShadowrecieve.fx");
@@ -101,7 +103,7 @@ Game.appInit = function ()
 
 Game.playHit = function()
 {
-  if (!started) return;
+  if (over || !started) return;
   for (var i = 0; i < 10; ++i)
   {
     if (Game.world.sounds.hit[i].isPaused()) { Game.world.sounds.hit[i].play(); return; }
@@ -299,9 +301,22 @@ Game.appUpdate = function ()
   if (Game.loading) return;
   if (!Game.camera) return;
 
+  // keyboard camera rotation section
+  if (Game.world.currentlyPressedKeys[37]) Game.camera.angles[1] += 0.02;
+  if (Game.world.currentlyPressedKeys[39]) Game.camera.angles[1] -= 0.02;
+  if (Game.world.currentlyPressedKeys[38]) Game.camera.angles[0] += 0.02;
+  if (Game.world.currentlyPressedKeys[40]) Game.camera.angles[0] -= 0.02;
+  if (Game.world.currentlyPressedKeys[65]) Game.camera.angles[1] += 0.02;
+  if (Game.world.currentlyPressedKeys[68]) Game.camera.angles[1] -= 0.02;
+  if (Game.world.currentlyPressedKeys[87]) Game.camera.angles[0] += 0.02;
+  if (Game.world.currentlyPressedKeys[83]) Game.camera.angles[0] -= 0.02;
+  if (Game.camera.angles[0] < -1.2) Game.camera.angles[0] = -1.2;
+  if (Game.camera.angles[0] > 1.2) Game.camera.angles[0] = 1.2;
+
+  // asset updates
   for (var i in Game.world.objects) Game.world.objects[i].Update();
 
-  // rotate test piece to follow camera
+  // rotate picked up piece to follow camera
   if (Game.world.pickup)
   {
     var test = Game.world.objects[Game.world.pickup];
@@ -312,6 +327,7 @@ Game.appUpdate = function ()
     mat4.multiply(test.uniform.uWorld, test.Trans, test.Orient);
   }
 
+  // update flashlight matrixes for lighting shader
   vec3.copy(Game.world.uScene.spotlightPos, Game.world.objects['flashlight'].Position);
   vec3.transformMat4(Game.world.uScene.spotlightDir, forward, Game.world.objects['flashlight'].Orient);
 }
@@ -320,22 +336,27 @@ Game.itemClick = function(name)
 {
   if (name == 'lightswitch')
   {
-    var lightswitch = Game.world.objects[name];
-    quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
-    lightswitch.dirty = true;
-    Game.world.lighton = !Game.world.lighton;
-    Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.0;
-    if (!Game.world.lighton)
+    if (Game.world.sounds.fanOff.isPaused() && Game.world.sounds.fanOn.isPaused())
     {
-      Game.world.sounds.fan.togglePlay();
-      Game.world.sounds.fanOff.play();
-      Game.world.objects['fan'].mover.stop();
-    }
-    else
-    {
-      Game.world.sounds.fanOn.play();
-      Game.world.objects['fan'].mover.start();
-    }
+      var lightswitch = Game.world.objects[name];
+      quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
+      lightswitch.dirty = true;
+      Game.world.lighton = !Game.world.lighton;
+      Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.0;
+      if (!Game.world.lighton) {
+        Game.world.sounds.fan.pause();
+        Game.world.sounds.fanOff.play();
+        Game.world.objects['fan'].mover.stop();
+      }
+      else {
+        Game.world.sounds.fanOn.play();
+        Game.world.objects['fan'].mover.start();
+      }
+      if ((Game.assetMan.assets['clock'].groups[0].texture == "clock3tex") || (Game.assetMan.assets['clock'].groups[0].texture == "clock4tex"))
+        Game.assetMan.assets['clock'].groups[0].texture = "clocktex";
+      else if ((Game.assetMan.assets['clock'].groups[0].texture == "clocktex") || (Game.assetMan.assets['clock'].groups[0].texture == "clock2tex"))
+        Game.assetMan.assets['clock'].groups[0].texture = "clock3tex";
+      }
   }
   else if (name == 'clockbattery')
   {
@@ -358,6 +379,8 @@ Game.itemClick = function(name)
     Game.world.uScene.lighton[1] = 1.0;
     Game.world.pickup = null;
   }
+  else if (Game.world.pickup == "flashlight" && name == "battery")
+    Game.world.uScene.lighton[1] = 1.0;
 
   // user is entering a solution
   else if (Game.world.lighton && name.substr(0, 6) == "button")
@@ -386,7 +409,9 @@ Game.itemClick = function(name)
         Game.camera.angles[2] = 0;
         Game.world.objects["win"].skip = false;
         Game.world.sounds.fan.stop();
-        started = false;
+        Game.world.pickup = null;
+        Game.world.physicsWorker.dropItem();
+        over = true;
       }
       Game.world.doorcode = [];
     }
@@ -410,8 +435,12 @@ Game.flashClock = function ()
 {
   if (Game.assetMan.assets['clock'].groups[0].texture == "clocktex")
     Game.assetMan.assets['clock'].groups[0].texture = "clock2tex";
-  else
+  else if(Game.assetMan.assets['clock'].groups[0].texture == "clock2tex")
     Game.assetMan.assets['clock'].groups[0].texture = "clocktex";
+  else if (Game.assetMan.assets['clock'].groups[0].texture == "clock3tex")
+    Game.assetMan.assets['clock'].groups[0].texture = "clock4tex";
+  else if (Game.assetMan.assets['clock'].groups[0].texture == "clock4tex")
+    Game.assetMan.assets['clock'].groups[0].texture = "clock3tex";
 }
 
 //GAME RENDERING
@@ -466,6 +495,12 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.uScene);
   if (Game.world.lighton) {
     obj = Game.world.objects['light'];
+    effect.setUniforms(obj.uniform);
+    effect.draw(obj.Model);
+  }
+  else
+  {
+    obj = Game.world.objects['clock'];  // clock glows in the dark
     effect.setUniforms(obj.uniform);
     effect.draw(obj.Model);
   }
@@ -567,17 +602,20 @@ Game.appHandleKeyUp = function (event)
 {
   Game.world.currentlyPressedKeys[event.keyCode] = false;
 
+  if (over) return;
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
   else if (event.keyCode == 81) Game.world.debug = !Game.world.debug;
-  else if (event.keyCode == 83) Game.world.shadow = !Game.world.shadow;
+  else if (event.keyCode == 84) Game.world.shadow = !Game.world.shadow;
 }
 
 var clicked = false;
 var started = false;
+var over = false;
 
 Game.appHandleMouseEvent = function(type, mouse)
 {
-  // console.log("Mouse event: " + ['Down', 'Up', 'Move', 'In', 'Out', 'Grab', 'Release', 'NoGrab', 'Wheel'][type]);
+  if (over) return;
+
   if (mouse.button == 0 && type == MouseEvent.Down)
   {
     if (!started)
@@ -587,17 +625,6 @@ Game.appHandleMouseEvent = function(type, mouse)
       Game.world.sounds.radio.play();
       Game.world.sounds.fan.play();
     }
-
-    // drop item?
-//    if (Game.world.pickup)
-//    {
-//      if ((mouse.Y / Game.camera.height > 0.8) && ((mouse.X / Game.camera.width > 0.4) || (mouse.X / Game.camera.width < 0.6)))
-//      {
-//        Game.world.pickup = null;
-//        Game.world.physicsWorker.dropItem();
-//        return;
-//      }
-//    }
 
     {
       var unproject = mat4.create();
@@ -622,10 +649,16 @@ Game.appHandleMouseEvent = function(type, mouse)
   if (!started) return;
 
   if (mouse.button == 2 && type == MouseEvent.Down)
-  {  clicked = true; } //mouse.grab(); }
+  {
+    clicked = true;
+//    mouse.grab();
+  }
 
   if (mouse.button == 2 && type == MouseEvent.Up)
-  {   clicked = false; } //mouse.release();
+  {
+    clicked = false;
+//    mouse.release();
+  }
 
   if (clicked && type == MouseEvent.Move)
   {
@@ -633,9 +666,6 @@ Game.appHandleMouseEvent = function(type, mouse)
     {
       Game.camera.angles[1] += -0.01 * mouse.moveOffsetX;
       Game.camera.angles[0] += -0.01 * mouse.moveOffsetY;
-
-      if (Game.camera.angles[0] < -1.2) Game.camera.angles[0] = -1.2;
-      if (Game.camera.angles[0] > 1.2) Game.camera.angles[0] = 1.2;
     }
   }
 }

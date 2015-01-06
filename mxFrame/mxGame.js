@@ -355,7 +355,7 @@ Game.fullscreenMode = function(state)
     var docElm = document.documentElement;
     if (docElm.requestFullscreen) docElm.requestFullscreen();
     else if (docElm.mozRequestFullScreen) docElm.mozRequestFullScreen();
-    else if (docElm.webkitRequestFullScreen) { docElm.webkitRequestFullScreen(); docElm.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT); }
+    else if (docElm.webkitRequestFullScreen) { docElm.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT); }
     else if (docElm.msRequestFullscreen) docElm.msRequestFullscreen();
     Game.surface.style.width = "100%";
     Game.surface.style.height = "100%";

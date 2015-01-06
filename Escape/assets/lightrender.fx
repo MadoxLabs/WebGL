@@ -15,7 +15,11 @@ plain
 
 void main(void) 
 {
-  gl_FragColor = vec4(diffusecolor,1.0);
+  vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
+  if (materialoptions.x > 0.0)    // has a texture
+    tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
+
+  gl_FragColor = vec4(diffusecolor,1.0) * tex;
 }
 
 [END]
