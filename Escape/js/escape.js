@@ -597,7 +597,7 @@ Game.appDraw = function (eye)
 
 Game.appHandleKeyDown = function (event)
 {
-  if (Game.world.currentlyPressedKeys[event.keyCode]) { console.log("abort"); return; }
+  if (Game.world.currentlyPressedKeys[event.keyCode])  return;
   Game.world.currentlyPressedKeys[event.keyCode] = true;
 
   if ([33, 34].indexOf(event.keyCode) > -1) event.preventDefault();
