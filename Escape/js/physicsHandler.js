@@ -52,6 +52,7 @@ PhysicsWorker.prototype.queryPick = function (near, far)
 
 PhysicsWorker.prototype.fromWorker = function (e)
 {
+  if (over) return;
   if (e.data.collide) this.handleCollision(e.data.force, e.data.obj1, e.data.obj2);
   else if (e.data.hit) Game.itemClick(e.data.hit);
   else this.handlePhysicsUpdate(e.data.positions, e.data.quaternions, e.data.bounds, e.data.names, e.data.boundslen);

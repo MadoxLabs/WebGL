@@ -84,6 +84,7 @@ self.onmessage = function (e)
   {
     // Init physics
     world = new CANNON.World();
+    world.allowSleep = true;
     world.broadphase = new CANNON.NaiveBroadphase();
     world.broadphase.useBoundingBoxes = true;
     world.gravity.set(0, -10, 0);

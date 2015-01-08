@@ -414,8 +414,7 @@ Game.itemClick = function(name)
         Game.camera.angles[2] = 0;
         Game.world.objects["win"].skip = false;
         Game.world.sounds.fan.stop();
-        Game.world.pickup = null;
-        Game.world.physicsWorker.dropItem();
+        Game.world.objects[Game.world.pickup].skip = true;
         over = true;
       }
       Game.world.doorcode = [];
@@ -597,10 +596,11 @@ Game.appDraw = function (eye)
 
 Game.appHandleKeyDown = function (event)
 {
-  if (Game.world.currentlyPressedKeys[event.keyCode]) { console.log("abort"); return; }
-  Game.world.currentlyPressedKeys[event.keyCode] = true;
-
   if ([33, 34].indexOf(event.keyCode) > -1) event.preventDefault();
+
+  if (over) return;
+  if (Game.world.currentlyPressedKeys[event.keyCode]) return;
+  Game.world.currentlyPressedKeys[event.keyCode] = true;
 }
 
 Game.appHandleKeyUp = function (event)
