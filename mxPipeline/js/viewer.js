@@ -23,6 +23,8 @@ var loadingTextures = false;
 
 var currentlyPressedKeys = {};
 
+var Game = mx.Game;
+
 function reportLoading() { }
 
 function degToRad(degrees)
@@ -149,8 +151,8 @@ Game.loadingStop = function ()
   uPerObjectN.uWorld = uPerObject.uMVMatrix;
 
   // shadowing support
-  shadowmap = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
-  lighteye = new Camera(2048, 2048);
+  shadowmap = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
+  lighteye = new mx.Camera(2048, 2048);
   lighteye.offset = vec3.fromValues(9.0, 9.0, 39.0);
   lighteye.setTarget(new GameObject());
   //  lighteye.lookAt(0.0,0.0,0.0);

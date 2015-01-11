@@ -100,9 +100,9 @@ var mx = {};
     mx.libtype = loadState.libtype;
 
     console.log("Init");
-    Game.init();
+    mx.Game.init();
     console.log("Begin");
-    window.requestAnimationFrame(Game.run);
+    window.requestAnimationFrame(mx.Game.run);
   }
 
   // external loader function

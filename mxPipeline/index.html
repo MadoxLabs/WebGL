@@ -49,7 +49,7 @@
   <script src="js/importer.js"></script>
   <script src="../mxFrame/mxFrame.js"></script>
 </head>
-<body onload="init(); launchApp(['js/viewer.js'], '../mxFrame', WITH_MXFRAME|WITH_OCULUS);">
+<body onload="init(); mx.loadApp(['js/viewer.js'], '../mxFrame', mx.WITH_MXFRAME|mx.WITH_OCULUS);">
   <div id='header'><img onmouseover="this.src=animImage.src;" onmouseout="this.src=staticImage.src;" src="assets/logo.jpg"></div>
   <div id="btnInfo" class="mxButton active" onclick="changeTabs(0);">Information</div>
   <div id="btnImport" class="mxButton inactive" onclick="changeTabs(1);">Importer</div>
