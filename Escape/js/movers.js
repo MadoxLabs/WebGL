@@ -79,5 +79,5 @@ MoverRotate.prototype.update = function ()
 
 MoverRotate.prototype.apply = function (body)
 {
-  quat.copy(body.Rotation, this.quat);
+  body.setOrientationQuat(this.quat);
 }

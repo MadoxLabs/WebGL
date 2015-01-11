@@ -32,13 +32,13 @@ mx.CAMERA_MAIN = 3;
     this.translation = mat4.create(); mat4.identity(this.translation);
     this.orientation = mat4.create(); mat4.identity(this.orientation);
 
-    this.uniform = {};
-    this.uniform.uWorld = mat4.create();
+    this.uniforms = {};
+    this.uniforms.uWorld = mat4.create();
 
     this.dirty = false;
   }
 
-  GameObject.prototype.Update = function ()
+  GameObject.prototype.update = function ()
   {
     if (!this.dirty && !this.mover) return;
     this.dirty = false;
@@ -63,13 +63,19 @@ mx.CAMERA_MAIN = 3;
     mat4.fromQuat(this.orientation, this.rotation);
     mat4.identity(this.translation);
     mat4.translate(this.translation, this.translation, this.position);
-    mat4.multiply(this.uniform.uWorld, this.translation, this.orientation);
+    mat4.multiply(this.uniforms.uWorld, this.translation, this.orientation);
   }
 
   GameObject.prototype.setOrientationQuat = function (q)
   {
     this.dirty = true;
     quat.copy(this.rotation, q);
+  }
+
+  GameObject.prototype.setOrientationXYZW = function (x, y, z, w)
+  {
+    this.dirty = true;
+    quat.set(this.rotation, x, y, z, w);
   }
 
   GameObject.prototype.setOrientationXYZ = function (x, y, z)
@@ -238,11 +244,11 @@ mx.CAMERA_MAIN = 3;
     vec3.add(cacheVec, this.camera.position, this.camera.forward);
     if (this.ipd)
     {
-      vec3.scale(this.uniform.camera, (this.type == mx.CAMERA_RIGHTEYE) ? this.camera.right : this.camera.left, this.ipd);
-      vec3.add(this.uniform.camera, this.uniform.camera, this.camera.position);
+      vec3.scale(this.uniforms.camera, (this.type == mx.CAMERA_RIGHTEYE) ? this.camera.right : this.camera.left, this.ipd);
+      vec3.add(this.uniforms.camera, this.uniforms.camera, this.camera.position);
     }
     else
-      vec3.copy(this.uniform.camera, this.camera.position);
+      vec3.copy(this.uniforms.camera, this.camera.position);
 
     mat4.lookAt(this.view, this.uniforms.camera, cacheVec, this.camera.up)
     this.uniforms.view = this.view;
@@ -272,8 +278,6 @@ mx.CAMERA_MAIN = 3;
     this.fov = Math.PI / 4.0;
     this.near = 0.1;
     this.far = 10000.0;
-
-    this.splitscreen(false);
   }
 
   Camera.prototype.handleSizeChange = function (w, h)
@@ -324,6 +328,8 @@ mx.CAMERA_MAIN = 3;
     this.forward = vec3.create();
     this.left = vec3.create();
     this.up = vec3.create();
+
+    this.splitscreen(false);
   }
   
   CameraFirst.prototype.attachTo = function (target)

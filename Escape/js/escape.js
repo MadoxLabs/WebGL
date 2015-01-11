@@ -138,7 +138,7 @@ Game.loadingStop = function ()
 
   // SET UP CAMERA
   Game.world.head.setPositionXYZ(0.0, 5.0, 0.0);
-  Game.camera.attachTo(head);
+  Game.camera.attachTo(Game.world.head);
 
   // SET UP SCENE
   var title = makeGameObject(Game.assetMan.assets["titlepage"], "title");
@@ -160,7 +160,7 @@ Game.loadingStop = function ()
   fan.setMover(new MoverRotate(Math.PI * 3.0));
   fan.mover.start();
   fan.skip = true;
-  fan.uniform.uCode = Game.world.dooruniform;
+  fan.uniforms.uCode = Game.world.dooruniform;
   var floor = makeGameObject(Game.assetMan.assets["room"], "floor");
   floor.setPositionXYZ(0.0, -0.05, 0.0);
   var lightswitch = makeGameObject(Game.assetMan.assets["switch"], "lightswitch");
@@ -196,7 +196,7 @@ Game.loadingStop = function ()
   for (var i = 0; i < 16; ++i)
   {
     var button = makeGameObject(Game.assetMan.assets["button"], "button" + i);
-    button.uniform.uState = vec2.fromValues(i, 0);
+    button.uniforms.uState = vec2.fromValues(i, 0);
     button.skip = true;
   }
 
@@ -204,20 +204,21 @@ Game.loadingStop = function ()
   Game.world.shadowUp = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
   Game.world.shadowDown = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
 
-  Game.world.lighteyeUp = new mx.Camera(2048, 2048);
+  var lightup = new mx.GameObject("lightup", null);
+  lightup.setPositionXYZ(0.0, 7.0, 0.0001);
+  lightup.setOrientationXYZ(Math.PI / 2.0, 0.0, 0.0);
+  var lightdown = new mx.GameObject("lightdown", null);
+  lightdown.setPositionXYZ(0.0, 7.0, 0.0001);
+  lightdown.setOrientationXYZ(Math.PI / 2.0, 0.0, 0.0);
+  Game.world.lighteyeUp = new mx.CameraFirst(2048, 2048);
   Game.world.lighteyeUp.fov = Math.PI / 1.1;
   Game.world.lighteyeUp.far = 10.0;
-  Game.world.lighteyeUp.offset = vec3.fromValues(0.0, -0.1, 0.0001);
-  var target2 = new GameObject(null);
-  target2.Position[1] = 7.0;
-  Game.world.lighteyeUp.setTarget(target2);
+  Game.world.lighteyeUp.attachTo(lightup);
   Game.world.lighteyeUp.update();
-
-  Game.world.lighteyeDown = new mx.Camera(2048, 2048);
+  Game.world.lighteyeDown = new mx.CameraFirst(2048, 2048);
   Game.world.lighteyeDown.fov = Math.PI / 1.1;
   Game.world.lighteyeDown.far = 10.0;
-  Game.world.lighteyeDown.offset = vec3.fromValues(0.0, 2.0, 0.0001);
-  Game.world.lighteyeDown.setTarget(target);
+  Game.world.lighteyeDown.attachTo(lightdown);
   Game.world.lighteyeDown.update();
 
   // SCENE UNIFORMS
@@ -300,7 +301,6 @@ Game.loadingStop = function ()
 }
 
 // GAME UPDATES
-var forward = vec3.fromValues(0, 0, 1);
 
 Game.appUpdate = function ()
 {
@@ -308,19 +308,21 @@ Game.appUpdate = function ()
   if (!Game.camera) return;
 
   // keyboard camera rotation section
-  if (Game.world.currentlyPressedKeys[37]) Game.camera.angles[1] += 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[39]) Game.camera.angles[1] -= 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[38]) Game.camera.angles[0] += 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[40]) Game.camera.angles[0] -= 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[65]) Game.camera.angles[1] += 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[68]) Game.camera.angles[1] -= 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[87]) Game.camera.angles[0] += 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[83]) Game.camera.angles[0] -= 0.002 * Game.elapsed;
-  if (Game.camera.angles[0] < -1.2) Game.camera.angles[0] = -1.2;
-  if (Game.camera.angles[0] > 1.2) Game.camera.angles[0] = 1.2;
+  var x = 0, y = 0, z = 0;
+  if (Game.world.currentlyPressedKeys[37]) y = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[39]) y = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[38]) x = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[40]) x = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[65]) y = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[68]) y = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[87]) x = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[83]) x = 0.002 * Game.elapsed;
+  if (Game.world.head.angles[0] + x < -1.2) x = 0;
+  if (Game.world.head.angles[0] + x > 1.2) x = 0;
+  Game.world.head.updateOrientationXYZ(x, y, z);
 
   // asset updates
-  for (var i in Game.world.objects) Game.world.objects[i].Update();
+  for (var i in Game.world.objects) Game.world.objects[i].update();
 
   // rotate picked up piece to follow camera
   if (Game.world.pickup)
@@ -330,12 +332,12 @@ Game.appUpdate = function ()
     mat4.copy(test.Orient, Game.camera.orientation);
     mat4.identity(test.Trans);
     mat4.translate(test.Trans, test.Trans, test.Position);
-    mat4.multiply(test.uniform.uWorld, test.Trans, test.Orient);
+    mat4.multiply(test.uniforms.uWorld, test.Trans, test.Orient);
   }
 
   // update flashlight matrixes for lighting shader
-  vec3.copy(Game.world.uScene.spotlightPos, Game.world.objects['flashlight'].Position);
-  vec3.transformMat4(Game.world.uScene.spotlightDir, forward, Game.world.objects['flashlight'].Orient);
+  vec3.copy(Game.world.uScene.spotlightPos, Game.world.objects['flashlight'].position);
+  vec3.transformMat4(Game.world.uScene.spotlightDir, mx.axis.z, Game.world.objects['flashlight'].orientation);
 }
 
 Game.itemClick = function(name)
@@ -395,7 +397,7 @@ Game.itemClick = function(name)
   // user is entering a solution
   else if (Game.world.lighton && name.substr(0, 6) == "button")
   {
-    Game.world.objects[name].uniform.uState[1] = 2;
+    Game.world.objects[name].uniforms.uState[1] = 2;
     setTimeout(function () { Game.unlightButton(name); }, 200 );
 
     Game.world.doorcode.push(name);
@@ -405,7 +407,7 @@ Game.itemClick = function(name)
       for (var i = 0; i < 4; ++i)
       {
         if (Game.world.doorcode[i] != Game.world.doorsolution[i]) {
-          for (var i = 0; i < 16; ++i) Game.world.objects["button" + i].uniform.uState[1] = 1;
+          for (var i = 0; i < 16; ++i) Game.world.objects["button" + i].uniforms.uState[1] = 1;
           setTimeout(function () { Game.unlightAllButtons(); }, 200);
           ok = false;
           Game.world.sounds.buttonbad.play();
@@ -431,13 +433,13 @@ Game.itemClick = function(name)
 
 Game.unlightButton = function(button)
 {
-  Game.world.objects[button].uniform.uState[1] = 0;
+  Game.world.objects[button].uniforms.uState[1] = 0;
 }
 
 Game.unlightAllButtons = function ()
 {
   for (var i = 0; i < 16; ++i)
-     Game.world.objects["button"+i].uniform.uState[1] = 0;
+     Game.world.objects["button"+i].uniforms.uState[1] = 0;
 }
 
 Game.flashClock = function ()
@@ -468,8 +470,8 @@ Game.appDrawAux = function ()
     effect.bind();
     effect.bindCamera(Game.world.lighteyeUp);
     effect.setUniforms(Game.world.uScene);
-    effect.setUniforms(Game.world.objects['fan'].uniform);
-    effect.draw(Game.world.objects['fan'].Model);
+    effect.setUniforms(Game.world.objects['fan'].uniforms);
+    effect.draw(Game.world.objects['fan'].model);
   }
 
   Game.world.lighteyeDown.engage();
@@ -485,8 +487,8 @@ Game.appDrawAux = function ()
     for (var i in Game.world.objects) {
       var obj = Game.world.objects[i];
       if (obj.skip || !obj.Model) continue;
-      effect.setUniforms(obj.uniform);
-      effect.draw(obj.Model);
+      effect.setUniforms(obj.uniforms);
+      effect.draw(obj.model);
     }
   }
 }
@@ -504,18 +506,18 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.uScene);
   if (Game.world.lighton) {
     obj = Game.world.objects['light'];
-    effect.setUniforms(obj.uniform);
-    effect.draw(obj.Model);
+    effect.setUniforms(obj.uniforms);
+    effect.draw(obj.model);
   }
   else
   {
     obj = Game.world.objects['clock'];  // clock glows in the dark
     effect.setUniforms(obj.uniform);
-    effect.draw(obj.Model);
+    effect.draw(obj.model);
   }
   obj = Game.world.objects['light2'];
-  effect.setUniforms(obj.uniform);
-  effect.draw(obj.Model);
+  effect.setUniforms(obj.uniforms);
+  effect.draw(obj.model);
 
   // ceiling and fan use up facing shadow map
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
@@ -527,8 +529,8 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowUp.texture);
   obj = Game.world.objects['fan'];
-  effect.setUniforms(obj.uniform);
-  effect.draw(obj.Model);
+  effect.setUniforms(obj.uniforms);
+  effect.draw(obj.model);
   
   // change to normal object shader
   effect = Game.shaderMan.shaders["objectrender"];
@@ -539,8 +541,8 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.world.uScene);
   effect.bindTexture("shadow", Game.world.shadowUp.texture);  // ceiling
   obj = Game.world.objects['ceiling'];
-  effect.setUniforms(obj.uniform);
-  effect.draw(obj.Model);
+  effect.setUniforms(obj.uniforms);
+  effect.draw(obj.model);
 
   // the rest are down facing
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight1;
@@ -550,8 +552,8 @@ Game.appDraw = function (eye)
   {
     obj = Game.world.objects[i];
     if (obj.skip || obj.transparent || !obj.Model) continue;
-    effect.setUniforms(obj.uniform);
-    effect.draw(obj.Model);
+    effect.setUniforms(obj.uniforms);
+    effect.draw(obj.model);
   }
   
   // now do button which are down facing and special shader
@@ -563,8 +565,8 @@ Game.appDraw = function (eye)
   for (var i = 0; i < 16; ++i)
   {
     obj = Game.world.objects['button' + i];
-    effect.setUniforms(obj.uniform);
-    effect.draw(obj.Model);
+    effect.setUniforms(obj.uniforms);
+    effect.draw(obj.model);
   }
 
   // now do clear things
@@ -576,8 +578,8 @@ Game.appDraw = function (eye)
     for (var i in Game.world.objects) {
       obj = Game.world.objects[i];
       if (obj.skip || !obj.transparent || !obj.Model) continue;
-      effect.setUniforms(obj.uniform);
-      effect.draw(obj.Model);
+      effect.setUniforms(obj.uniforms);
+      effect.draw(obj.model);
     }
   }
 
@@ -674,10 +676,7 @@ Game.appHandleMouseEvent = function(type, mouse)
   if (clicked && type == mx.MouseEvent.Move)
   {
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20)
-    {
-      Game.camera.angles[1] += -0.01 * mouse.moveOffsetX;
-      Game.camera.angles[0] += -0.01 * mouse.moveOffsetY;
-    }
+      Game.world.head.updateOrientationXYZ(-0.01 * mouse.moveOffsetX, -0.01 * mouse.moveOffsetY, 0.0);
   }
 }
 

@@ -77,10 +77,10 @@ PhysicsWorker.prototype.updateBody = function (index, name)
   if (!body) return;
   if (body.name == Game.world.pickup) return;
 
-  body.Place(this.positions[3 * index + 0], this.positions[3 * index + 1], this.positions[3 * index + 2]);
+  body.setPositionXYZ(this.positions[3 * index + 0], this.positions[3 * index + 1], this.positions[3 * index + 2]);
 
   if (body.name == 'lightswitch') return;
-  body.Rotate(this.quaternions[4 * index + 0], this.quaternions[4 * index + 1], this.quaternions[4 * index + 2], this.quaternions[4 * index + 3]);
+  body.setOrientationXYZW(this.quaternions[4 * index + 0], this.quaternions[4 * index + 1], this.quaternions[4 * index + 2], this.quaternions[4 * index + 3]);
 }
 
 PhysicsWorker.prototype.updateAABBs = function (boundslen)
