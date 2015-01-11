@@ -2,6 +2,7 @@ function World()
 {
   this.currentlyPressedKeys = [];
   this.objects = {};
+  this.head = new mx.GameObject("head", null);
 
   this.uScene = null;
   this.uAABB = [];
@@ -122,6 +123,13 @@ Game.loadingStart = function ()
   Game.ready = false;
 }
 
+function makeGameObject(model, name)
+{
+  var obj = new mx.GameObject(name, model);
+  Game.world.objects[name] = obj;
+  return obj;
+}
+
 Game.loadingStop = function ()
 {
   doneLoading();
@@ -129,70 +137,65 @@ Game.loadingStop = function ()
   Game.ready = true;
 
   // SET UP CAMERA
-  Game.camera.offset[0] = 0.0;
-  Game.camera.offset[1] = 0.0;
-  Game.camera.offset[2] = 1.0;
-  var target = new GameObject(null);
-  target.Position[1] = 5.0;
-  Game.camera.setTarget(target);
+  Game.world.head.setPositionXYZ(0.0, 5.0, 0.0);
+  Game.camera.attachTo(head);
 
   // SET UP SCENE
-  var title = new GameObject(Game.assetMan.assets["titlepage"], "title");
-  title.Place(0.0, 5.0, -0.3);
+  var title = makeGameObject(Game.assetMan.assets["titlepage"], "title");
+  title.setPositionXYZ(0.0, 5.0, -0.3);
   title.transparent = true;
-  var win = new GameObject(Game.assetMan.assets["winpage"], "win");
-  win.Place(0.0, 5.0, -0.3);
+  var win = makeGameObject(Game.assetMan.assets["winpage"], "win");
+  win.setPositionXYZ(0.0, 5.0, -0.3);
   win.transparent = true;
   win.skip = true;
 
-  var light = new GameObject(Game.assetMan.assets["light"], "light");    // these pieces are not physical
-  light.Place(0.0, 8.0, 0.0);
+  var light = makeGameObject(Game.assetMan.assets["light"], "light");    // these pieces are not physical
+  light.setPositionXYZ(0.0, 8.0, 0.0);
   light.skip = true;
-  var ceiling = new GameObject(Game.assetMan.assets["ceiling"], "ceiling");
-  ceiling.Place(0.0, 8.0, 0.0);
+  var ceiling = makeGameObject(Game.assetMan.assets["ceiling"], "ceiling");
+  ceiling.setPositionXYZ(0.0, 8.0, 0.0);
   ceiling.skip = true;
-  var fan = new GameObject(Game.assetMan.assets["fan"], "fan");
-  fan.Place(0.0, 8.0, 0.0);
+  var fan = makeGameObject(Game.assetMan.assets["fan"], "fan");
+  fan.setPositionXYZ(0.0, 8.0, 0.0);
   fan.setMover(new MoverRotate(Math.PI * 3.0));
   fan.mover.start();
   fan.skip = true;
   fan.uniform.uCode = Game.world.dooruniform;
-  var floor = new GameObject(Game.assetMan.assets["room"], "floor");
-  floor.Place(0.0, -0.05, 0.0);
-  var lightswitch = new GameObject(Game.assetMan.assets["switch"], "lightswitch");
-  quat.rotateY(lightswitch.Rotation, lightswitch.Rotation, Math.PI / 2);
-  lightswitch.Place(3.9, 4.5, 0.0);
-  var light2 = new GameObject(Game.assetMan.assets["light2"], "light2");
-  light2.Place(3.9, 4.5, 0.0);
-  var door = new GameObject(Game.assetMan.assets["door"], "door");
-  quat.rotateY(door.Rotation, door.Rotation, Math.PI / -2);
-  door.Place(0.0, 0.0, -3.9);
+  var floor = makeGameObject(Game.assetMan.assets["room"], "floor");
+  floor.setPositionXYZ(0.0, -0.05, 0.0);
+  var lightswitch = makeGameObject(Game.assetMan.assets["switch"], "lightswitch");
+  lightswitch.setOrientationXYZ(0, Math.PI / 2, 0);
+  lightswitch.setPositionXYZ(3.9, 4.5, 0.0);
+  var light2 = makeGameObject(Game.assetMan.assets["light2"], "light2");
+  light2.setPositionXYZ(3.9, 4.5, 0.0);
+  var door = makeGameObject(Game.assetMan.assets["door"], "door");
+  door.setOrientationXYZ(0, Math.PI / 2, 0);
+  door.setPositionXYZ(0.0, 0.0, -3.9);
 
-  var table = new GameObject(Game.assetMan.assets["table"], "table");   // from here on match the physical data coming from worker
-  var shelf = new GameObject(Game.assetMan.assets["shelf"], "shelf");
-  var clock = new GameObject(Game.assetMan.assets["clock"], "clock");
-  var dresser = new GameObject(Game.assetMan.assets["dresser"], "dresser");
-  var drawer = new GameObject(Game.assetMan.assets["drawer"], "drawer");
-  //  drawer.setMover(new MoverTranslate(vec3.fromValues(3.3, 2.55, 0.0), vec3.fromValues(2.7, 2.55, 0), 1));
-  var lock = new GameObject(Game.assetMan.assets["lock"], "lock");
-  var lockbox = new GameObject(Game.assetMan.assets["lockbox"], "lockbox");
+  var table   = makeGameObject(Game.assetMan.assets["table"], "table");   // from here on match the physical data coming from worker
+  var shelf   = makeGameObject(Game.assetMan.assets["shelf"], "shelf");
+  var clock   = makeGameObject(Game.assetMan.assets["clock"], "clock");
+  var dresser = makeGameObject(Game.assetMan.assets["dresser"], "dresser");
+  var drawer  = makeGameObject(Game.assetMan.assets["drawer"], "drawer");
+  var lock    = makeGameObject(Game.assetMan.assets["lock"], "lock");
+  var lockbox = makeGameObject(Game.assetMan.assets["lockbox"], "lockbox");
   lockbox.transparent = true;
-  var flashlight = new GameObject(Game.assetMan.assets["flashlight"], "flashlight");
-  var battery = new GameObject(Game.assetMan.assets["battery"], "battery");
-  battery.Place(0.0, -4.5, 0.0);
+  var flashlight = makeGameObject(Game.assetMan.assets["flashlight"], "flashlight");
+  var battery = makeGameObject(Game.assetMan.assets["battery"], "battery");
+  battery.setPositionXYZ(0.0, -4.5, 0.0);
 
   for (var layer = 0; layer < 20; ++layer)
     for (var piece = 0; piece < 3; ++piece)
       if (piece + layer * 3 == 31)
-        var jenga = new GameObject(Game.assetMan.assets["key"], "jenga" + (piece + layer * 3));
+        var jenga = makeGameObject(Game.assetMan.assets["key"], "jenga" + (piece + layer * 3));
       else
-        var jenga = new GameObject(Game.assetMan.assets["jenga"], "jenga" + (piece + layer * 3));
+        var jenga = makeGameObject(Game.assetMan.assets["jenga"], "jenga" + (piece + layer * 3));
 
-  for (var i = 0; i < 4; ++i) var wall = new GameObject(null, "wall"+i); 
+  for (var i = 0; i < 4; ++i) var wall = makeGameObject(null, "wall"+i); 
 
   for (var i = 0; i < 16; ++i)
   {
-    var button = new GameObject(Game.assetMan.assets["button"], "button" + i);
+    var button = makeGameObject(Game.assetMan.assets["button"], "button" + i);
     button.uniform.uState = vec2.fromValues(i, 0);
     button.skip = true;
   }

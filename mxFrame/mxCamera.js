@@ -11,6 +11,149 @@ mx.CAMERA_MAIN = 3;
 
 (function ()
 {
+  // Game object is going to be the new core of the framework.
+  // This is an object that exists in the world and has speed, velocity, position etc
+  // A game object can have things attached to it - lights, cameras, other game objects
+     
+  // Note if setting orientation by quat, velocity wont work. If you want velocity, use XYZ instead.
+
+  var cacheMat = mat4.create();
+
+  function GameObject(name, model)
+  {
+    this.name = name;
+    this.model = model;
+    this.position = vec3.fromValues(0, 0, 0);
+    this.rotation = quat.create(); quat.identity(this.rotation);
+    this.angles = vec3.fromValues(0, 0, 0);
+    this.velocity = vec3.create();
+    this.movedir = 0;
+
+    this.translation = mat4.create(); mat4.identity(this.translation);
+    this.orientation = mat4.create(); mat4.identity(this.orientation);
+
+    this.uniform = {};
+    this.uniform.uWorld = mat4.create();
+
+    this.dirty = false;
+  }
+
+  GameObject.prototype.Update = function ()
+  {
+    if (!this.dirty && !this.mover) return;
+    this.dirty = false;
+
+    // if a mover exists, let it do its modifications
+    if (this.mover)
+    {
+      this.mover.update();
+      this.mover.apply(this);
+    }
+
+    if (this.movedir)
+    {
+      // apply any velocity, after converting it to local axes. (its global axes)
+      mat4.identity(cacheMat);
+      mat4.rotate(cacheMat, cacheMat, this.angles[1], mx.axis.y);
+      vec3.transformMat4(cacheVec, this.velocity, cacheMat);
+      vec3.add(this.position, this.position, cacheVec);
+    }
+
+    // create matrixes
+    mat4.fromQuat(this.orientation, this.rotation);
+    mat4.identity(this.translation);
+    mat4.translate(this.translation, this.translation, this.position);
+    mat4.multiply(this.uniform.uWorld, this.translation, this.orientation);
+  }
+
+  GameObject.prototype.setOrientationQuat = function (q)
+  {
+    this.dirty = true;
+    quat.copy(this.rotation, q);
+  }
+
+  GameObject.prototype.setOrientationXYZ = function (x, y, z)
+  {
+    this.dirty = true;
+    vec3.set(this.angles, x, y, z);
+    quat.fromYawPitchRoll(this.rotation, x, y, z);
+  }
+
+  GameObject.prototype.updateOrientationXYZ = function (x, y, z)
+  {
+    this.dirty = true;
+    vec3.set(this.angles, this.angles[0] + x, this.angles[1] + y, this.angles[2] + z);
+    quat.fromYawPitchRoll(this.rotation, this.angles[0], this.angles[1], this.angles[2]);
+  }
+
+  GameObject.prototype.updateOrientationVec = function (delta)
+  {
+    this.dirty = true;
+    vec3.add(this.angles, this.angles, delta);
+    quat.fromYawPitchRoll(this.rotation, this.angles[0], this.angles[1], this.angles[2]);
+  }
+
+  GameObject.prototype.setPositionVec = function (pos)
+  {
+    this.dirty = true;
+    vec3.copy(this.position, pos);
+  }
+
+  GameObject.prototype.setPositionXYZ = function (x, y, z)
+  {
+    this.dirty = true;
+    vec3.set(this.position, x, y, z);
+  }
+
+  GameObject.prototype.updatePositionXYZ = function (x, y, z)
+  {
+    this.dirty = true;
+    vec3.set(cacheVec, x, y, z);
+    vec3.add(this.position, cacheVec);
+  }
+
+  GameObject.prototype.updatePositionVec = function (delta)
+  {
+    this.dirty = true;
+    vec3.add(this.position, delta);
+  }
+
+  GameObject.prototype.move = function (dir, speed)
+  {
+    this.dirty = true;
+    this.movedir |= dir;
+    // Determine the speed in X and Z 
+    vec3.set(this.velocity, 0, 0, 0);
+    if ((this.movedir & 1) > 0) this.velocity[2] += speed;
+    if ((this.movedir & 2) > 0) this.velocity[2] += -1.0 * speed;
+    if ((this.movedir & 4) > 0) this.velocity[0] += -1.0 * speed;
+    if ((this.movedir & 8) > 0) this.velocity[0] += speed;
+  }
+
+  GameObject.prototype.stop = function (dir)
+  {
+    this.dirty = true;
+    this.movedir &= ~(dir);
+
+    // Determine the speed in X and Z 
+    if ((dir & 1) > 0) this.velocity[2] = 0;
+    if ((dir & 2) > 0) this.velocity[2] = 0;
+    if ((dir & 4) > 0) this.velocity[0] = 0;
+    if ((dir & 8) > 0) this.velocity[0] = 0;
+  }
+
+  GameObject.prototype.setMover = function (m)
+  {
+    this.mover = m;
+  }
+
+  mx.GameObject = GameObject;
+
+
+
+  var cacheQuat = quat.create();
+  var cacheVec = vec3.create();
+
   function CameraEye(c, t)
   {
     this.ipd = 0.0;
@@ -21,7 +164,7 @@ mx.CAMERA_MAIN = 3;
     this.projection = mat4.create();
 
     this.uniforms = {};
-    this.uniforms.camera = c.position;
+    this.uniforms.camera = vec3.create();
     this.uniforms.view = this.view;
     this.uniforms.projection = this.projection;
 
@@ -67,8 +210,6 @@ mx.CAMERA_MAIN = 3;
 
   CameraEye.prototype.update = function (q)
   {
-    this.camera.offset[0] += this.ipd;
-
     if (this.ipd)
     {
       var aspectRatio = mx.Game.oculus.hResolution * 0.5 / mx.Game.oculus.vResolution;
@@ -94,10 +235,16 @@ mx.CAMERA_MAIN = 3;
         mat4.ortho(this.projection, -200, 200, -200, 200, this.camera.near, this.camera.far);
     }
 
-    mat4.lookAt(this.view, this.camera.position, this.camera.target.Position, this.camera.up)
-    this.camera.offset[0] -= this.ipd;
+    vec3.add(cacheVec, this.camera.position, this.camera.forward);
+    if (this.ipd)
+    {
+      vec3.scale(this.uniform.camera, (this.type == mx.CAMERA_RIGHTEYE) ? this.camera.right : this.camera.left, this.ipd);
+      vec3.add(this.uniform.camera, this.uniform.camera, this.camera.position);
+    }
+    else
+      vec3.copy(this.uniform.camera, this.camera.position);
 
-    this.uniforms.camera = this.camera.position;
+    mat4.lookAt(this.view, this.uniforms.camera, cacheVec, this.camera.up)
     this.uniforms.view = this.view;
     this.uniforms.projection = this.projection;
   }
@@ -111,13 +258,13 @@ mx.CAMERA_MAIN = 3;
   CameraType = { perspective: 1, ortho: 2 };
 
 
+
+  //
+  // Camera base class - just supports having a camera properties
+
   function Camera(w, h)
   {
     this.type = CameraType.perspective;
-
-    this.orientX = mat4.create();
-    this.quat = quat.create();
-
     this.ipd = 0.0;
 
     this.width = w;
@@ -125,19 +272,6 @@ mx.CAMERA_MAIN = 3;
     this.fov = Math.PI / 4.0;
     this.near = 0.1;
     this.far = 10000.0;
-
-    this.angles = vec3.create();
-    this.target = null;
-    this.offset = vec3.fromValues(0, 5, -20);
-    this.movedir = 0;
-    this.speed = vec3.create();
-
-    this.position = vec3.create();
-    this.orientation = mat4.create();
-
-    this.forward = vec3.create();
-    this.left = vec3.create();
-    this.up = vec3.create();
 
     this.splitscreen(false);
   }
@@ -165,58 +299,6 @@ mx.CAMERA_MAIN = 3;
     this.update();
   }
 
-  Camera.prototype.setTarget = function (obj)
-  {
-    this.target = obj;
-    vec3.copy(this.position, this.target.Position);
-    var off = vec3.create();
-    vec3.transformMat4(off, this.offset, this.target.Orient);
-    vec3.add(this.position, this.position, off);   // Initial position is the camera offset relative to the object's forward direction
-  }
-
-  Camera.prototype.move = function (dir, speed)
-  {
-    this.movedir |= dir;
-    // Determine the speed in X and Z 
-    vec3.set(this.speed, 0, 0, 0);
-    if ((this.movedir & 1) > 0) this.speed[2] += speed;
-    if ((this.movedir & 2) > 0) this.speed[2] += -1.0 * speed;
-    if ((this.movedir & 4) > 0) this.speed[0] += -1.0 * speed;
-    if ((this.movedir & 8) > 0) this.speed[0] += speed;
-  }
-
-  Camera.prototype.stop = function (dir)
-  {
-    this.movedir &= ~(dir);
-
-    // Determine the speed in X and Z 
-    if ((dir & 1) > 0) this.speed[2] = 0;
-    if ((dir & 2) > 0) this.speed[2] = 0;
-    if ((dir & 4) > 0) this.speed[0] = 0;
-    if ((dir & 8) > 0) this.speed[0] = 0;
-  }
-
-  Camera.prototype.update = function ()
-  {
-    if (this.target == null) return;
-
-    mat4.identity(this.orientX);
-    mat4.rotate(this.orientX, this.orientX, this.angles[1], mx.axis.y);
-    vec3.transformMat4(this.target.Velocity, this.speed, this.orientX);
-
-    quat.fromYawPitchRoll(this.quat, this.angles[1], this.angles[0], 0.0);
-    mat4.fromQuat(this.orientation, this.quat);
-
-    vec3.transformMat4(this.position, this.offset, this.orientation);
-    vec3.add(this.position, this.position, this.target.Position);
-
-    vec3.transformMat4(this.up, mx.axis.y, this.orientation);
-    vec3.transformMat4(this.left, mx.axis.xNegative, this.orientation);
-    vec3.transformMat4(this.forward, mx.axis.z, this.orientation);
-
-    this.updateEyes();
-  }
-
   Camera.prototype.updateEyes = function ()   // optimize: forin in its own function
   {
     for (var eye in this.eyes) this.eyes[eye].update();
@@ -228,7 +310,53 @@ mx.CAMERA_MAIN = 3;
   }
 
 
+
+  // 
+  // First person camera - supports updating the position / orientation 
+  function CameraFirst(w, h)
+  {
+    extend(this, new Camera(w, h));
+
+    this.target = null;
+    this.position = null;
+    this.orientation = null;
+
+    this.forward = vec3.create();
+    this.left = vec3.create();
+    this.up = vec3.create();
+  }
+  
+  CameraFirst.prototype.attachTo = function (target)
+  {
+    this.target = target;
+    this.position = this.target.position;
+    this.orientation = this.target.orientation;
+    this.update();
+  }
+
+  CameraFirst.prototype.update = function ()
+  {
+    if (!this.target) return;
+    this.target.update();
+
+    vec3.transformMat4(this.up, mx.axis.y, this.orientation);
+    vec3.transformMat4(this.left, mx.axis.xNegative, this.orientation);
+    vec3.transformMat4(this.forward, mx.axis.z, this.orientation);
+
+    this.updateEyes();
+  }
+
+
+  //
+  // Third person camera - follows a target
+  function CameraThird(w, h)
+  {
+    extend(this, new Camera(w, h));
+  }
+
   mx.CameraEye = CameraEye;
   mx.Camera = Camera;
+  mx.CameraFirst = CameraFirst;
+  mx.CameraThird = CameraThird;
 })();
 
