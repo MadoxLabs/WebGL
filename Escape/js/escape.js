@@ -20,6 +20,8 @@ function World()
 
 // MAIN GAME CODE
 // GAME INIT
+var Game = mx.Game;
+
 Game.appInit = function ()
 {
   Game.world = new World();
@@ -196,10 +198,10 @@ Game.loadingStop = function ()
   }
 
   // SET UP LIGHT AND SHADOWS
-  Game.world.shadowUp = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
-  Game.world.shadowDown = new RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
+  Game.world.shadowUp = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
+  Game.world.shadowDown = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
 
-  Game.world.lighteyeUp = new Camera(2048, 2048);
+  Game.world.lighteyeUp = new mx.Camera(2048, 2048);
   Game.world.lighteyeUp.fov = Math.PI / 1.1;
   Game.world.lighteyeUp.far = 10.0;
   Game.world.lighteyeUp.offset = vec3.fromValues(0.0, -0.1, 0.0001);
@@ -208,7 +210,7 @@ Game.loadingStop = function ()
   Game.world.lighteyeUp.setTarget(target2);
   Game.world.lighteyeUp.update();
 
-  Game.world.lighteyeDown = new Camera(2048, 2048);
+  Game.world.lighteyeDown = new mx.Camera(2048, 2048);
   Game.world.lighteyeDown.fov = Math.PI / 1.1;
   Game.world.lighteyeDown.far = 10.0;
   Game.world.lighteyeDown.offset = vec3.fromValues(0.0, 2.0, 0.0001);
@@ -287,7 +289,7 @@ Game.loadingStop = function ()
     1.0, 1.0, 0.0,
     0.0, 1.0, 0.0,
   ];
-  var boxModel = new Mesh();
+  var boxModel = new mx.Mesh();
   boxModel.loadFromArrays(aabbvertices, null, { 'POS': 0 }, gl.LINES, aabbvertices.length / 3.0, 0);
   Game.assetMan.assets['boxmodel'] = boxModel;
 
@@ -609,6 +611,7 @@ Game.appHandleKeyUp = function (event)
 
   if (over) return;
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
+  if (event.keyCode == 79) Game.oculusMode(!Game.isOculus);
   else if (event.keyCode == 81) Game.world.debug = !Game.world.debug;
   else if (event.keyCode == 84) Game.world.shadow = !Game.world.shadow;
 }
@@ -621,7 +624,7 @@ Game.appHandleMouseEvent = function(type, mouse)
 {
   if (over) return;
 
-  if (mouse.button == 0 && type == MouseEvent.Down)
+  if (mouse.button == 0 && type == mx.MouseEvent.Down)
   {
     if (!started)
     {
@@ -653,19 +656,19 @@ Game.appHandleMouseEvent = function(type, mouse)
 
   if (!started) return;
 
-  if (mouse.button == 2 && type == MouseEvent.Down)
+  if (mouse.button == 2 && type == mx.MouseEvent.Down)
   {
     clicked = true;
 //    mouse.grab();
   }
 
-  if (mouse.button == 2 && type == MouseEvent.Up)
+  if (mouse.button == 2 && type == mx.MouseEvent.Up)
   {
     clicked = false;
 //    mouse.release();
   }
 
-  if (clicked && type == MouseEvent.Move)
+  if (clicked && type == mx.MouseEvent.Move)
   {
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20)
     {

@@ -1,19 +1,42 @@
+2015 TODO LIST
+
+frame cleanup
+move gameobject into frame
+make a follow camera and a placeable camera
+make sure instanced meshes work
+make shadow class
+use new depth texture for shadow
+move shadows into frame
+try new shadow stuff
+uverhaul lighting
+use multi render target for multi shadow
+AO using multi render?
+move multi render into frame
+add world manager with octtree etc
+assign objects to shader, auto shader/mesh rendering
+level editor set object placement shader
+auto set texture from texture pool
+
+mesh 
+ animations
+ bump maps
+ tangents
+ binormals
 cube textures
-more mesh types as we encounter them
 precomputed alpha
 check on w buffer to replace z
 
 
 
 
+OLD LIST AND INFO
+
+
+more mesh types as we encounter them
+
 viewer
  lighting
  mouse moves
-mesh 
- animations
- bump maps
- tangents
- binormals
 
 
 

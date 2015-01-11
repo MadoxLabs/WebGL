@@ -1,5 +1,3 @@
-
-
 // camera can be in:
 //   free mode - camera has position and orientation
 //   offset target mode - camera only has offset, using a target object as reference. Has orientation
@@ -7,221 +5,230 @@
 //   free target mode - camera has position and orientation but always faces target object
 //                    - set which axis to lock, x or y or none
 
-var CAMERA_LEFTEYE = 1;
-var CAMERA_RIGHTEYE = 2;
-var CAMERA_MAIN = 3;
+mx.CAMERA_LEFTEYE = 1;
+mx.CAMERA_RIGHTEYE = 2;
+mx.CAMERA_MAIN = 3;
 
-function CameraEye(c, t)
+(function ()
 {
-  this.ipd = 0.0;
-  this.camera = c;
-  this.type = t;
-  this.viewport = vec4.create();
-  this.view = mat4.create();
-  this.projection = mat4.create();
-
-  this.uniforms = {};
-  this.uniforms.camera = c.position;
-  this.uniforms.view = this.view;
-  this.uniforms.projection = this.projection;
-
-  this.handleSizeChange();
-}
-
-CameraEye.prototype.handleSizeChange = function()
-{
-  if (this.type == CAMERA_MAIN)
+  function CameraEye(c, t)
   {
-    this.ipd = 0;
-    this.viewport[0] = 0;
-    this.viewport[1] = 0;
-    this.viewport[2] = this.camera.width;
-    this.viewport[3] = this.camera.height;
-    this.fsq = "fsq";
-    this.center = vec2.fromValues(0.5, 0.5);
-    this.lenscenter = vec2.fromValues(0.5, 0.5);
+    this.ipd = 0.0;
+    this.camera = c;
+    this.type = t;
+    this.viewport = vec4.create();
+    this.view = mat4.create();
+    this.projection = mat4.create();
+
+    this.uniforms = {};
+    this.uniforms.camera = c.position;
+    this.uniforms.view = this.view;
+    this.uniforms.projection = this.projection;
+
+    this.handleSizeChange();
   }
-  else if (this.type == CAMERA_LEFTEYE)
+
+  CameraEye.prototype.handleSizeChange = function ()
   {
-    this.ipd = Game.oculus.interpupillaryDistance / 2.0;
-    this.viewport[0] = 0;
-    this.viewport[1] = 0;
-    this.viewport[2] = (this.camera.width / 2) | 0;
-    this.viewport[3] = this.camera.height;
-    this.fsq = "fsqleft";
-    this.center = vec2.fromValues(0.25, 0.5);
-    this.lenscenter = vec2.fromValues(0.5 - Game.oculus.lensSeparationDistance / Game.oculus.hScreenSize, 0.5);
+    if (this.type == mx.CAMERA_MAIN)
+    {
+      this.ipd = 0;
+      this.viewport[0] = 0;
+      this.viewport[1] = 0;
+      this.viewport[2] = this.camera.width;
+      this.viewport[3] = this.camera.height;
+      this.fsq = "fsq";
+      this.center = vec2.fromValues(0.5, 0.5);
+      this.lenscenter = vec2.fromValues(0.5, 0.5);
+    }
+    else if (this.type == mx.CAMERA_LEFTEYE)
+    {
+      this.ipd = mx.Game.oculus.interpupillaryDistance / 2.0;
+      this.viewport[0] = 0;
+      this.viewport[1] = 0;
+      this.viewport[2] = (this.camera.width / 2) | 0;
+      this.viewport[3] = this.camera.height;
+      this.fsq = "fsqleft";
+      this.center = vec2.fromValues(0.25, 0.5);
+      this.lenscenter = vec2.fromValues(0.5 - mx.Game.oculus.lensSeparationDistance / mx.Game.oculus.hScreenSize, 0.5);
+    }
+    else if (this.type == mx.CAMERA_RIGHTEYE)
+    {
+      this.ipd = mx.Game.oculus.interpupillaryDistance / -2.0;
+      this.viewport[0] = (this.camera.width / 2) | 0;
+      this.viewport[1] = 0;
+      this.viewport[2] = (this.camera.width / 2) | 0;
+      this.viewport[3] = this.camera.height;
+      this.fsq = "fsqright";
+      this.center = vec2.fromValues(0.75, 0.5);
+      this.lenscenter = vec2.fromValues(0.5 + mx.Game.oculus.lensSeparationDistance / mx.Game.oculus.hScreenSize, 0.5);
+    }
   }
-  else if (this.type == CAMERA_RIGHTEYE)
+
+  CameraEye.prototype.update = function (q)
   {
-    this.ipd = Game.oculus.interpupillaryDistance / -2.0;
-    this.viewport[0] = (this.camera.width / 2) | 0;
-    this.viewport[1] = 0;
-    this.viewport[2] = (this.camera.width / 2) | 0;
-    this.viewport[3] = this.camera.height;
-    this.fsq = "fsqright";
-    this.center = vec2.fromValues(0.75, 0.5);
-    this.lenscenter = vec2.fromValues(0.5 + Game.oculus.lensSeparationDistance / Game.oculus.hScreenSize, 0.5);
-  }
-}
+    this.camera.offset[0] += this.ipd;
 
-CameraEye.prototype.update = function (q)
-{
-  this.camera.offset[0] += this.ipd;
+    if (this.ipd)
+    {
+      var aspectRatio = mx.Game.oculus.hResolution * 0.5 / mx.Game.oculus.vResolution;
+      var halfScreenDistance = (mx.Game.oculus.vScreenSize / 2.0);
+      var yfov = 2.0 * Math.atan(halfScreenDistance / mx.Game.oculus.eyeToScreenDistance);
 
-  if (this.ipd)
-  {
-    var aspectRatio = Game.oculus.hResolution * 0.5 / Game.oculus.vResolution;
-    var halfScreenDistance = (Game.oculus.vScreenSize / 2.0);
-    var yfov = 2.0 * Math.atan(halfScreenDistance / Game.oculus.eyeToScreenDistance);
+      var viewCenter = mx.Game.oculus.hScreenSize * 0.25;
+      var eyeProjectionShift = viewCenter - mx.Game.oculus.lensSeparationDistance * 0.5;
+      var projectionCenterOffset = 4.0 * eyeProjectionShift / mx.Game.oculus.hScreenSize;
+      if (this.type == mx.CAMERA_RIGHTEYE) projectionCenterOffset *= -1;
 
-    var viewCenter = Game.oculus.hScreenSize * 0.25;
-    var eyeProjectionShift = viewCenter - Game.oculus.lensSeparationDistance * 0.5;
-    var projectionCenterOffset = 4.0 * eyeProjectionShift / Game.oculus.hScreenSize;
-    if (this.type == CAMERA_RIGHTEYE) projectionCenterOffset *= -1;
-
-    mat4.perspective(this.projection, yfov, aspectRatio, this.camera.near, this.camera.far);
-    var offset = mat4.create();
-    mat4.identity(offset);
-    mat4.translate(offset, offset, vec3.fromValues(projectionCenterOffset,0,0));
-    mat4.multiply(this.projection, offset, this.projection);
-  }
-  else   
-  {
-    if (this.camera.type = CameraType.perspective)
-      mat4.perspective(this.projection, this.camera.fov, this.viewport[2] / this.viewport[3], this.camera.near, this.camera.far);
+      mat4.perspective(this.projection, yfov, aspectRatio, this.camera.near, this.camera.far);
+      var offset = mat4.create();
+      mat4.identity(offset);
+      mat4.translate(offset, offset, vec3.fromValues(projectionCenterOffset, 0, 0));
+      mat4.multiply(this.projection, offset, this.projection);
+    }
     else
-      mat4.ortho(this.projection, -200, 200, -200, 200, this.camera.near, this.camera.far);
+    {
+      if (this.camera.type = CameraType.perspective)
+        mat4.perspective(this.projection, this.camera.fov, this.viewport[2] / this.viewport[3], this.camera.near, this.camera.far);
+      else
+        mat4.ortho(this.projection, -200, 200, -200, 200, this.camera.near, this.camera.far);
+    }
+
+    mat4.lookAt(this.view, this.camera.position, this.camera.target.Position, this.camera.up)
+    this.camera.offset[0] -= this.ipd;
+
+    this.uniforms.camera = this.camera.position;
+    this.uniforms.view = this.view;
+    this.uniforms.projection = this.projection;
   }
 
-  mat4.lookAt(this.view, this.camera.position, this.camera.target.Position, this.camera.up)
-  this.camera.offset[0] -= this.ipd;
-
-  this.uniforms.camera = this.camera.position;
-  this.uniforms.view = this.view;
-  this.uniforms.projection = this.projection;
-}
-
-CameraEye.prototype.engage = function ()
-{
-  gl.viewport(this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
-}
-
-Direction = { forward: 1, back: 2, left: 4, right: 8, all: 15 };
-CameraType = { perspective: 1, ortho: 2 };
-
-function Camera(w, h)
-{
-  this.type = CameraType.perspective;
-
-  this.orientX = mat4.create();
-  this.quat = quat.create();
-
-  this.ipd = 0.0;
-
-  this.width = w;
-  this.height = h;
-  this.fov = Math.PI / 4.0;
-  this.near = 0.1;
-  this.far = 10000.0;
-
-  this.angles = vec3.create();
-  this.target = null;
-  this.offset = vec3.fromValues(0, 5, -20);
-  this.movedir = 0;
-  this.speed = vec3.create();
-
-  this.position = vec3.create();
-  this.orientation = mat4.create();
-
-  this.forward = vec3.create();
-  this.left = vec3.create();
-  this.up = vec3.create();
-
-  this.splitscreen(false);
-}
-
-Camera.prototype.handleSizeChange = function(w, h)
-{
-  this.width = w;
-  this.height = h;
-  for (var eye in this.eyes) this.eyes[eye].handleSizeChange();
-}
-
-Camera.prototype.splitscreen = function (s)
-{
-  if (s)
+  CameraEye.prototype.engage = function ()
   {
-    this.eyes = [];
-    this.eyes.push(new CameraEye(this, CAMERA_LEFTEYE));
-    this.eyes.push(new CameraEye(this, CAMERA_RIGHTEYE));
+    gl.viewport(this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
   }
-  else
+
+  Direction = { forward: 1, back: 2, left: 4, right: 8, all: 15 };
+  CameraType = { perspective: 1, ortho: 2 };
+
+
+  function Camera(w, h)
   {
-    this.eyes = [];
-    this.eyes.push(new CameraEye(this, CAMERA_MAIN));
+    this.type = CameraType.perspective;
+
+    this.orientX = mat4.create();
+    this.quat = quat.create();
+
+    this.ipd = 0.0;
+
+    this.width = w;
+    this.height = h;
+    this.fov = Math.PI / 4.0;
+    this.near = 0.1;
+    this.far = 10000.0;
+
+    this.angles = vec3.create();
+    this.target = null;
+    this.offset = vec3.fromValues(0, 5, -20);
+    this.movedir = 0;
+    this.speed = vec3.create();
+
+    this.position = vec3.create();
+    this.orientation = mat4.create();
+
+    this.forward = vec3.create();
+    this.left = vec3.create();
+    this.up = vec3.create();
+
+    this.splitscreen(false);
   }
-  this.update();
-}
 
-Camera.prototype.setTarget = function (obj)
-{
-  this.target = obj;
-  vec3.copy(this.position, this.target.Position);
-  var off = vec3.create();
-  vec3.transformMat4(off, this.offset, this.target.Orient);
-  vec3.add(this.position, this.position, off);   // Initial position is the camera offset relative to the object's forward direction
-}
+  Camera.prototype.handleSizeChange = function (w, h)
+  {
+    this.width = w;
+    this.height = h;
+    for (var eye in this.eyes) this.eyes[eye].handleSizeChange();
+  }
 
-Camera.prototype.move = function(dir, speed)
-{
-  this.movedir |= dir;
-  // Determine the speed in X and Z 
-  vec3.set(this.speed, 0, 0, 0);
-  if ((this.movedir & 1) > 0) this.speed[2] += speed;
-  if ((this.movedir & 2) > 0) this.speed[2] += -1.0 * speed;
-  if ((this.movedir & 4) > 0) this.speed[0] += -1.0 * speed;
-  if ((this.movedir & 8) > 0) this.speed[0] += speed;
-}
+  Camera.prototype.splitscreen = function (s)
+  {
+    if (s)
+    {
+      this.eyes = [];
+      this.eyes.push(new CameraEye(this, mx.CAMERA_LEFTEYE));
+      this.eyes.push(new CameraEye(this, mx.CAMERA_RIGHTEYE));
+    }
+    else
+    {
+      this.eyes = [];
+      this.eyes.push(new CameraEye(this, mx.CAMERA_MAIN));
+    }
+    this.update();
+  }
 
-Camera.prototype.stop = function(dir)
-{
-  this.movedir &= ~(dir);
+  Camera.prototype.setTarget = function (obj)
+  {
+    this.target = obj;
+    vec3.copy(this.position, this.target.Position);
+    var off = vec3.create();
+    vec3.transformMat4(off, this.offset, this.target.Orient);
+    vec3.add(this.position, this.position, off);   // Initial position is the camera offset relative to the object's forward direction
+  }
 
-  // Determine the speed in X and Z 
-  if ((dir & 1) > 0) this.speed[2] = 0;
-  if ((dir & 2) > 0) this.speed[2] = 0;
-  if ((dir & 4) > 0) this.speed[0] = 0;
-  if ((dir & 8) > 0) this.speed[0] = 0;
-}
+  Camera.prototype.move = function (dir, speed)
+  {
+    this.movedir |= dir;
+    // Determine the speed in X and Z 
+    vec3.set(this.speed, 0, 0, 0);
+    if ((this.movedir & 1) > 0) this.speed[2] += speed;
+    if ((this.movedir & 2) > 0) this.speed[2] += -1.0 * speed;
+    if ((this.movedir & 4) > 0) this.speed[0] += -1.0 * speed;
+    if ((this.movedir & 8) > 0) this.speed[0] += speed;
+  }
 
-Camera.prototype.update = function ()
-{
-  if (this.target == null) return;
+  Camera.prototype.stop = function (dir)
+  {
+    this.movedir &= ~(dir);
 
-  mat4.identity(this.orientX);
-  mat4.rotate(this.orientX, this.orientX, this.angles[1], yAxis);
-  vec3.transformMat4(this.target.Velocity, this.speed, this.orientX);
+    // Determine the speed in X and Z 
+    if ((dir & 1) > 0) this.speed[2] = 0;
+    if ((dir & 2) > 0) this.speed[2] = 0;
+    if ((dir & 4) > 0) this.speed[0] = 0;
+    if ((dir & 8) > 0) this.speed[0] = 0;
+  }
 
-  quat.fromYawPitchRoll(this.quat, this.angles[1], this.angles[0], 0.0);
-  mat4.fromQuat(this.orientation, this.quat);
+  Camera.prototype.update = function ()
+  {
+    if (this.target == null) return;
 
-  vec3.transformMat4(this.position, this.offset, this.orientation);
-  vec3.add(this.position, this.position, this.target.Position);
+    mat4.identity(this.orientX);
+    mat4.rotate(this.orientX, this.orientX, this.angles[1], mx.axis.y);
+    vec3.transformMat4(this.target.Velocity, this.speed, this.orientX);
 
-  vec3.transformMat4(this.up, yAxis, this.orientation);
-  vec3.transformMat4(this.left, xAxisNegative, this.orientation);
-  vec3.transformMat4(this.forward, zAxis, this.orientation);
+    quat.fromYawPitchRoll(this.quat, this.angles[1], this.angles[0], 0.0);
+    mat4.fromQuat(this.orientation, this.quat);
 
-  this.updateEyes();
-}
+    vec3.transformMat4(this.position, this.offset, this.orientation);
+    vec3.add(this.position, this.position, this.target.Position);
 
-Camera.prototype.updateEyes = function()   // optimize: forin in its own function
-{
-  for (var eye in this.eyes) this.eyes[eye].update();
-}
+    vec3.transformMat4(this.up, mx.axis.y, this.orientation);
+    vec3.transformMat4(this.left, mx.axis.xNegative, this.orientation);
+    vec3.transformMat4(this.forward, mx.axis.z, this.orientation);
 
-Camera.prototype.engage = function()
-{
-  this.eyes[0].engage();
-}
+    this.updateEyes();
+  }
+
+  Camera.prototype.updateEyes = function ()   // optimize: forin in its own function
+  {
+    for (var eye in this.eyes) this.eyes[eye].update();
+  }
+
+  Camera.prototype.engage = function ()
+  {
+    this.eyes[0].engage();
+  }
+
+
+  mx.CameraEye = CameraEye;
+  mx.Camera = Camera;
+})();
+

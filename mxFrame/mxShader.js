@@ -1,154 +1,193 @@
-//
-// These functions get added to each WebGL shader object
-WebGLProgram.prototype.bind = function()
-//function bind()
+(function ()
 {
-  if (!this.uMat)
+  function ShaderTexture()
   {
-    this.uMat = this.createUniform('material');
-    this.uMat.materialoption = vec3.create(); 
+    this.name = 0;
+    this.loc = 0
+    this.mag = 0
+    this.min = 0;
+    this.wraps = 0;
+    this.wrapt = 0;
   }
 
-  gl.useProgram(this);
-  Game.shaderMan.enabledUniforms = {};
-  Game.shaderMan.enableAttibutes(this.attributes.length);
-  if (this.renderstate && this.renderstate != Game.shaderMan.currentRenderState)
+  function ShaderUniform(name, group)
   {
-    if (Game.shaderMan.currentRenderState) Game.shaderMan.currentRenderState.unset();
-    Game.shaderMan.currentRenderState = this.renderstate;
-    this.renderstate.set();
+    this.name = name;
+    this.group = group;
   }
-}
 
-WebGLProgram.prototype.bindCamera = function (eye)
-//function bindCamera(eye)
-{
-  if (eye.eyes) eye = eye.eyes[0];
-  this.setUniforms(eye.uniforms);
-}
-
-WebGLProgram.prototype.bindMesh = function (mesh)
-//function bindMesh(mesh)
-{
-  if (mesh.indexbuffer) gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexbuffer);
-  else gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
-  for (var code in mesh.attributes)          // code is what this attribute represents - IE TEX0, POSITION
+  function ShaderUniformLocation(loc, type)
   {
-    var offset = mesh.attributes[code];     // get offset into the vertex buffer definition
-    var attr = this.attributes[code];       // look up what attribute number this is in the shader
-    if (attr == undefined) continue;                    // shader doesnt use this
-    var size = this.attributes[attr].size;  // get the size and type for this attribute as set in the shader
-    var type = this.attributes[attr].type;
-//    gl.enableVertexAttribArray(attr);
-    gl.vertexAttribPointer(attr, size, type, false, this.stride, offset);
+    this.loc = loc;
+    this.type = type;
   }
-}
 
-WebGLProgram.prototype.bindInstanceData = function (mesh)
-//function bindInstanceData(mesh)
-{
-  if (!mesh.instanceBuffer) return;
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, mesh.instanceBuffer);
-  for (var code in mesh.instance)
+  function ShaderAttribute(size, type)
   {
-    var offset = mesh.instance[code];     // get offset into the vertex buffer definition
-    var attr = this.attributes[code];       // look up what attribute number this is in the shader
-    var size = this.attributes[attr].size;  // get the size and type for this attribute as set in the shader
-    var type = this.attributes[attr].type;
-//    gl.enableVertexAttribArray(attr);
-    gl.vertexAttribPointer(attr, size, type, false, mesh.instanceStride, offset);
-    ext.angle.vertexAttribDivisorANGLE(attr, 1); // This makes it instanced!
+    this.size = size;
+    this.type = type;
   }
-}
 
-WebGLProgram.prototype.bindTexture = function (name, texture, mag, min, wraps, wrapt)
-//function bindTexture(name, texture, mag, min, wraps, wrapt)
-{
-  var tnum = this.names[name];
-  if (tnum === undefined) return;
-  var t = this.textures[tnum];
-
-  gl.activeTexture(gl.TEXTURE0 + tnum);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.uniform1i(t.loc, tnum);
-  if (!texture) return;
-
-  var fmag = mag;
-  var fmin = min;
-  var fwraps = wraps;
-  var fwrapt = wrapt;
-  if (arguments.length < 3 || !mag) fmag = t.mag;
-  if (arguments.length < 4 || !min) fmin = t.min;
-  if (arguments.length < 5 || !wraps) fwraps = t.wraps;
-  if (arguments.length < 6 || !wrapt) fwrapt = t.wrapt;
-
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, fmag);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, fmin);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, fwraps);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, fwrapt);
-}
-
-WebGLProgram.prototype.setUniforms = function (vals)
-//function setUniforms(vals)
-{
-  for (var name in vals)
-    Game.shaderMan.enableUniform(name, this.names[name], vals[name]);
-}
-
-WebGLProgram.prototype.createUniform = function (group)
-//function createUniform(group)
-{
-  var ret = {};
-  for (var i = 0; i < this.uniforms.length; ++i)
+  function Shader(shader)
   {
-    if (this.uniforms[i].group !== group) continue;
-    ret[this.uniforms[i].name] = 0;
+    this.shader = shader;
+    this.attributes = [];
+    this.names = {};
+    this.namesInt = {};
+    this.textures = [];
+    this.uniforms = [];
+    this.renderstate = null;
+    this.stride = 0;
   }
-  return ret;
-}
 
-WebGLProgram.prototype.draw = function (mesh)
-//function draw(mesh)
-{
-  for (var i = 0; i < mesh.groups.length; ++i)
+
+  //
+  // These functions get added to each WebGL shader object
+  Shader.prototype.bind = function ()
   {
-    var group = mesh.groups[i];
-    // set material
-    this.setUniforms(group.material);
-    if (this.textures.length)
+    gl.useProgram(this.shader);
+    mx.Game.shaderMan.enabledUniforms = {};
+    mx.Game.shaderMan.enableAttibutes(this.attributes.length);
+    if (this.renderstate && this.renderstate != mx.Game.shaderMan.currentRenderState)
     {
-      if (group.texture)
-      {
-        if (Game.assetMan.assets[group.texture]) { this.bindTexture('uTexture', Game.assetMan.assets[group.texture].texture); }
-        else this.bindTexture('uTexture', Game.assetMan.assets["missing"].texture);
-      }
-      else this.bindTexture('uTexture', null);
+      if (mx.Game.shaderMan.currentRenderState) mx.Game.shaderMan.currentRenderState.unset();
+      mx.Game.shaderMan.currentRenderState = this.renderstate;
+      this.renderstate.set();
     }
+  }
 
-    // render the parts
-    for (var p = 0; p < group.parts.length; ++p)
+  Shader.prototype.bindCamera = function (eye)
+  {
+    if (eye.eyes) eye = eye.eyes[0];
+    this.setUniforms(eye.uniforms);
+  }
+
+  Shader.prototype.bindMesh = function (mesh)
+  {
+    if (mesh.indexbuffer) gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexbuffer);
+    else gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
+    for (var code in mesh.attributes)          // code is what this attribute represents - IE TEX0, POSITION
     {
-      var part = group.parts[p];
-      this.setUniforms(part.uniforms);
+      var offset = mesh.attributes[code];     // get offset into the vertex buffer definition
+      var attr = this.attributes[code];       // look up what attribute number this is in the shader
+      if (attr == undefined) continue;                    // shader doesnt use this
+      var size = this.attributes[attr].size;  // get the size and type for this attribute as set in the shader
+      var type = this.attributes[attr].type;
+      //    gl.enableVertexAttribArray(attr);
+      gl.vertexAttribPointer(attr, size, type, false, this.stride, offset);
+    }
+  }
 
-      this.bindMesh(part);
-      if (part.instanceBuffer)
+  Shader.prototype.bindInstanceData = function (mesh)
+  {
+    if (!mesh.instanceBuffer) return;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, mesh.instanceBuffer);
+    for (var code in mesh.instance)
+    {
+      var offset = mesh.instance[code];     // get offset into the vertex buffer definition
+      var attr = this.attributes[code];       // look up what attribute number this is in the shader
+      var size = this.attributes[attr].size;  // get the size and type for this attribute as set in the shader
+      var type = this.attributes[attr].type;
+      //    gl.enableVertexAttribArray(attr);
+      gl.vertexAttribPointer(attr, size, type, false, mesh.instanceStride, offset);
+      mx.ext.angle.vertexAttribDivisorANGLE(attr, 1); // This makes it instanced!
+    }
+  }
+
+  Shader.prototype.bindTexture = function (name, texture, mag, min, wraps, wrapt)
+  {
+    var tnum = this.namesInt[name];
+    if (tnum === undefined) return;
+    var t = this.textures[tnum];
+
+    gl.activeTexture(gl.TEXTURE0 + tnum);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(t.loc, tnum);
+    if (!texture) return;
+
+    var fmag = mag;
+    var fmin = min;
+    var fwraps = wraps;
+    var fwrapt = wrapt;
+    if (arguments.length < 3 || !mag) fmag = t.mag;
+    if (arguments.length < 4 || !min) fmin = t.min;
+    if (arguments.length < 5 || !wraps) fwraps = t.wraps;
+    if (arguments.length < 6 || !wrapt) fwrapt = t.wrapt;
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, fmag);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, fmin);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, fwraps);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, fwrapt);
+  }
+
+  Shader.prototype.setUniforms = function (vals)
+  {
+    for (var name in vals)
+      mx.Game.shaderMan.enableUniform(name, this.names[name], vals[name]);
+  }
+
+  Shader.prototype.createUniform = function (group)
+  {
+    var ret = {};
+    for (var i = 0; i < this.uniforms.length; ++i)
+    {
+      if (this.uniforms[i].group !== group) continue;
+      ret[this.uniforms[i].name] = 0;
+    }
+    return ret;
+  }
+
+  Shader.prototype.draw = function (mesh)
+  {
+    for (var i = 0; i < mesh.groups.length; ++i)
+    {
+      var group = mesh.groups[i];
+      // set material
+      this.setUniforms(group.material);
+      if (this.textures.length)
       {
-        this.bindInstanceData(part);
+        if (group.texture)
+        {
+          if (mx.Game.assetMan.assets[group.texture]) { this.bindTexture('uTexture', mx.Game.assetMan.assets[group.texture].texture); }
+          else this.bindTexture('uTexture', mx.Game.assetMan.assets["missing"].texture);
+        }
+        else this.bindTexture('uTexture', null);
+      }
+
+      // render the parts
+      for (var p = 0; p < group.parts.length; ++p)
+      {
+        var part = group.parts[p];
+        this.setUniforms(part.uniforms);
+
+        this.bindMesh(part);
+        if (part.instanceBuffer)
+        {
+          this.bindInstanceData(part);
+          if (part.indexbuffer)
+            ext.angle.drawElementsInstancedANGLE(part.type, part.prims, gl.UNSIGNED_SHORT, 0, part.instanceNumber);
+          else
+            ext.angle.drawArraysInstancedANGLE(part.type, 0, part.prims, part.instanceNumber);
+          return;
+        }
+
         if (part.indexbuffer)
-          ext.angle.drawElementsInstancedANGLE(part.type, part.prims, gl.UNSIGNED_SHORT, 0, part.instanceNumber);
+          gl.drawElements(part.type, part.prims, gl.UNSIGNED_SHORT, 0);
         else
-          ext.angle.drawArraysInstancedANGLE(part.type, 0, part.prims, part.instanceNumber);
-        return;
+          gl.drawArrays(part.type, 0, part.prims);
       }
-
-      if (part.indexbuffer)
-        gl.drawElements(part.type, part.prims, gl.UNSIGNED_SHORT, 0);
-      else
-        gl.drawArrays(part.type, 0, part.prims);
     }
   }
-}
+
+  mx.ShaderTexture = ShaderTexture;
+  mx.ShaderUniform = ShaderUniform;
+  mx.ShaderUniformLocation = ShaderUniformLocation;
+  mx.ShaderAttribute = ShaderAttribute;
+  mx.Shader = Shader;
+})();
+
+
+

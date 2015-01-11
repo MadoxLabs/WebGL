@@ -16,12 +16,12 @@
       }
     </script>
   </head>
-  <body style="margin:0;padding:0;" onload="launchApp(['js/lib/cannon.js', 
-                                                       'js/lib/buzz.min.js', 
-                                                       'js/gameObject.js', 
-                                                       'js/movers.js', 
-                                                       'js/physicsHandler.js', 
-                                                       'js/escape.js'], '../mxFrame', WITH_MXFRAME);">
+  <body style="margin:0;padding:0;" onload="mx.loadApp(['js/lib/cannon.js', 
+                                                        'js/lib/buzz.min.js', 
+                                                        'js/gameObject.js', 
+                                                        'js/movers.js', 
+                                                        'js/physicsHandler.js', 
+                                                        'js/escape.js'], '../mxFrame', mx.WITH_MXFRAME | mx.WITH_OCULUS);">
     <div><canvas id='surface'></canvas></div>
     <div id="loading"></div>
   </body>
