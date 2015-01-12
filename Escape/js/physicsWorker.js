@@ -261,6 +261,7 @@ self.onmessage = function (e)
   if (pickup)
   {
     var body = world.bodies[pickup];
+    body.position.set(e.data.forward[0], 4.6 + e.data.forward[1], e.data.forward[2]);
     body.quaternion.set(e.data.camera[0], e.data.camera[1], e.data.camera[2], e.data.camera[3]);
   }
   // Step the world

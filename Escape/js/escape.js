@@ -138,14 +138,15 @@ Game.loadingStop = function ()
 
   // SET UP CAMERA
   Game.world.head.setPositionXYZ(0.0, 5.0, 0.0);
+  Game.world.head.setOrientationXYZ(0.0, Math.PI, 0.0);
   Game.camera.attachTo(Game.world.head);
 
   // SET UP SCENE
   var title = makeGameObject(Game.assetMan.assets["titlepage"], "title");
-  title.setPositionXYZ(0.0, 5.0, -0.3);
+  title.setPositionXYZ(0.0, 5.0, -1.3);
   title.transparent = true;
   var win = makeGameObject(Game.assetMan.assets["winpage"], "win");
-  win.setPositionXYZ(0.0, 5.0, -0.3);
+  win.setPositionXYZ(0.0, 5.0, -1.3);
   win.transparent = true;
   win.skip = true;
 
@@ -169,7 +170,7 @@ Game.loadingStop = function ()
   var light2 = makeGameObject(Game.assetMan.assets["light2"], "light2");
   light2.setPositionXYZ(3.9, 4.5, 0.0);
   var door = makeGameObject(Game.assetMan.assets["door"], "door");
-  door.setOrientationXYZ(0, Math.PI / 2, 0);
+  door.setOrientationXYZ(0, -Math.PI / 2, 0);
   door.setPositionXYZ(0.0, 0.0, -3.9);
 
   var table   = makeGameObject(Game.assetMan.assets["table"], "table");   // from here on match the physical data coming from worker
@@ -328,11 +329,12 @@ Game.appUpdate = function ()
   if (Game.world.pickup)
   {
     var test = Game.world.objects[Game.world.pickup];
-    test.Place(0, 4.6, 0);
-    mat4.copy(test.Orient, Game.camera.orientation);
-    mat4.identity(test.Trans);
-    mat4.translate(test.Trans, test.Trans, test.Position);
-    mat4.multiply(test.uniforms.uWorld, test.Trans, test.Orient);
+    test.setPositionXYZ(0, 4.6, 0);
+    vec3.add(test.position, test.position, Game.camera.forward);
+    mat4.copy(test.orientation, Game.camera.orientation);
+    mat4.identity(test.translation);
+    mat4.translate(test.translation, test.translation, test.position);
+    mat4.multiply(test.uniforms.uWorld, test.translation, test.orientation);
   }
 
   // update flashlight matrixes for lighting shader
@@ -347,7 +349,7 @@ Game.itemClick = function(name)
     if (Game.world.sounds.fanOff.isPaused() && Game.world.sounds.fanOn.isPaused())
     {
       var lightswitch = Game.world.objects[name];
-      quat.rotateZ(lightswitch.Rotation, lightswitch.Rotation, Math.PI);
+      quat.rotateZ(lightswitch.rotation, lightswitch.rotation, Math.PI);
       lightswitch.dirty = true;
       Game.world.lighton = !Game.world.lighton;
       Game.world.uScene.lighton[0] = Game.world.lighton ? 1.0 : 0.0;
@@ -372,7 +374,7 @@ Game.itemClick = function(name)
   }
   else if (name == 'clockbattery')
   {
-    Game.world.objects['clock'].Model = Game.assetMan.assets["clockdead"];
+    Game.world.objects['clock'].model = Game.assetMan.assets["clockdead"];
     Game.world.sounds.radio.stop();
   }
 
@@ -458,6 +460,7 @@ Game.flashClock = function ()
 
 Game.appDrawAux = function ()
 {
+  return;
   if (Game.loading) return;
 
   Game.world.lighteyeUp.engage();
@@ -486,7 +489,7 @@ Game.appDrawAux = function ()
 
     for (var i in Game.world.objects) {
       var obj = Game.world.objects[i];
-      if (obj.skip || !obj.Model) continue;
+      if (obj.skip || !obj.model) continue;
       effect.setUniforms(obj.uniforms);
       effect.draw(obj.model);
     }
@@ -551,7 +554,7 @@ Game.appDraw = function (eye)
   for (var i in Game.world.objects)
   {
     obj = Game.world.objects[i];
-    if (obj.skip || obj.transparent || !obj.Model) continue;
+    if (obj.skip || obj.transparent || !obj.model) continue;
     effect.setUniforms(obj.uniforms);
     effect.draw(obj.model);
   }
@@ -577,7 +580,7 @@ Game.appDraw = function (eye)
     effect.setUniforms(Game.world.uScene);
     for (var i in Game.world.objects) {
       obj = Game.world.objects[i];
-      if (obj.skip || !obj.transparent || !obj.Model) continue;
+      if (obj.skip || !obj.transparent || !obj.model) continue;
       effect.setUniforms(obj.uniforms);
       effect.draw(obj.model);
     }
@@ -676,7 +679,7 @@ Game.appHandleMouseEvent = function(type, mouse)
   if (clicked && type == mx.MouseEvent.Move)
   {
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20)
-      Game.world.head.updateOrientationXYZ(-0.01 * mouse.moveOffsetX, -0.01 * mouse.moveOffsetY, 0.0);
+      Game.world.head.updateOrientationXYZ(0.01 * mouse.moveOffsetY, -0.01 * mouse.moveOffsetX, 0.0);
   }
 }
 

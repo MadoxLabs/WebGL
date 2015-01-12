@@ -18,7 +18,8 @@ PhysicsWorker.prototype.toWorker = function ()
 {
   this.sendTime = Date.now();
   this.worker.postMessage({
-    camera: Game.camera.quat,
+    camera: Game.camera.target.rotation,
+    forward: Game.camera.forward,
     dt: this.dt,
     positions: this.positions,
     quaternions: this.quaternions,
@@ -31,10 +32,10 @@ PhysicsWorker.prototype.dropItem = function()
   // get camera forward, ahead 2 feet is drop location
   var loc = vec3.create();
   vec3.copy(loc, Game.camera.position);
-  vec3.subtract(loc, loc, Game.camera.forward); // why is this backwards
-  vec3.subtract(loc, loc, Game.camera.forward);
-  vec3.subtract(loc, loc, Game.camera.forward);
-  vec3.subtract(loc, loc, Game.camera.forward);
+  vec3.add(loc, loc, Game.camera.forward); 
+  vec3.add(loc, loc, Game.camera.forward);
+  vec3.add(loc, loc, Game.camera.forward);
+//  vec3.add(loc, loc, Game.camera.forward);
 
   this.worker.postMessage({
     drop: true,

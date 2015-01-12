@@ -7,6 +7,8 @@ uniform sampler2D shadow; // mag LINEAR, min LINEAR, wrapu CLAMP_TO_EDGE, wrapv 
 
 float IsShadow(vec4 position, vec3 normal, mat4 WorldToLight, vec3 lightpos)
 {
+  return 1.0;
+
   vec4 positionFromLight =  WorldToLight * position;
   float weight = 0.6; //0.8 * abs(length(position.xyz - lightpos))/2.0;
 

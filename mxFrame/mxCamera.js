@@ -82,21 +82,21 @@ mx.CAMERA_MAIN = 3;
   {
     this.dirty = true;
     vec3.set(this.angles, x, y, z);
-    quat.fromYawPitchRoll(this.rotation, x, y, z);
+    quat.fromYawPitchRoll(this.rotation, y, x, z);
   }
 
   GameObject.prototype.updateOrientationXYZ = function (x, y, z)
   {
     this.dirty = true;
     vec3.set(this.angles, this.angles[0] + x, this.angles[1] + y, this.angles[2] + z);
-    quat.fromYawPitchRoll(this.rotation, this.angles[0], this.angles[1], this.angles[2]);
+    quat.fromYawPitchRoll(this.rotation, this.angles[1], this.angles[0], this.angles[2]);
   }
 
   GameObject.prototype.updateOrientationVec = function (delta)
   {
     this.dirty = true;
     vec3.add(this.angles, this.angles, delta);
-    quat.fromYawPitchRoll(this.rotation, this.angles[0], this.angles[1], this.angles[2]);
+    quat.fromYawPitchRoll(this.rotation, this.angles[1], this.angles[0], this.angles[2]);
   }
 
   GameObject.prototype.setPositionVec = function (pos)
