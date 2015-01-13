@@ -63,7 +63,7 @@ self.onmessage = function (e)
     {
       world.bodies[90].type = CANNON.Body.KINEMATIC;
       world.bodies[90].position.set(0, -10, 0);
-      pickup = 0;
+      if (pickup == 90) pickup = 0; // drop battery if held
     }
     // push the piece, but pull the drawer
     var force = raycastresult.body.name == "drawer" ? 300 : -200;
@@ -72,13 +72,6 @@ self.onmessage = function (e)
 
     return;
   }
-
-  // was for moving drawer
-//  if (e.data.setPosition)
-//  {
-//    world.bodies[e.data.id].position.set(e.data.setPosition[0], e.data.setPosition[1], e.data.setPosition[2]);
-//    return;
-//  }
 
   if (!world)
   {
@@ -184,7 +177,7 @@ self.onmessage = function (e)
 
     var flashlight = new CANNON.Body({ mass: 2 });
     flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.1, 0.1, 0.6)));
-    flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.15, 0.1)), new CANNON.Vec3(0.1,0,-0.6));
+    flashlight.addShape(new CANNON.Box(new CANNON.Vec3(0.15, 0.15, 0.1)), new CANNON.Vec3(0.0,0,0.6));
     flashlight.position.set(2.95, 2.5, 0.0);
     flashlight.name = "flashlight";
     world.add(flashlight);
@@ -258,14 +251,15 @@ self.onmessage = function (e)
     world.add(wall);
   }
 
+  // Step the world
+  world.step(e.data.dt);
+
   if (pickup)
   {
     var body = world.bodies[pickup];
     body.position.set(e.data.forward[0], 4.6 + e.data.forward[1], e.data.forward[2]);
     body.quaternion.set(e.data.camera[0], e.data.camera[1], e.data.camera[2], e.data.camera[3]);
   }
-  // Step the world
-  world.step(e.data.dt);
 
   // Copy over the data to the buffers
   var names = [];
@@ -279,7 +273,7 @@ self.onmessage = function (e)
         p = b.position,
         q = b.quaternion;
     //    if (b.shapes[0].type == CANNON.Body.STATIC) continue;
-    if (b.aabbNeedsUpdate) b.computeAABB();
+    if (b.aabbNeedsUpdate || i == pickup)  b.computeAABB();
     names.push(b.name);
     positions[3 * j + 0] = p.x;
     positions[3 * j + 1] = p.y;

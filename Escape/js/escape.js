@@ -311,16 +311,14 @@ Game.appUpdate = function ()
   // keyboard camera rotation section
   var x = 0, y = 0, z = 0;
   if (Game.world.currentlyPressedKeys[37]) y = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[39]) y = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[38]) x = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[39]) y = -0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[38]) x = -0.002 * Game.elapsed;
   if (Game.world.currentlyPressedKeys[40]) x = 0.002 * Game.elapsed;
   if (Game.world.currentlyPressedKeys[65]) y = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[68]) y = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[87]) x = 0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[68]) y = -0.002 * Game.elapsed;
+  if (Game.world.currentlyPressedKeys[87]) x = -0.002 * Game.elapsed;
   if (Game.world.currentlyPressedKeys[83]) x = 0.002 * Game.elapsed;
-  if (Game.world.head.angles[0] + x < -1.2) x = 0;
-  if (Game.world.head.angles[0] + x > 1.2) x = 0;
-  Game.world.head.updateOrientationXYZ(x, y, z);
+  setHeadAngle(x, y, z);
 
   // asset updates
   for (var i in Game.world.objects) Game.world.objects[i].update();
@@ -339,7 +337,7 @@ Game.appUpdate = function ()
 
   // update flashlight matrixes for lighting shader
   vec3.copy(Game.world.uScene.spotlightPos, Game.world.objects['flashlight'].position);
-  vec3.transformMat4(Game.world.uScene.spotlightDir, mx.axis.z, Game.world.objects['flashlight'].orientation);
+  vec3.transformMat4(Game.world.uScene.spotlightDir, mx.axis.zNegative, Game.world.objects['flashlight'].orientation);
 }
 
 Game.itemClick = function(name)
@@ -391,6 +389,7 @@ Game.itemClick = function(name)
   else if (Game.world.pickup == "battery" && name == "flashlight")
   {
     Game.world.uScene.lighton[1] = 1.0;
+    Game.world.pickup.skip = true;
     Game.world.pickup = null;
   }
   else if (Game.world.pickup == "flashlight" && name == "battery")
@@ -418,13 +417,11 @@ Game.itemClick = function(name)
       }
       if (ok)
       {
-        Game.camera.angles[0] = 0;
-        Game.camera.angles[1] = 0;
-        Game.camera.angles[2] = 0;
+        over = true;
+        Game.world.head.setOrientationXYZ(0, Math.PI, 0);
         Game.world.objects["win"].skip = false;
         Game.world.sounds.fan.stop();
-        Game.world.objects[Game.world.pickup].skip = true;
-        over = true;
+        if (Game.world.pickup) Game.world.objects[Game.world.pickup].skip = true;
       }
       Game.world.doorcode = [];
     }
@@ -515,7 +512,7 @@ Game.appDraw = function (eye)
   else
   {
     obj = Game.world.objects['clock'];  // clock glows in the dark
-    effect.setUniforms(obj.uniform);
+    effect.setUniforms(obj.uniforms);
     effect.draw(obj.model);
   }
   obj = Game.world.objects['light2'];
@@ -678,9 +675,14 @@ Game.appHandleMouseEvent = function(type, mouse)
 
   if (clicked && type == mx.MouseEvent.Move)
   {
-    if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20)
-      Game.world.head.updateOrientationXYZ(0.01 * mouse.moveOffsetY, -0.01 * mouse.moveOffsetX, 0.0);
+    if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20) setHeadAngle(0.01 * mouse.moveOffsetY, -0.01 * mouse.moveOffsetX, 0.0);
   }
+}
+
+function setHeadAngle(x,y,z)
+{
+  if (Game.world.head.angles[0] + x < -1.2 || Game.world.head.angles[0] + x > 1.2) x = 0;
+  Game.world.head.updateOrientationXYZ(x, y, z);
 }
 
 Game.appLoadingError = function (name)
