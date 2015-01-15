@@ -17,6 +17,10 @@ mx.CAMERA_MAIN = 3;
      
   // Note if setting orientation by quat, velocity wont work. If you want velocity, use XYZ instead.
 
+  // objects can be slaved to another object with an offset. if so, the orientation rotates it around the parent.
+  // if slaved, can not use velocity, offset is valid
+  // 
+
   var cacheMat = mat4.create();
 
   function GameObject(name, model)
@@ -26,6 +30,10 @@ mx.CAMERA_MAIN = 3;
     this.position = vec3.fromValues(0, 0, 0);
     this.rotation = quat.create(); quat.identity(this.rotation);
     this.angles = vec3.fromValues(0, 0, 0);
+
+    this.target = null;
+    this.offset = vec3.fromValues(0, 0, 0);
+
     this.velocity = vec3.create();
     this.movedir = 0;
 
@@ -38,9 +46,19 @@ mx.CAMERA_MAIN = 3;
     this.dirty = false;
   }
 
+  GameObject.prototype.setTarget = function (obj)
+  {
+    this.target = obj;
+    this.target.update();
+    vec3.copy(this.position, this.target.position);
+    var off = vec3.create();
+    vec3.transformMat4(off, this.offset, this.target.orientation);
+    vec3.add(this.position, this.position, off);   // Initial position is the camera offset relative to the object's forward direction
+  }
+
   GameObject.prototype.update = function ()
   {
-    if (!this.dirty && !this.mover) return;
+    if (!this.slaveTo && !this.dirty && !this.mover) return;
     this.dirty = false;
 
     // if a mover exists, let it do its modifications
@@ -59,8 +77,15 @@ mx.CAMERA_MAIN = 3;
       vec3.add(this.position, this.position, cacheVec);
     }
 
-    // create matrixes
     mat4.fromQuat(this.orientation, this.rotation);
+
+    if (this.slaveTo)
+    {
+      this.slaveTo.update();
+      vec3.transformMat4(this.position, this.offset, this.orientation);
+      vec3.add(this.position, this.position, this.target.Position);
+    }
+
     mat4.identity(this.translation);
     mat4.translate(this.translation, this.translation, this.position);
     mat4.multiply(this.uniforms.uWorld, this.translation, this.orientation);
@@ -102,18 +127,21 @@ mx.CAMERA_MAIN = 3;
 
   GameObject.prototype.setPositionVec = function (pos)
   {
+    if (this.target) return;
     this.dirty = true;
     vec3.copy(this.position, pos);
   }
 
   GameObject.prototype.setPositionXYZ = function (x, y, z)
   {
+    if (this.target) return;
     this.dirty = true;
     vec3.set(this.position, x, y, z);
   }
 
   GameObject.prototype.updatePositionXYZ = function (x, y, z)
   {
+    if (this.target) return;
     this.dirty = true;
     vec3.set(cacheVec, x, y, z);
     vec3.add(this.position, this.position, cacheVec);
@@ -121,12 +149,15 @@ mx.CAMERA_MAIN = 3;
 
   GameObject.prototype.updatePositionVec = function (delta)
   {
+    if (this.target) return;
     this.dirty = true;
     vec3.add(this.position, this.position, delta);
   }
 
   GameObject.prototype.move = function (dir, speed)
   {
+    if (this.target) return;
+
     this.dirty = true;
     this.movedir |= dir;
     // Determine the speed in X and Z 
@@ -139,6 +170,8 @@ mx.CAMERA_MAIN = 3;
 
   GameObject.prototype.stop = function (dir)
   {
+    if (this.target) return;
+
     this.dirty = true;
     this.movedir &= ~(dir);
 
