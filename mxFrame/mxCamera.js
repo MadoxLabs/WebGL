@@ -69,7 +69,8 @@ mx.CAMERA_MAIN = 3;
   GameObject.prototype.setOrientationQuat = function (q)
   {
     this.dirty = true;
-    quat.copy(this.rotation, q);
+    if (q.x) quat.set(this.rotation, q.x, q.y, q.z, q.w);
+    else quat.copy(this.rotation, q);
   }
 
   GameObject.prototype.setOrientationXYZW = function (x, y, z, w)
@@ -115,13 +116,13 @@ mx.CAMERA_MAIN = 3;
   {
     this.dirty = true;
     vec3.set(cacheVec, x, y, z);
-    vec3.add(this.position, cacheVec);
+    vec3.add(this.position, this.position, cacheVec);
   }
 
   GameObject.prototype.updatePositionVec = function (delta)
   {
     this.dirty = true;
-    vec3.add(this.position, delta);
+    vec3.add(this.position, this.position, delta);
   }
 
   GameObject.prototype.move = function (dir, speed)
@@ -244,7 +245,7 @@ mx.CAMERA_MAIN = 3;
     vec3.add(cacheVec, this.camera.position, this.camera.forward);
     if (this.ipd)
     {
-      vec3.scale(this.uniforms.camera, (this.type == mx.CAMERA_RIGHTEYE) ? this.camera.right : this.camera.left, this.ipd);
+      vec3.scale(this.uniforms.camera, this.camera.left, (this.type == mx.CAMERA_RIGHTEYE) ? this.ipd * -1.0 : this.ipd);
       vec3.add(this.uniforms.camera, this.uniforms.camera, this.camera.position);
     }
     else

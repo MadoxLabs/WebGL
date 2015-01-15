@@ -88,10 +88,14 @@
         this.boundingbox.push(data.groups[g].models[m].boundingbox);
         mat4.identity(t); mat4.translate(t, t, data.groups[g].models[m].translation);
 
-        quat.identity(rot);
-        quat.rotateX(rot, rot, data.groups[g].models[m].rotation[0] * 2 * 3.14159 / 360.0);
-        quat.rotateY(rot, rot, data.groups[g].models[m].rotation[1] * 2 * 3.14159 / 360.0);
-        quat.rotateZ(rot, rot, data.groups[g].models[m].rotation[2] * 2 * 3.14159 / 360.0);
+        quat.fromYawPitchRoll(rot,
+                              data.groups[g].models[m].rotation[1] * 2 * 3.14159 / 360.0,
+                              data.groups[g].models[m].rotation[0] * 2 * 3.14159 / 360.0,
+                              data.groups[g].models[m].rotation[2] * 2 * 3.14159 / 360.0);
+//        quat.identity(rot);
+//        quat.rotateX(rot, rot, data.groups[g].models[m].rotation[0] * 2 * 3.14159 / 360.0);
+//        quat.rotateY(rot, rot, data.groups[g].models[m].rotation[1] * 2 * 3.14159 / 360.0);
+//        quat.rotateZ(rot, rot, data.groups[g].models[m].rotation[2] * 2 * 3.14159 / 360.0);
         mat4.fromQuat(r, rot);
 
         mat4.identity(s); mat4.scale(s, s, data.groups[g].models[m].scale);

@@ -308,17 +308,28 @@ Game.appUpdate = function ()
   if (Game.loading) return;
   if (!Game.camera) return;
 
-  // keyboard camera rotation section
-  var x = 0, y = 0, z = 0;
-  if (Game.world.currentlyPressedKeys[37]) y = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[39]) y = -0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[38]) x = -0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[40]) x = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[65]) y = 0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[68]) y = -0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[87]) x = -0.002 * Game.elapsed;
-  if (Game.world.currentlyPressedKeys[83]) x = 0.002 * Game.elapsed;
-  setHeadAngle(x, y, z);
+  // oculus?
+  if (Game.isOculus)
+  {
+    var o = Game.oculusBridge.getOrientation();
+    o.y = -o.y;  // for some reason, the oculus reports inverted y axis
+    o.w = -o.w;
+    Game.world.head.setOrientationQuat(o);
+  }
+  else
+  {
+    // keyboard camera rotation section
+    var x = 0, y = 0, z = 0;
+    if (Game.world.currentlyPressedKeys[37]) y = 0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[39]) y = -0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[38]) x = -0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[40]) x = 0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[65]) y = 0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[68]) y = -0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[87]) x = -0.002 * Game.elapsed;
+    if (Game.world.currentlyPressedKeys[83]) x = 0.002 * Game.elapsed;
+    setHeadAngle(x, y, z);
+  }
 
   // asset updates
   for (var i in Game.world.objects) Game.world.objects[i].update();
@@ -640,6 +651,8 @@ Game.appHandleMouseEvent = function(type, mouse)
     }
 
     {
+      if (Game.isOculus) mouse.X += 450;
+
       var unproject = mat4.create();
       var unproj = mat4.create();
       var unview = mat4.create();
@@ -654,6 +667,17 @@ Game.appHandleMouseEvent = function(type, mouse)
       var far = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, 1.0, 1.0);
       vec4.transformMat4(far, far, unproject);
       vec4.scale(far, far, 1.0 / far[3])
+
+      var d = vec3.create();
+      vec3.subtract(d, far, near);
+      vec3.normalize(d, d);
+
+      var t = Game.world.objects['light2'];
+      t.setPositionVec(near);
+      t.updatePositionVec(d);
+      t.updatePositionVec(d);
+      t.updatePositionVec(d);
+      t.updatePositionVec(d);
 
       Game.world.physicsWorker.queryPick(near, far);
     }
@@ -673,7 +697,7 @@ Game.appHandleMouseEvent = function(type, mouse)
 //    mouse.release();
   }
 
-  if (clicked && type == mx.MouseEvent.Move)
+  if (clicked && type == mx.MouseEvent.Move && Game.isOculus == false)
   {
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20) setHeadAngle(0.01 * mouse.moveOffsetY, -0.01 * mouse.moveOffsetX, 0.0);
   }

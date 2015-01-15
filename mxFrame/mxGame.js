@@ -180,6 +180,7 @@ var gl; // leave this global for quick access
       Game.postprocess("oculus");
       Game.camera.splitscreen(true);
       Game.isOculus = true;
+      adjust = 15;
     }
     else if (!state && Game.isOculus)
     {
@@ -188,6 +189,7 @@ var gl; // leave this global for quick access
       Game.postprocess(null);
       Game.camera.splitscreen(false);
       Game.isOculus = false;
+      adjust = 0;
     }
   }
 
@@ -465,7 +467,7 @@ var gl; // leave this global for quick access
     }
 
     Game.camera.handleSizeChange(Game.surface.width, Game.surface.height);
-    if (Game.frontbuffer) Game.frontbuffer = new RenderSurface(gl.viewportWidth, gl.viewportHeight);
+    if (Game.frontbuffer) Game.frontbuffer = new mx.RenderSurface(gl.viewportWidth, gl.viewportHeight);
     Game.deviceReady();
   }
 
