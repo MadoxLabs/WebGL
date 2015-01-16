@@ -7,6 +7,9 @@ var wire;
 var explode;
 var bb;
 
+var head;
+var lighteye;
+
 var uPerObject;
 var uPerObjectN;
 var uLight;
@@ -61,19 +64,6 @@ Game.loadingStart = function ()
 {
 }
 
-function GameObject(model)
-{
-  this.mModel = model;
-  this.WorldOffset = vec3.create();
-  this.Position = vec3.create();
-  this.Velocity = vec3.create();
-  this.Orient = mat4.create();
-  mat4.fromYawPitchRoll(this.Orient, 0, 0, 0);
-
-  this.World = mat4.create();
-  mat4.createWorld(this.World, vec3.addInline(this.WorldOffset, this.Position), vec3.unitZ, vec3.unitY);
-}
-
 Game.loadingStop = function ()
 {
   if (loadingTextures) {  loadingTextures = false; return; }
@@ -109,13 +99,15 @@ Game.loadingStop = function ()
   var max = (model.boundingbox[0].max[2] - model.boundingbox[0].min[2]) * scale;
   if (max < len) max = len;
 
-  Game.camera.offset[0] = 0.0;
-  Game.camera.offset[1] = 0.0;
-  Game.camera.offset[2] = len / (Math.tan(Game.camera.fov * 0.5));
-
-  Game.camera.setTarget(new GameObject(model));
-  Game.camera.target.Position[0] = (model.boundingbox[0].min[0] + (model.boundingbox[0].max[0] - model.boundingbox[0].min[0]) / 2.0) * scale;
-  Game.camera.target.Position[1] = (model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale;
+  head = new mx.GameObject("head", null);
+  head.offset[0] = 0.0;
+  head.offset[1] = 0.0;
+  head.offset[2] = len / (Math.tan(Game.camera.fov * 0.5));
+  head.setTarget(new mx.GameObject("model", model));
+  head.target.setPositionXYZ((model.boundingbox[0].min[0] + (model.boundingbox[0].max[0] - model.boundingbox[0].min[0]) / 2.0) * scale,
+                             (model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
+                             0.0);
+  Game.camera.attachTo(head);
 
   if (inited) return;
 
@@ -152,10 +144,11 @@ Game.loadingStop = function ()
 
   // shadowing support
   shadowmap = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
-  lighteye = new mx.Camera(2048, 2048);
-  lighteye.offset = vec3.fromValues(9.0, 9.0, 39.0);
-  lighteye.setTarget(new GameObject());
-  //  lighteye.lookAt(0.0,0.0,0.0);
+  lighteye = new mx.CameraFirst(2048, 2048);
+  var lightobj = new mx.GameObject();
+  lightobj.offset = vec3.fromValues(9.0, 9.0, 39.0);
+  lightobj.setTarget(new mx.GameObject());
+  lighteye.attachTo(lightobj);
   lighteye.update();
 
   mat4.multiply(uPerObject.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
@@ -174,28 +167,32 @@ Game.appUpdate = function ()
   if (Game.loading) return;
   if (!Game.camera) return;
 
+  head.dirty = true;
+  head.target.dirty = true;
+  head.update();
+
   if (currentlyPressedKeys[33])  // Page Up
-    Game.camera.offset[2] -= 0.15;
+    head.offset[2] -= 0.15;
   if (currentlyPressedKeys[34])  // Page Down
-    Game.camera.offset[2] += 0.15;
+    head.offset[2] += 0.15;
   if (currentlyPressedKeys[37])  // Left cursor key
   {
-    if (currentlyPressedKeys[16]) { Game.camera.angles[1] += 0.1; }
+    if (currentlyPressedKeys[16]) { head.angles[1] += 0.1; }
     else ySpeed -= 2;
   }
   if (currentlyPressedKeys[39])  // Right cursor key
   {
-    if (currentlyPressedKeys[16]) { Game.camera.angles[1] -= 0.1; }
+    if (currentlyPressedKeys[16]) { head.angles[1] -= 0.1; }
     else ySpeed += 2;
   }
   if (currentlyPressedKeys[38])  // Up cursor key
   {
-    if (currentlyPressedKeys[16]) { Game.camera.target.Position[1] += 0.1; }
+    if (currentlyPressedKeys[16]) { head.target.position[1] += 0.1; }
     else xSpeed -= 2;
   }
   if (currentlyPressedKeys[40])  // Down cursor key
   {
-    if (currentlyPressedKeys[16]) { Game.camera.target.Position[1] -= 0.1; }
+    if (currentlyPressedKeys[16]) { head.target.position[1] -= 0.1; }
     else xSpeed += 2;
   }
 
@@ -209,10 +206,6 @@ Game.appUpdate = function ()
   mat4.scaleUniform(uPerObject.uWorld, uPerObject.uWorld, scale);
   mat4.rotate(uPerObject.uWorld, uPerObject.uWorld, degToRad(xRot), [1, 0, 0]);
   mat4.rotate(uPerObject.uWorld, uPerObject.uWorld, degToRad(yRot), [0, 1, 0]);
-
-//  mat4.identity(uPerObjectN.uWorld);
-//  mat4.rotate(uPerObjectN.uWorld, uPerObjectN.uWorld, degToRad(xRot), [1, 0, 0]);
-//  mat4.rotate(uPerObjectN.uWorld, uPerObjectN.uWorld, degToRad(yRot), [0, 1, 0]);
 
   if (document.getElementById("explode").checked) uPerObject.options[0] = 1;
   else uPerObject.options[0] = 0;

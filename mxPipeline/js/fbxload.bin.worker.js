@@ -492,6 +492,13 @@ function outputMaterial(mat)
     if (5 in prop) obj[prop[0]].push(prop[5]);
     if (6 in prop) obj[prop[0]].push(prop[6]);
   }
+
+  if (obj.AmbientColor[0] + obj.AmbientColor[1] + obj.AmbientColor[2] == 0)
+  {
+    obj.AmbientColor[0] = 1;
+    obj.AmbientColor[1] = 1;
+    obj.AmbientColor[2] = 1;
+  }
   return obj;
 }
 
