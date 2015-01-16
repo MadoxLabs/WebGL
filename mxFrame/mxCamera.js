@@ -58,7 +58,7 @@ mx.CAMERA_MAIN = 3;
 
   GameObject.prototype.update = function ()
   {
-    if (!this.slaveTo && !this.dirty && !this.mover) return;
+    if (!this.target && !this.dirty && !this.mover) return;
     this.dirty = false;
 
     // if a mover exists, let it do its modifications
@@ -79,11 +79,11 @@ mx.CAMERA_MAIN = 3;
 
     mat4.fromQuat(this.orientation, this.rotation);
 
-    if (this.slaveTo)
+    if (this.target)
     {
-      this.slaveTo.update();
+      this.target.update();
       vec3.transformMat4(this.position, this.offset, this.orientation);
-      vec3.add(this.position, this.position, this.target.Position);
+      vec3.add(this.position, this.position, this.target.position);
     }
 
     mat4.identity(this.translation);
@@ -368,6 +368,7 @@ mx.CAMERA_MAIN = 3;
   
   CameraFirst.prototype.attachTo = function (target)
   {
+    target.update();
     this.target = target;
     this.position = this.target.position;
     this.orientation = this.target.orientation;
