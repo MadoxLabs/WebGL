@@ -102,7 +102,7 @@ Game.loadingStop = function ()
   head = new mx.GameObject("head", null);
   head.offset[0] = 0.0;
   head.offset[1] = 0.0;
-  head.offset[2] = len / (Math.tan(Game.camera.fov * 0.5));
+  head.offset[2] = -1 * len / (Math.tan(Game.camera.fov * 0.5));
   head.setTarget(new mx.GameObject("model", model));
   head.target.setPositionXYZ((model.boundingbox[0].min[0] + (model.boundingbox[0].max[0] - model.boundingbox[0].min[0]) / 2.0) * scale,
                              (model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
@@ -167,10 +167,6 @@ Game.appUpdate = function ()
   if (Game.loading) return;
   if (!Game.camera) return;
 
-  head.dirty = true;
-  head.target.dirty = true;
-  head.update();
-
   if (currentlyPressedKeys[33])  // Page Up
     head.offset[2] -= 0.15;
   if (currentlyPressedKeys[34])  // Page Down
@@ -195,6 +191,11 @@ Game.appUpdate = function ()
     if (currentlyPressedKeys[16]) { head.target.position[1] -= 0.1; }
     else xSpeed += 2;
   }
+
+  head.dirty = true;
+  head.target.dirty = true;
+  head.target.update();
+  head.update();
 
   ySpeed *= decay;
   xSpeed *= decay;
