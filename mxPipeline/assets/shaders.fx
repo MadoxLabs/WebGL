@@ -116,9 +116,9 @@ void main(void)
   if (specfactor < 0.0) specfactor = 0.0;
   vec3 specular =  specularcolor * uLightSpecularRGB * specfactor * attenuation;
 
-  if (IsShadow(vPosition, vNormal))  
-    light = vec3(0.0, 0.0, 0.0);
-  else   
+//  if (IsShadow(vPosition, vNormal))  
+//    light = vec3(0.0, 0.0, 0.0);
+//  else   
     light = ambient + diffuse + specular + emissivecolor;
 
   // work out the texture color

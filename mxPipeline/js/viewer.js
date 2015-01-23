@@ -1,17 +1,16 @@
-var effect;
-var model;
+// models
 var grid;
-
+var model;
 var normals;
 var wire;
 var explode;
 var bb;
-
+// gameobjects
 var head;
+var object;
 var lighteye;
-
+// other stuff
 var uPerObject;
-var uPerObjectN;
 var uLight;
 var uGrid;
 var scale;
@@ -76,7 +75,11 @@ Game.loadingStop = function ()
 
   // do setup work for the mesh
   model = Game.assetMan.assets["sample"];
-
+  normals = model.drawNormals();
+  wire = model.drawWireframe();
+  explode = model.drawExploded();
+  bb = model.drawBB();
+  // determine model size and bring it down to reasonable proportions
   scale = 3.0;
   for (var i = 0; i < 2; ++i) {
     var s = model.boundingbox[0].max[i] - model.boundingbox[0].min[i];
@@ -85,12 +88,7 @@ Game.loadingStop = function ()
   scale = 3.0 / scale;
   model.scale = scale;
   document.getElementById("scaleinfo").innerHTML="<p>Model is being scaled by a factor of: " + scale +"</p>";
-
-  normals = model.drawNormals();
-  wire = model.drawWireframe();
-  explode = model.drawExploded();
-  bb = model.drawBB();
-
+  // determine the model's BB
   var len = 0;
   for (var i = 0; i < 3; ++i) {
     var l = (model.boundingbox[0].max[i] - model.boundingbox[0].min[i]) * scale;
@@ -98,17 +96,25 @@ Game.loadingStop = function ()
   }
   var max = (model.boundingbox[0].max[2] - model.boundingbox[0].min[2]) * scale;
   if (max < len) max = len;
-
+  // create game object for model
+  object = new mx.GameObject("model", model);
+  object.setScale(scale);
+  if (model.boundingbox[0].min[1] <= 0.0)
+    object.setPositionXYZ(0.0,
+                          (model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
+                          0.0);
+  object.uniforms.uWorldToLight = mat4.create();
+  object.uniforms.options = vec4.create();
+  // create a head for the camera
   head = new mx.GameObject("head", null);
   head.offset[0] = 0.0;
-  head.offset[1] = 0.0;
+  head.offset[1] = (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0 * scale;
   head.offset[2] = -1 * len / (Math.tan(Game.camera.fov * 0.5));
-  head.setTarget(new mx.GameObject("model", model));
-  head.target.setPositionXYZ((model.boundingbox[0].min[0] + (model.boundingbox[0].max[0] - model.boundingbox[0].min[0]) / 2.0) * scale,
-                             (model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
-                             0.0);
+  head.setTarget(object);
+  // set camera to use head position
   Game.camera.attachTo(head);
 
+  // one time only after here
   if (inited) return;
 
   grid = Game.assetMan.assets["floor"];
@@ -124,23 +130,12 @@ Game.loadingStop = function ()
   uLight.uLightAttenuation = [0, 1, 0];
   uLight.uLightPosition = [9.0, 9.0, 39.0];
 
-  uPerObject = effect.createUniform('perobject');
-  uPerObject.uWorld = mat4.create();
-  uPerObject.uWorldToLight = mat4.create();
-  uPerObject.options = vec4.create();
-
   uGrid = effect.createUniform('perobject');
   uGrid.options = vec4.fromValues(0, 0, 0, 0);
   uGrid.uWorld = mat4.create();
   uGrid.uWorldToLight = mat4.create();
   mat4.identity(uGrid.uWorld);
   mat4.scale(uGrid.uWorld, uGrid.uWorld, vec3.fromValues(max*2, 0, max*2));
-
-  // do setup work for the normal shader
-  var effect = Game.shaderMan.shaders["normalViewer"];
-
-  uPerObjectN = effect.createUniform('perobject');
-  uPerObjectN.uWorld = uPerObject.uMVMatrix;
 
   // shadowing support
   shadowmap = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
@@ -151,15 +146,10 @@ Game.loadingStop = function ()
   lighteye.attachTo(lightobj);
   lighteye.update();
 
-  mat4.multiply(uPerObject.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(uGrid.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
   inited = true;
-}
-
-Game.setModel = function()
-{
-
 }
 
 Game.appUpdate = function ()
@@ -174,48 +164,41 @@ Game.appUpdate = function ()
   if (currentlyPressedKeys[37])  // Left cursor key
   {
     if (currentlyPressedKeys[16]) { head.angles[1] += 0.1; }
-    else ySpeed -= 2;
+    else ySpeed -= 0.07; // 4 degrees
   }
   if (currentlyPressedKeys[39])  // Right cursor key
   {
     if (currentlyPressedKeys[16]) { head.angles[1] -= 0.1; }
-    else ySpeed += 2;
+    else ySpeed += 0.07;
   }
   if (currentlyPressedKeys[38])  // Up cursor key
   {
-    if (currentlyPressedKeys[16]) { head.target.position[1] += 0.1; }
-    else xSpeed -= 2;
+    if (currentlyPressedKeys[16]) { head.offset[1] += 0.1; }
+    else xSpeed -= 0.07;
   }
   if (currentlyPressedKeys[40])  // Down cursor key
   {
-    if (currentlyPressedKeys[16]) { head.target.position[1] -= 0.1; }
-    else xSpeed += 2;
+    if (currentlyPressedKeys[16]) { head.offset[1] -= 0.1; }
+    else xSpeed += 0.07;
   }
 
-  head.dirty = true;
-  head.target.dirty = true;
-  head.target.update();
-  head.update();
-
-  ySpeed *= decay;
+  ySpeed *= decay; // auto slow down
   xSpeed *= decay;
-
-  xRot += (xSpeed * Game.elapsed) / 1000.0;
+  xRot += (xSpeed * Game.elapsed) / 1000.0; 
   yRot += (ySpeed * Game.elapsed) / 1000.0;
+  object.setOrientationXYZ(xRot, yRot, 0.0);
 
-  mat4.identity(uPerObject.uWorld);
-  mat4.scaleUniform(uPerObject.uWorld, uPerObject.uWorld, scale);
-  mat4.rotate(uPerObject.uWorld, uPerObject.uWorld, degToRad(xRot), [1, 0, 0]);
-  mat4.rotate(uPerObject.uWorld, uPerObject.uWorld, degToRad(yRot), [0, 1, 0]);
+  if (document.getElementById("explode").checked) object.uniforms.options[0] = 1;
+  else object.uniforms.options[0] = 0;
 
-  if (document.getElementById("explode").checked) uPerObject.options[0] = 1;
-  else uPerObject.options[0] = 0;
-  uPerObject.options[1] = 0;
-  if (document.getElementById("uvs").checked) uPerObject.options[1] = 1;
-  else if (document.getElementById("xseams").checked) uPerObject.options[1] = 2;
-  else if (document.getElementById("yseams").checked) uPerObject.options[1] = 3;
+  if (document.getElementById("uvs").checked) object.uniforms.options[1] = 1;
+  else if (document.getElementById("xseams").checked) object.uniforms.options[1] = 2;
+  else if (document.getElementById("yseams").checked) object.uniforms.options[1] = 3;
+  else object.uniforms.options[1] = 0;
 
   lighteye.update();
+  object.update();
+  head.update();
 }
 
 Game.appDrawAux = function ()
@@ -231,8 +214,8 @@ Game.appDrawAux = function ()
     var effect = Game.shaderMan.shaders["shadowcast"];
     effect.bind();
     effect.bindCamera(lighteye);
-    effect.setUniforms(uPerObject);
-    effect.draw(model);
+    effect.setUniforms(object.uniforms);
+    effect.draw(object.model);
   }
 }
 
@@ -247,7 +230,7 @@ Game.appDraw = function (eye)
     effect = Game.shaderMan.shaders["meshViewer"];
     effect.bind();
     effect.bindCamera(eye);
-    effect.setUniforms(uPerObject);
+    effect.setUniforms(object.uniforms);
     effect.setUniforms(uLight);
     effect.bindTexture("shadow", shadowmap.texture);
     if (model)
@@ -255,7 +238,7 @@ Game.appDraw = function (eye)
       if (document.getElementById("explode").checked)
         effect.draw(explode);
       else
-        effect.draw(model);
+        effect.draw(object.model);
     }
 
     effect.setUniforms(uGrid);
@@ -267,7 +250,7 @@ Game.appDraw = function (eye)
     effect = Game.shaderMan.shaders["normalViewer"];
     effect.bind();
     effect.bindCamera(eye);
-    effect.setUniforms(uPerObject);
+    effect.setUniforms(object.uniforms);
     if (document.getElementById("normals").checked && normals) effect.draw(normals);
     if (document.getElementById("wire").checked && wire) effect.draw(wire);
     if (document.getElementById("bb").checked && bb) effect.draw(bb);

@@ -39,11 +39,18 @@ mx.CAMERA_MAIN = 3;
 
     this.translation = mat4.create(); mat4.identity(this.translation);
     this.orientation = mat4.create(); mat4.identity(this.orientation);
+    this.scale = mat4.create(); mat4.identity(this.scale);
 
     this.uniforms = {};
     this.uniforms.uWorld = mat4.create();
 
     this.dirty = false;
+  }
+
+  GameObject.prototype.setScale = function(s)
+  {
+    mat4.scaleUniform(this.scale, this.scale, s);
+    this.dirty = true;
   }
 
   GameObject.prototype.setTarget = function (obj)
@@ -89,6 +96,7 @@ mx.CAMERA_MAIN = 3;
     mat4.identity(this.translation);
     mat4.translate(this.translation, this.translation, this.position);
     mat4.multiply(this.uniforms.uWorld, this.translation, this.orientation);
+    mat4.multiply(this.uniforms.uWorld, this.uniforms.uWorld, this.scale);
   }
 
   GameObject.prototype.setOrientationQuat = function (q)
