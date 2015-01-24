@@ -111,6 +111,7 @@ Game.loadingStop = function ()
   head.offset[1] = (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0 * scale;
   head.offset[2] = -1 * len / (Math.tan(Game.camera.fov * 0.5));
   head.setTarget(object);
+  head.setOrientationXYZ(0, Math.PI, 0);
   // set camera to use head position
   Game.camera.attachTo(head);
 
@@ -163,12 +164,12 @@ Game.appUpdate = function ()
     head.offset[2] += 0.15;
   if (currentlyPressedKeys[37])  // Left cursor key
   {
-    if (currentlyPressedKeys[16]) { head.angles[1] += 0.1; }
+    if (currentlyPressedKeys[16]) { head.updateOrientationXYZ(0.0, 0.1, 0.0); }
     else ySpeed -= 0.07; // 4 degrees
   }
   if (currentlyPressedKeys[39])  // Right cursor key
   {
-    if (currentlyPressedKeys[16]) { head.angles[1] -= 0.1; }
+    if (currentlyPressedKeys[16]) { head.updateOrientationXYZ(0.0, -0.1, 0.0); }
     else ySpeed += 0.07;
   }
   if (currentlyPressedKeys[38])  // Up cursor key

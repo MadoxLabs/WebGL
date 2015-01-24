@@ -702,6 +702,11 @@ function getBB(model)
 
     vec3.transformMat4(bb.min, bb.min, trans);
     vec3.transformMat4(bb.max, bb.max, trans);
+
+    var tmp;
+    if (bb.min[0] > bb.max[0]) { tmp = bb.min[0]; bb.min[0] = bb.max[0]; bb.max[0] = tmp; }
+    if (bb.min[1] > bb.max[1]) { tmp = bb.min[1]; bb.min[1] = bb.max[1]; bb.max[1] = tmp; }
+    if (bb.min[2] > bb.max[2]) { tmp = bb.min[2]; bb.min[2] = bb.max[2]; bb.max[2] = tmp; }
   }
 
   return bb;

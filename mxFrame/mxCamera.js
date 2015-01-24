@@ -33,6 +33,7 @@ mx.CAMERA_MAIN = 3;
 
     this.target = null;
     this.offset = vec3.fromValues(0, 0, 0);
+    this.targetlock = false;
 
     this.velocity = vec3.create();
     this.movedir = 0;
@@ -50,6 +51,12 @@ mx.CAMERA_MAIN = 3;
   GameObject.prototype.setScale = function(s)
   {
     mat4.scaleUniform(this.scale, this.scale, s);
+    this.dirty = true;
+  }
+
+  GameObject.prototype.setTargetLock = function(l)
+  {
+    this.targetlock = l;
     this.dirty = true;
   }
 
@@ -84,13 +91,17 @@ mx.CAMERA_MAIN = 3;
       vec3.add(this.position, this.position, cacheVec);
     }
 
-    mat4.fromQuat(this.orientation, this.rotation);
-
     if (this.target)
     {
+      mat4.fromQuat(this.orientation, this.rotation);
+      if (this.targetlock) mat4.multiply(this.orientation, this.target.orientation, this.orientation);
       this.target.update();
       vec3.transformMat4(this.position, this.offset, this.orientation);
       vec3.add(this.position, this.position, this.target.position);
+    }
+    else
+    {
+      mat4.fromQuat(this.orientation, this.rotation);
     }
 
     mat4.identity(this.translation);
