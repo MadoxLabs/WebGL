@@ -118,7 +118,13 @@ Game.loadingStop = function ()
   // one time only after here
   if (inited) return;
 
-  grid = Game.assetMan.assets["floor"];
+  var effect = Game.shaderMan.shaders["meshViewer"];
+  grid = new mx.GameObject("grid", Game.assetMan.assets["floor"]);
+  var uGrid = effect.createUniform('perobject');
+  grid.uniforms.options = vec4.fromValues(0, 0, 0, 0);
+  grid.uniforms.uWorldToLight = mat4.create();
+  grid.setScale(max * 2);
+  grid.update();
 
   // do setup work for the plain object shader
   var effect = Game.shaderMan.shaders["meshViewer"];
@@ -130,17 +136,10 @@ Game.loadingStop = function ()
   uLight.uLightSpecularRGB = [1,1,1];
   uLight.uLightAttenuation = [0, 1, 0];
   uLight.uLightPosition = [9.0, 9.0, 39.0];
-
-  uGrid = effect.createUniform('perobject');
-  uGrid.options = vec4.fromValues(0, 0, 0, 0);
-  uGrid.uWorld = mat4.create();
-  uGrid.uWorldToLight = mat4.create();
-  mat4.identity(uGrid.uWorld);
-  mat4.scale(uGrid.uWorld, uGrid.uWorld, vec3.fromValues(max*2, 0, max*2));
-
+  
   // shadowing support
   shadowmap = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
-  lighteye = new mx.CameraFirst(2048, 2048);
+  lighteye = new mx.Camera(2048, 2048);
   var lightobj = new mx.GameObject();
   lightobj.offset = vec3.fromValues(9.0, 9.0, 39.0);
   lightobj.setTarget(new mx.GameObject());
@@ -148,7 +147,7 @@ Game.loadingStop = function ()
   lighteye.update();
 
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  mat4.multiply(uGrid.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
   inited = true;
 }
@@ -242,8 +241,8 @@ Game.appDraw = function (eye)
         effect.draw(object.model);
     }
 
-    effect.setUniforms(uGrid);
-    effect.draw(grid);
+    effect.setUniforms(grid.uniforms);
+    effect.draw(grid.model);
   }
 
   if (document.getElementById("normals").checked || document.getElementById("wire").checked || document.getElementById("bb").checked)

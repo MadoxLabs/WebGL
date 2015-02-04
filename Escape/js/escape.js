@@ -211,12 +211,12 @@ Game.loadingStop = function ()
   var lightdown = new mx.GameObject("lightdown", null);
   lightdown.setPositionXYZ(0.0, 7.0, 0.0001);
   lightdown.setOrientationXYZ(Math.PI / 2.0, 0.0, 0.0);
-  Game.world.lighteyeUp = new mx.CameraFirst(2048, 2048);
+  Game.world.lighteyeUp = new mx.Camera(2048, 2048);
   Game.world.lighteyeUp.fov = Math.PI / 1.1;
   Game.world.lighteyeUp.far = 10.0;
   Game.world.lighteyeUp.attachTo(lightup);
   Game.world.lighteyeUp.update();
-  Game.world.lighteyeDown = new mx.CameraFirst(2048, 2048);
+  Game.world.lighteyeDown = new mx.Camera(2048, 2048);
   Game.world.lighteyeDown.fov = Math.PI / 1.1;
   Game.world.lighteyeDown.far = 10.0;
   Game.world.lighteyeDown.attachTo(lightdown);

@@ -331,6 +331,16 @@ mx.CAMERA_MAIN = 3;
     this.fov = Math.PI / 4.0;
     this.near = 0.1;
     this.far = 10000.0;
+
+    this.target = null;
+    this.position = null;
+    this.orientation = null;
+
+    this.forward = vec3.create();
+    this.left = vec3.create();
+    this.up = vec3.create();
+
+    this.splitscreen(false);
   }
 
   Camera.prototype.handleSizeChange = function (w, h)
@@ -366,26 +376,7 @@ mx.CAMERA_MAIN = 3;
     this.eyes[0].engage();
   }
 
-
-
-  // 
-  // First person camera - supports updating the position / orientation 
-  function CameraFirst(w, h)
-  {
-    extend(this, new Camera(w, h));
-
-    this.target = null;
-    this.position = null;
-    this.orientation = null;
-
-    this.forward = vec3.create();
-    this.left = vec3.create();
-    this.up = vec3.create();
-
-    this.splitscreen(false);
-  }
-  
-  CameraFirst.prototype.attachTo = function (target)
+  Camera.prototype.attachTo = function (target)
   {
     target.update();
     this.target = target;
@@ -394,7 +385,7 @@ mx.CAMERA_MAIN = 3;
     this.update();
   }
 
-  CameraFirst.prototype.update = function ()
+  Camera.prototype.update = function ()
   {
     if (!this.target) return;
     this.target.update();
@@ -406,17 +397,7 @@ mx.CAMERA_MAIN = 3;
     this.updateEyes();
   }
 
-
-  //
-  // Third person camera - follows a target
-  function CameraThird(w, h)
-  {
-    extend(this, new Camera(w, h));
-  }
-
   mx.CameraEye = CameraEye;
   mx.Camera = Camera;
-  mx.CameraFirst = CameraFirst;
-  mx.CameraThird = CameraThird;
 })();
 

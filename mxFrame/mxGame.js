@@ -138,7 +138,7 @@ var gl; // leave this global for quick access
     Game.assetMan = new mx.AssetManager();
     makeFSQ();
 
-    Game.camera = new mx.CameraFirst(gl.viewportWidth, gl.viewportHeight);
+    Game.camera = new mx.Camera(gl.viewportWidth, gl.viewportHeight);
 
     // handlers
     document.onkeydown = handleKeyDown;
