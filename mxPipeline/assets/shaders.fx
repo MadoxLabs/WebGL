@@ -108,7 +108,9 @@ void main(void)
   float attenuation = 1.0 / dot (vec3(1, d, d*d), uLightAttenuation);
 
   vec3 ambient = ambientcolor * (uGlobalAmbientRGB + (uLightAmbientRGB * attenuation));
+
   vec3 diffuse = diffusecolor * uLightDiffuseRGB * attenuation * dot(vNormal, uLightPosition - vec3(vPosition));
+
   vec3 cameradir = normalize(camera - vec3(vPosition));
   vec3 reflection = normalize(reflect(vec3(vPosition) - uLightPosition, vNormal));
   float specfactor = dot(cameradir, reflection);
@@ -119,7 +121,7 @@ void main(void)
 //  if (IsShadow(vPosition, vNormal))  
 //    light = vec3(0.0, 0.0, 0.0);
 //  else   
-    light = ambient + diffuse + specular + emissivecolor;
+    light = min(ambient + diffuse + specular + emissivecolor, 1.0);
 
   // work out the texture color
 
