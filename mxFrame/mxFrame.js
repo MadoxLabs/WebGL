@@ -12,8 +12,8 @@ var mx = {};
   mx.WITH_TOUCH = 8;
 
   // source files to load, some optionally
-  var baseSrc = ["glMatrix.js",
-                 "pako.js",
+  var dependancies = ["glMatrix.js"];
+  var baseSrc = ["pako.js",
                  "mxMesh.js",
                  "mxTexture.js",
                  "mxShader.js",
@@ -62,7 +62,17 @@ var mx = {};
   // when phase2 ends, the game is started.
   function handleLoaded(filename)
   {
-    if (loadState.loadPhase1)
+    if (loadState.loadDeps)
+    {
+      loadState.loadDeps -= 1;
+      console.log(" " + filename + " loaded. " + loadState.loadDeps + " left");
+      if (!loadState.loadDeps)
+      {
+        console.log("Boot up phase 1");
+        for (i in loadState.src) include(loadState.libdir + "/" + loadState.src[i]);
+      }
+    }
+    else if (loadState.loadPhase1)
     {
       loadState.loadPhase1 -= 1;
       console.log(" " + filename + " loaded. " + loadState.loadPhase1 + " left");
@@ -119,12 +129,15 @@ var mx = {};
     if (type & mx.WITH_MXFRAME) src = src.concat(baseSrc);
     if (type & mx.WITH_OCULUS)  src = src.concat(oculusSrc);
     if (type & mx.WITH_NOISE)   src = src.concat(perlinSrc);
-    if (type & mx.WITH_TOUCH)   src = src.concat(touchSrc);
+    if (type & mx.WITH_TOUCH) src = src.concat(touchSrc);
+    loadState.src = src;
 
+    loadState.loadDeps = dependancies.length;
     loadState.loadPhase1 = src.length;
     loadState.loadPhase2 = files.length;
-    console.log("Boot up phase 1");
-    for (i in src) include(loadState.libdir + "/" + src[i]);
+
+    console.log("Boot up phase 0");
+    for (i in dependancies) include(loadState.libdir + "/" + dependancies[i]);
   };
 
 })();

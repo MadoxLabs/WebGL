@@ -101,7 +101,7 @@ Game.loadingStop = function ()
   object.setScale(scale);
   if (model.boundingbox[0].min[1] <= 0.0)
     object.setPositionXYZ(0.0,
-                          (model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
+                          model.boundingbox[0].min[1] * -1.0 * scale, //(model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
                           0.0);
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();

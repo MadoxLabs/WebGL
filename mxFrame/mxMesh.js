@@ -15,9 +15,12 @@
     var factor = 1.0;
     if (data.DiffuseFactor) factor = data.DiffuseFactor;
     if (data.DiffuseColor) this.diffusecolor = vec3.fromValues(data.DiffuseColor[0] * factor, data.DiffuseColor[1] * factor, data.DiffuseColor[2] * factor);
-    if (data.Emissive) this.emissivecolor = vec3.fromValues(data.Emissive[0], data.Emissive[1], data.Emissive[2]);
-    if (data.SpecularColor) this.specularcolor = vec3.fromValues(data.SpecularColor[0], data.SpecularColor[1], data.SpecularColor[2]);
-    if (data.ShininessExponent) this.materialoptions[1] = data.ShininessExponent;
+    factor = 1.0;
+    if (data.EmissiveFactor) factor = data.EmissiveFactor[0];
+    if (data.EmissiveColor) this.emissivecolor = vec3.fromValues(data.EmissiveColor[0] * factor, data.EmissiveColor[1] * factor, data.EmissiveColor[2] * factor);
+    if (data.Emissive) this.emissivecolor = vec3.fromValues(data.Emissive[0] * factor, data.Emissive[1] * factor, data.Emissive[2] * factor);
+    if (data.SpecularColor) this.specularcolor = vec3.fromValues(data.SpecularColor[0] * data.SpecularFactor[0], data.SpecularColor[1] * data.SpecularFactor[0], data.SpecularColor[2] * data.SpecularFactor[0]);
+    if (data.ShininessExponent) this.materialoptions[1] = data.ShininessExponent[0];
   }
 
   // a mesh needs to store set of materials and subsets of meshparts
