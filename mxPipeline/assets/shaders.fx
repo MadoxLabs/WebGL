@@ -61,16 +61,20 @@ void main(void)
 
 uniform vec3 partcolor;         // group perpart
 
-uniform mat4 uWorldToLight;   // group perobject
-
 uniform vec3 camera;             // group camera
 
-uniform vec3 uGlobalAmbientRGB ;  // group light 
-uniform vec3 uLightAmbientRGB  ;  // group light
-uniform vec3 uLightDiffuseRGB  ;  // group light
-uniform vec3 uLightSpecularRGB ;  // group light
-uniform vec3 uLightAttenuation ;  // group light
-uniform vec3 uLightPosition    ;  // group light
+struct LightDefinition 
+{
+  vec3 AmbientRGB;           // group light
+  vec3 DiffuseRGB;           // group light
+  vec3 SpecularRGB;          // group light
+  vec3 Attenuation;          // group light
+  vec3 Position;             // group light
+  mat4 WorldToLight;         // group light
+};
+
+uniform int uLightCount;             // group light
+uniform LightDefinition uLights[10]; // group light
 
 // material options are: x: texture y/n   y: specular exponant  z: n/a   w: n/a
 uniform vec4 materialoptions;    // group material
@@ -82,12 +86,12 @@ uniform vec3 emissivecolor;      // group material
 uniform sampler2D uTexture; // mag LINEAR, min LINEAR_MIPMAP_LINEAR
 uniform sampler2D shadow; // mag LINEAR, min LINEAR
 
-bool IsShadow(vec4 position, vec3 normal)
+bool IsShadow(vec4 position, vec3 normal, LightDefinition light)
 {
-  vec4 positionFromLight =  uWorldToLight * position;
+  vec4 positionFromLight =  light.WorldToLight * position;
 
   // if face is away from light - shadowed
-  vec3 lightDir = uLightPosition - vec3(position);
+  vec3 lightDir = light.Position - vec3(position);
  // if (dot(normal, lightDir) < 0.0) return true;
 
   // convert light POV location to a spot on the shadow map
@@ -98,30 +102,36 @@ bool IsShadow(vec4 position, vec3 normal)
   return false;
 }
 
-void main(void) 
+vec3 CalculateLight(LightDefinition light)
 {
-  vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
-  vec3 light;
-
   // work out the lighting
-  float d = distance(uLightPosition, vec3(vPosition));
-  float attenuation = 1.0 / dot (vec3(1, d, d*d), uLightAttenuation);
+  float d = distance(light.Position, vec3(vPosition));
+  float attenuation = 1.0 / (1.0 + light.Attenuation[1] * pow(d, 2.0)); //1.0 / dot (vec3(1, d, d*d), light.Attenuation);
 
-  vec3 ambient = ambientcolor * (uGlobalAmbientRGB + (uLightAmbientRGB * attenuation));
+  vec3 ambient = ambientcolor * light.AmbientRGB;
 
-  vec3 diffuse = diffusecolor * uLightDiffuseRGB * attenuation * dot(vNormal, uLightPosition - vec3(vPosition));
+  vec3 diffuse = diffusecolor * light.DiffuseRGB * dot(vNormal, light.Position - vec3(vPosition));
 
   vec3 cameradir = normalize(camera - vec3(vPosition));
-  vec3 reflection = normalize(reflect(vec3(vPosition) - uLightPosition, vNormal));
+  vec3 reflection = normalize(reflect(vec3(vPosition) - light.Position, vNormal));
   float specfactor = dot(cameradir, reflection);
   specfactor = pow(specfactor, 6.0);
   if (specfactor < 0.0) specfactor = 0.0;
-  vec3 specular =  specularcolor * uLightSpecularRGB * specfactor * attenuation;
+  vec3 specular =  specularcolor * light.SpecularRGB * specfactor;
 
-//  if (IsShadow(vPosition, vNormal))  
-//    light = vec3(0.0, 0.0, 0.0);
+//  if (IsShadow(vPosition, vNormal, light))  
+//    return vec3(0.0, 0.0, 0.0);
 //  else   
-    light = min(ambient + diffuse + specular + emissivecolor, 1.0);
+    return  min(ambient + ((diffuse + specular) * attenuation) + emissivecolor, 1.0);
+}
+
+void main(void) 
+{
+  vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
+  vec3 light = vec3(0.0,0.0,0.0);
+
+  light += CalculateLight(uLights[0]);
+  light += CalculateLight(uLights[1]);
 
   // work out the texture color
 
@@ -156,3 +166,4 @@ void main(void)
 }
 
 [END]
+ 

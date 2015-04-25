@@ -172,7 +172,7 @@
     if (this.skip || !this.checkFunctions[loc.type](this.enabledUniforms[name], value))
     {
       if (this.log) console.log("  ok");
-      this.setFunctions[loc.type](loc.loc, value);
+      try { this.setFunctions[loc.type](loc.loc, value); } catch( e) {}
       this.enabledUniforms[name] = value;
     }
   }
@@ -254,6 +254,9 @@
   ShaderManager.prototype.findParam = function (src, name, param, def)
   {
     // find uniform line with the name on it
+    // if name is part of an array, remove all after the [
+    if (name.indexOf('[') != -1) name = name.substring(0, name.indexOf('[')+1);
+
     var code = def;
     var start = 0;
     for (var i = 0; i < 256; ++i)

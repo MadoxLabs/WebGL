@@ -129,14 +129,6 @@ Game.loadingStop = function ()
   // do setup work for the plain object shader
   var effect = Game.shaderMan.shaders["meshViewer"];
 
-  uLight = effect.createUniform('light');
-  uLight.uGlobalAmbientRGB = [0.5, 0.5, 0.5];
-  uLight.uLightAmbientRGB = [0,0,0];
-  uLight.uLightDiffuseRGB = [0.5, 0.5, 0.5];
-  uLight.uLightSpecularRGB = [1,1,1];
-  uLight.uLightAttenuation = [0, 1, 0];
-  uLight.uLightPosition = [9.0, 9.0, 39.0];
-  
   // shadowing support
   shadowmap = new mx.RenderSurface(2048, 2048, gl.RGBA, gl.FLOAT);
   lighteye = new mx.Camera(2048, 2048);
@@ -145,6 +137,23 @@ Game.loadingStop = function ()
   lightobj.setTarget(new mx.GameObject());
   lighteye.attachTo(lightobj);
   lighteye.update();
+
+  uLight = effect.createUniform('light');
+//  uLight.uGlobalAmbientRGB = [0.5, 0.5, 0.5];
+  uLight["uLights[0].AmbientRGB"] = [0.2, 0.2, 0.2];
+  uLight["uLights[0].DiffuseRGB"] = [1.0, 1.0, 1.0];
+  uLight["uLights[0].SpecularRGB"] = [1.0, 1.0, 1.0];
+  uLight["uLights[0].Attenuation"] = [0.0, 1.0, 0.0];
+  uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
+  uLight["uLights[0].WorldToLight"] = mat4.create();
+  mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  uLight["uLights[1].AmbientRGB"] = [0.2, 0.0, 0.0];
+  uLight["uLights[1].DiffuseRGB"] = [1.0, 0.0, 0.0];
+  uLight["uLights[1].SpecularRGB"] = [0.0, 0.0, 0.0];
+  uLight["uLights[1].Attenuation"] = [0.0, 1.0, 0.0];
+  uLight["uLights[1].Position"] = [0.0, 4.0, 0.0];
+  uLight["uLights[1].WorldToLight"] = mat4.create();
+  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
