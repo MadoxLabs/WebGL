@@ -1,0 +1,153 @@
+<html>
+<head>
+<title>Madoxlabs Lighting Experimenter</title>
+  <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
+  <script src="js/tga.js"></script>
+  <script src="../mxFrame/mxFrame.js"></script>
+  <script>
+    var animImage;
+    var staticImage;
+
+    function init()
+    {
+      window.onresize();
+      animImage = new Image();
+      animImage.src = "assets/animatedlogo.gif";
+      staticImage = new Image();
+      staticImage.src = "assets/logo.jpg";
+
+      addModel("sample");
+
+      var texDrop = document.getElementById('texDrop');
+      texDrop.addEventListener('dragover', handleDragOver, false);
+      texDrop.addEventListener('drop', handleTexDrop, false);
+
+      var modelDrop = document.getElementById('modelDrop');
+      modelDrop.addEventListener('dragover', handleDragOver, false);
+      modelDrop.addEventListener('drop', handleModelDrop, false);
+    }
+
+    function addModel(name)
+    {
+      document.getElementById("listModels").innerHTML += "<div onclick='selectModel(\"" + name + "\");'><p style='cursor: pointer;'>" + name + "</p></div>"
+    }
+
+    function selectModel(name)
+    {
+      if (name == 'sample')
+        Game.loadMeshPNG("sample", "assets/sample.model"); // special case, its a file
+      else
+      {
+        var tex = new mx.MeshPNG(name);
+        tex.image = models[name];
+        Game.assetMan.processMeshPNG(tex);
+      }
+//      Game.loadMeshPNG("sample", );
+    }
+
+    function handleDragOver(evt)
+    {
+      evt.stopPropagation();
+      evt.preventDefault();
+      evt.dataTransfer.dropEffect = 'copy';
+    }
+
+    var impTextures = {};
+    var models = {};
+
+    function handleModelDrop(evt)
+    {
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      var files = evt.dataTransfer.files;
+      for (var i = 0, f; f = files[i]; ++i)
+      {
+        var parts = f.name.split(".");
+        var name = parts[parts.length - 2];
+        addModel(name);
+        var reader = new Image();
+        reader.onload = function (name, tex)
+        {
+          return function (e)
+          {
+            models[name] = tex;
+          }
+        }(name, reader);
+        reader.src = f.name;
+      }
+    }
+
+    function handleTexDrop(evt)
+    {
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      var files = evt.dataTransfer.files;
+      for (var i = 0, f; f = files[i]; ++i)
+      {
+        var parts = f.name.split(".");
+        var name = parts[parts.length - 2];
+        impTextures[name] = { color: "white" };
+        var buf = "";
+        for (var n in impTextures) buf += "<p style='color: " + impTextures[n].color + "'>" + n + "</p>"
+        document.getElementById("listTextures").innerHTML = buf;
+
+        if (parts[parts.length - 1] == "tga")
+        {
+          var reader = new FileReader();
+          reader.onload = function (name) { return function (e) { loadTGATexture(name, e.target.result); } }(name);
+          reader.readAsArrayBuffer(f);
+        }
+        else
+        {
+          var reader = new FileReader();
+          reader.onload = function (name) { return function (e) { loadTexture(name, e.target.result); } }(name);
+          reader.readAsDataURL(f);
+        }
+      }
+    }
+
+    function loadTexture(name, data)
+    {
+      loadingTextures = true;
+      Game.loadTextureData(name, data, true);
+    }
+
+    function loadTGATexture(name, data)
+    {
+      var tga_data = new Uint8Array(data);
+      var tga = new TGA();
+      tga.load(tga_data);
+      data = tga.getDataURL('image/png');
+
+      loadingTextures = true;
+      Game.loadTextureData(name, data, true);
+    }
+
+    window.onresize = function()
+    {
+      document.getElementById("viewer").style.width = window.innerWidth - 200;
+    }
+  </script>
+</head>
+<body onload="init(); mx.loadApp(['js/viewer.js'], '../mxFrame', mx.WITH_MXFRAME|mx.WITH_OCULUS);">
+  <div id='header'><img onmouseover="this.src=animImage.src;" onmouseout="this.src=staticImage.src;" src="assets/logo.jpg"></div>
+  <div id="btnView" class="mxButton active">Viewer</div>
+  <br />
+  <div id="models" class="importControl sidebar"><center><p>Recent Models</p><div id="modelDrop">Drop models here</div></center><div id="listModels"></div></div>
+  <br />
+  <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
+  <div id="edge"></div>
+  <div class="top" id="mover"></div>
+
+  <div id="viewer" class="appwindow">
+    <div class="mxTitle">Lighting Experimenter</div>
+    <div><canvas id='surface'></div>
+    <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
+    <div class="importControl">
+      <div id="scaleinfo"></div>
+    </div>
+  </div>
+</body>
+</html>
