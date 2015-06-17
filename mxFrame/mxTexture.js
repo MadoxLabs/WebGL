@@ -40,6 +40,10 @@
     this.image.src = file;
   }
 
+  MeshPNG.prototype.loadFromRaw = function (data)
+  {
+    mx.Game.assetMan.processMesh(this, data); 
+  }
 
   function RenderSurface(w, h, format, type, data)
   {

@@ -26,8 +26,6 @@
 
   AssetManager.prototype.processMeshPNG = function (tex)
   {
-    var model = new mx.Mesh();
-
     var img = document.createElement('canvas');
     img.width = tex.image.width;
     img.height = tex.image.height;
@@ -53,8 +51,14 @@
       ++j;
     }
 
-    var data;
+    this.processMesh(tex, txt);
+  }
 
+  AssetManager.prototype.processMesh = function(tex, txt)
+  {
+    var model = new mx.Mesh();
+
+    var data;
     try { data = pako.inflate(txt, { to: "string" }); } catch (err) { data = txt; }
 
     try { model.loadFromFBX(JSON.parse(data)); }

@@ -39,10 +39,8 @@
       else
       {
         var tex = new mx.MeshPNG(name);
-        tex.image = models[name];
-        Game.assetMan.processMeshPNG(tex);
+        tex.loadFromRaw( models[name] );
       }
-//      Game.loadMeshPNG("sample", );
     }
 
     function handleDragOver(evt)
@@ -61,20 +59,20 @@
       evt.preventDefault();
 
       var files = evt.dataTransfer.files;
-      for (var i = 0, f; f = files[i]; ++i)
+      for (var f in files)
       {
-        var parts = f.name.split(".");
+        var parts = files[f].name.split(".");
         var name = parts[parts.length - 2];
         addModel(name);
-        var reader = new Image();
-        reader.onload = function (name, tex)
+        var reader = new FileReader();
+        reader.onload = function (name)
         {
           return function (e)
           {
-            models[name] = tex;
+            models[name] = e.target.result;
           }
-        }(name, reader);
-        reader.src = f.name;
+        }(name);
+        reader.readAsText(files[f]);
       }
     }
 
