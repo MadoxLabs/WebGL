@@ -42,7 +42,7 @@
 
   MeshPNG.prototype.loadFromRaw = function (data)
   {
-    mx.Game.assetMan.processMesh(this, data); 
+    mx.Game.assetMan.processMeshPNGData(this, data); 
   }
 
   function RenderSurface(w, h, format, type, data)

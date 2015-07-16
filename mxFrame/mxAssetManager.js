@@ -32,7 +32,12 @@
     var context = img.getContext('2d');
     context.drawImage(tex.image, 0, 0);
     var map = context.getImageData(0, 0, img.width, img.height);
-    var len = map.data.length;
+    this.processMeshPNGData(tex, map.data);
+  }
+
+  AssetManager.prototype.processMeshPNGData = function(tex, map)
+  {
+    var len = map.length;
     var txt = "";
     var j = 0;
     var i = 0;
@@ -40,14 +45,14 @@
     for (i = 0; i < len; i++)
     {
       // stop at the extra padding at the end
-      if (binary) { if (j == 0 && map.data[i + 3] === 0) break; }
-      else { if (map.data[i] === 0) break; }
+      if (binary) { if (j == 0 && map[i + 3] === 0) break; }
+      else { if (map[i] === 0) break; }
       // skip alpha channel
       if (j == 3) { j = 0; continue; }
       // get char
-      if (!binary && map.data[i] > 128)
+      if (!binary && map[i] > 128)
         binary = true;
-      txt += String.fromCharCode(map.data[i]);
+      txt += String.fromCharCode(map[i]);
       ++j;
     }
 

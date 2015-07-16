@@ -58,6 +58,39 @@ Game.loadingStart = function ()
 {
 }
 
+Game.setModel = function(name)
+{
+  model = Game.assetMan.assets[name];
+  // determine model size and bring it down to reasonable proportions
+  scale = 3.0;
+  for (var i = 0; i < 2; ++i)
+  {
+    var s = model.boundingbox[0].max[i] - model.boundingbox[0].min[i];
+    if (s > scale) scale = s;
+  }
+  scale = 3.0 / scale;
+  model.scale = scale;
+  document.getElementById("scaleinfo").innerHTML = "<p>Model is being scaled by a factor of: " + scale + "</p>";
+  // determine the model's BB
+  var len = 0;
+  for (var i = 0; i < 3; ++i)
+  {
+    var l = (model.boundingbox[0].max[i] - model.boundingbox[0].min[i]) * scale;
+    if (l > len) len = l;
+  }
+  var max = (model.boundingbox[0].max[2] - model.boundingbox[0].min[2]) * scale;
+  if (max < len) max = len;
+  // create game object for model
+  object = new mx.GameObject("model", model);
+  object.setScale(scale);
+  if (model.boundingbox[0].min[1] <= 0.0)
+    object.setPositionXYZ(0.0,
+                          model.boundingbox[0].min[1] * -1.0 * scale, //(model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
+                          0.0);
+  object.uniforms.uWorldToLight = mat4.create();
+  object.uniforms.options = vec4.create();
+}
+
 Game.loadingStop = function ()
 {
   if (loadingTextures) {  loadingTextures = false; return; }
@@ -69,6 +102,8 @@ Game.loadingStop = function ()
   decay = 0.98;
 
   // do setup work for the mesh
+  setModel("sample");
+  /*
   model = Game.assetMan.assets["sample"];
   // determine model size and bring it down to reasonable proportions
   scale = 3.0;
@@ -96,6 +131,7 @@ Game.loadingStop = function ()
                           0.0);
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
+  */
   // create a head for the camera
   head = new mx.GameObject("head", null);
   head.offset[0] = 0.0;

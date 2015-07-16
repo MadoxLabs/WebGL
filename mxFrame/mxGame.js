@@ -306,7 +306,7 @@ var gl; // leave this global for quick access
     if (reportLoading) reportLoading(Game.loading);
 
     if (Game.loading == 1) { Game.shaderMan.processEffects(); Game.loadingStop(); }
-    Game.loading -= 1;
+    if (Game.loading > 0) Game.loading -= 1;
   }
 
 

@@ -39,7 +39,7 @@
       else
       {
         var tex = new mx.MeshPNG(name);
-        tex.loadFromRaw( models[name] );
+        tex.load(models[name]);
       }
     }
 
@@ -59,8 +59,9 @@
       evt.preventDefault();
 
       var files = evt.dataTransfer.files;
-      for (var f in files)
+      for (var f = 0; f < files.length; ++f)
       {
+        if (!files[f].name) continue;
         var parts = files[f].name.split(".");
         var name = parts[parts.length - 2];
         addModel(name);
@@ -72,7 +73,7 @@
             models[name] = e.target.result;
           }
         }(name);
-        reader.readAsText(files[f]);
+        reader.readAsDataURL(files[f]);
       }
     }
 
@@ -84,6 +85,7 @@
       var files = evt.dataTransfer.files;
       for (var i = 0, f; f = files[i]; ++i)
       {
+        if (!f.name) continue;
         var parts = f.name.split(".");
         var name = parts[parts.length - 2];
         impTextures[name] = { color: "white" };
