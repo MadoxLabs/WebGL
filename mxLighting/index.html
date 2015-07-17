@@ -34,10 +34,12 @@
 
     function selectModel(name)
     {
+      modelName = name;
       if (name == 'sample')
         Game.loadMeshPNG("sample", "assets/sample.model"); // special case, its a file
       else
-      {
+      {        
+        Game.loadingIncr();
         var tex = new mx.MeshPNG(name);
         tex.load(models[name]);
       }
