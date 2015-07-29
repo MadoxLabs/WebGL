@@ -284,7 +284,62 @@ Game.appHandleKeyUp = function (event)
   currentlyPressedKeys[event.keyCode] = false;
 }
 
+var leftClick = 0;
+var rightClick = 0;
+var clickLoc = {};
+var skip = 0;
+
 Game.appHandleMouseEvent = function(type, mouse)
 {
-
+  switch (type)
+  {
+    case 0: // button down
+      if (mouse.button == 0) leftClick = 1;
+      if (mouse.button == 2) rightClick = 1;
+      clickLoc.X = mouse.X;
+      clickLoc.Y = mouse.Y;
+      break;
+    case 4:
+    case 1: // button up
+      leftClick = 0;
+      rightClick = 0;
+      break;
+    case 2: // move
+      if (leftClick)
+      {
+        xSpeed += 0.01 * (mouse.Y - clickLoc.Y);
+        ySpeed += 0.01 * (mouse.X - clickLoc.X);
+        clickLoc.X = mouse.X;
+        clickLoc.Y = mouse.Y;
+      }
+      if (rightClick)
+      {
+        head.offset[1] += 0.01 * (mouse.Y - clickLoc.Y);
+        head.updateOrientationXYZ(0.0, -0.01 * (mouse.X - clickLoc.X), 0.0);
+        clickLoc.X = mouse.X;
+        clickLoc.Y = mouse.Y;
+      }
+      break;
+    case 8:
+      head.offset[2] -= 0.5 * mouse.wheel;
+      break;
+    case 9:
+      if (mouse.gesture.direction == 'up')
+        xSpeed += 0.04 * mouse.gesture.deltaY;
+      else if (mouse.gesture.direction == 'down')
+        xSpeed += 0.04 * mouse.gesture.deltaY;
+      else if (mouse.gesture.direction == 'left')
+        ySpeed += 0.03 * mouse.gesture.deltaX;
+      else if (mouse.gesture.direction == 'right')
+        ySpeed += 0.03 * mouse.gesture.deltaX;
+      skip = 1;
+    case 10:
+      if (!skip)
+      {
+        xSpeed = 0;
+        ySpeed = 0;
+      }
+      skip = 0;
+      break;
+    }
 }

@@ -138,7 +138,7 @@ vec3 CalculateLight(LightDefinition light)
 
 void main(void) 
 {
-  vec4 tex = vec4(0.0, 0.0, 0.0, 1.0);
+  vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
   vec3 light = vec3(0.0,0.0,0.0);
 
   vec3 l = light;
@@ -150,36 +150,13 @@ void main(void)
   light = max(light, l);
 
   // work out the texture color
-
-  if (options.y == 1.0)
-  {
-    // try to draw a checkboard to expose the uv mapping
-    float color = 0.2;
-    float u = floor(vTextureCoord.x * 10.0);
-    float v = floor(vTextureCoord.y * 10.0);
-    color = mod((mod(u,2.0) + mod(v,2.0)),2.0) + 0.2;
-    tex = vec4(partcolor * color, 1.0);
-  }
-  else if (options.y == 2.0)
-  {
-    // just draw the U values
-    tex = vec4(0.0, vTextureCoord.x, 0.0, 1.0);
-  }
-  else if (options.y == 3.0)
-  {
-    // just draw the V values
-    tex = vec4(0.0, vTextureCoord.y, 0.0, 1.0);
-  }
-  else if (materialoptions.x > 0.0)
+  if (materialoptions.x > 0.0)
   {
     // has a texture
     tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
   }
 
-  if (options.x > 0.0)  
-    gl_FragColor = vec4(0.8, 0.8, 0.8, 1.0);
-  else
-    gl_FragColor =  vec4(light, 1.0);
+  gl_FragColor =  vec4(light, 1.0) * tex;
 }
 
 [END]
