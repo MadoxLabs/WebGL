@@ -341,5 +341,11 @@ Game.appHandleMouseEvent = function(type, mouse)
       }
       skip = 0;
       break;
-    }
+    case 11:
+      head.offset[2] -= 0.05;
+      break;
+    case 12:
+      head.offset[2] += 0.05;
+      break;
+  }
 }

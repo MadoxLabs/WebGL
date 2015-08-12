@@ -13,7 +13,7 @@
     return obj.offsetTop + getOffsetTop(obj.parentNode);
   }
 
-  mx.MouseEvent = { 'Down': 0, 'Up': 1, 'Move': 2, 'In': 3, 'Out': 4, 'Grab': 5, 'Release': 6, 'NoGrab': 7, 'Wheel': 8, 'Swipe': 9, 'Tap': 10 };
+  mx.MouseEvent = { 'Down': 0, 'Up': 1, 'Move': 2, 'In': 3, 'Out': 4, 'Grab': 5, 'Release': 6, 'NoGrab': 7, 'Wheel': 8, 'Swipe': 9, 'Tap': 10, 'PinchIn': 11, 'PinchOut': 12 };
 
   // mxMouse class
   function Mouse(obj)
@@ -35,9 +35,10 @@
     {
       this.hammer = Hammer(this.surface);
       this.hammer.on('tap', function (event) { mx.Game.fireMouseEvent(mx.MouseEvent.Tap, event); });
-      this.hammer.on('hold', function (event) { console.log("hold"); });
-      this.hammer.on('rotate', function (event) { console.log("rotate"); });
-      this.hammer.on('pinch', function (event) { console.log("pinch"); });
+      this.hammer.on('hold', function (event) {  });
+      this.hammer.on('rotate', function (event) { });
+      this.hammer.on('pinchin', function (event) { mx.Game.fireMouseEvent(mx.MouseEvent.PinchIn, event); });
+      this.hammer.on('pinchout', function (event) { mx.Game.fireMouseEvent(mx.MouseEvent.PinchOut, event); });
       this.hammer.on('swipe', function (event) { mx.Game.fireMouseEvent(mx.MouseEvent.Swipe, event); });
     }
 
