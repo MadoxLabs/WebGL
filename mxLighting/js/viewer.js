@@ -273,15 +273,34 @@ Game.appDraw = function (eye)
   effect.draw(grid.model);
 }
 
+Game.handleEnterFullscreen = function()
+{
+  Game.surface.style.top = "0px";
+  Game.surface.style.left = "-200px";
+  Game.surface.style.width = window.outerWidth;
+  Game.surface.style.height = window.outerHeight;
+  Game.surface.style.position = "absolute";
+}
+
+Game.handleExitFullscreen = function ()
+{
+  Game.surface.style.top = "57px";
+  Game.surface.style.left = "0px";
+  Game.surface.style.width = "100%";
+  Game.surface.style.height = "80%";
+  Game.surface.style.position = "absolute";
+}
+
 Game.appHandleKeyDown = function (event)
 {
   currentlyPressedKeys[event.keyCode] = true;
-  if (event.keyCode == 83) Game.oculusMode(!Game.isOculus);
 }
 
 Game.appHandleKeyUp = function (event)
 {
   currentlyPressedKeys[event.keyCode] = false;
+  if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
+  if (event.keyCode == 79) Game.oculusMode(!Game.isOculus);
 }
 
 var leftClick = 0;

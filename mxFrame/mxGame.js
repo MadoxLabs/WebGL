@@ -171,7 +171,8 @@ var gl; // leave this global for quick access
 
   Game.oculusMode = function (state)
   {
-    if (mx.libtype & mx.WITH_OCULUS == 0) return;
+    if ((mx.libtype & mx.WITH_OCULUS) == 0) return;
+    if (!Game.oculusBridge) return;
 
     if (state && !Game.isOculus)
     {
@@ -204,6 +205,7 @@ var gl; // leave this global for quick access
       else if (docElm.msRequestFullscreen) docElm.msRequestFullscreen();
       Game.surface.style.width = "100%";
       Game.surface.style.height = "100%";
+      if (Game.handleEnterFullscreen) Game.handleEnterFullscreen();
       Game.isFullscreen = true;
     }
     else if (!state && Game.isFullscreen)
@@ -214,6 +216,7 @@ var gl; // leave this global for quick access
       else if (document.msExitFullscreen) document.msExitFullscreen();
       Game.surface.style.width = "800px";
       Game.surface.style.height = "600px";
+      if (Game.handleExitFullscreen) Game.handleExitFullscreen();
       Game.isFullscreen = false;
     }
   }
@@ -544,3 +547,6 @@ var gl; // leave this global for quick access
 // Game.appLoadingError = function (name)
 // {
 // }
+//
+// Game.handleEnterFullscreen
+// Game.handleExitFullscreen

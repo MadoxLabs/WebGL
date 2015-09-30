@@ -133,7 +133,7 @@
     }
   </script>
 </head>
-<body onload="init(); mx.loadApp(['js/viewer.js'], '../mxFrame', mx.WITH_MXFRAME|mx.WITH_TOUCH);">
+<body onload="init(); mx.loadApp(['js/viewer.js'], '../mxFrame', mx.WITH_MXFRAME|mx.WITH_OCULUS|mx.WITH_TOUCH);">
   <div id='header'><img onmouseover="this.src=animImage.src;" onmouseout="this.src=staticImage.src;" src="assets/logo.jpg"></div>
   <div id="btnView" class="mxButton active">Viewer</div>
   <br />
@@ -145,7 +145,7 @@
 
   <div id="viewer" class="appwindow">
     <div class="mxTitle">Lighting Experimenter</div>
-    <div><canvas id='surface'></div>
+    <div><canvas style="width:100%; height:80%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
     <div class="importControl">
       <div id="scaleinfo"></div>
