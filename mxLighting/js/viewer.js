@@ -142,25 +142,26 @@ Game.loadingStop = function ()
   lighteye.update();
 
   uLight = effect.createUniform('light');
-//  uLight.uGlobalAmbientRGB = [0.5, 0.5, 0.5];
-  uLight["uLights[0].AmbientFactor"] = 0.2;
-  uLight["uLights[0].Color"] = [0.4, 0.4, 0.4];
+  uLight.uLightCount = 1;
+  uLight.uGlobalAmbientRGB = [0.5, 0.5, 0.5];
+  uLight["uLights[0].AmbientFactor"] = 0.05;
+  uLight["uLights[0].Color"] = [0.1, 0.1, 0.1];
   uLight["uLights[0].Attenuation"] = 0.0;
   uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
   uLight["uLights[0].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-//  uLight["uLights[1].AmbientFactor"] = 0.0;
-//  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
-//  uLight["uLights[1].Attenuation"] = 0.5;
-//  uLight["uLights[1].Position"] = [4.0, 4.0, 0.0];
-//  uLight["uLights[1].WorldToLight"] = mat4.create();
-//  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-//  uLight["uLights[2].AmbientFactor"] = 0.0;
-//  uLight["uLights[2].Color"] = [0.0, 1.0, 0.0];
-//  uLight["uLights[2].Attenuation"] = 0.5;
-//  uLight["uLights[2].Position"] = [-4.0, 4.0, 0.0];
-//  uLight["uLights[2].WorldToLight"] = mat4.create();
-//  mat4.multiply(uLight["uLights[2].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  //  uLight["uLights[1].AmbientFactor"] = 0.0;
+  //  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
+  //  uLight["uLights[1].Attenuation"] = 0.5;
+  //  uLight["uLights[1].Position"] = [4.0, 4.0, 0.0];
+  //  uLight["uLights[1].WorldToLight"] = mat4.create();
+  //  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  //  uLight["uLights[2].AmbientFactor"] = 0.0;
+  //  uLight["uLights[2].Color"] = [0.0, 1.0, 0.0];
+  //  uLight["uLights[2].Attenuation"] = 0.5;
+  //  uLight["uLights[2].Position"] = [-4.0, 4.0, 0.0];
+  //  uLight["uLights[2].WorldToLight"] = mat4.create();
+  //  mat4.multiply(uLight["uLights[2].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
@@ -192,6 +193,14 @@ Game.addLight = function()
   object.update();
 
   lamps.push(object);
+
+  uLight["uLights[" + uLight.uLightCount + "].AmbientFactor"] = 0.0;
+  uLight["uLights[" + uLight.uLightCount + "].Color"] = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
+  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 0.5;
+  uLight["uLights[" + uLight.uLightCount + "].Position"] = [object.position[0], object.position[1]+4.0, object.position[2]];
+  uLight["uLights[" + uLight.uLightCount + "].WorldToLight"] = mat4.create();
+  mat4.multiply(uLight["uLights[" + uLight.uLightCount + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  uLight.uLightCount += 1;
 }
 
 Game.appUpdate = function ()

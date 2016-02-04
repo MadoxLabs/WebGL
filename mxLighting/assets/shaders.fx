@@ -141,13 +141,16 @@ void main(void)
   vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
   vec3 light = vec3(0.0,0.0,0.0);
 
-  vec3 l = light;
-  l = CalculateLight(uLights[0]);
-  light = max(light, l);
-  l = CalculateLight(uLights[1]);
-  light = max(light, l);
-  l = CalculateLight(uLights[2]);
-  light = max(light, l);
+  if (uLightCount > 0) light = max(light, CalculateLight(uLights[0]));
+  if (uLightCount > 1) light = max(light, CalculateLight(uLights[1]));
+  if (uLightCount > 2) light = max(light, CalculateLight(uLights[2]));
+  if (uLightCount > 3) light = max(light, CalculateLight(uLights[3]));
+  if (uLightCount > 4) light = max(light, CalculateLight(uLights[4]));
+  if (uLightCount > 5) light = max(light, CalculateLight(uLights[5]));
+  if (uLightCount > 6) light = max(light, CalculateLight(uLights[6]));
+  if (uLightCount > 7) light = max(light, CalculateLight(uLights[7]));
+  if (uLightCount > 8) light = max(light, CalculateLight(uLights[8]));
+  if (uLightCount > 9) light = max(light, CalculateLight(uLights[9]));
 
   // work out the texture color
   if (materialoptions.x > 0.0)
