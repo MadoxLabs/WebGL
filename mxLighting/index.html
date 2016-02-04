@@ -17,6 +17,7 @@
       staticImage.src = "assets/logo.jpg";
 
       addModel("sample");
+//      addModel("lamp");
 
       var texDrop = document.getElementById('texDrop');
       texDrop.addEventListener('dragover', handleDragOver, false);
@@ -25,6 +26,9 @@
       var modelDrop = document.getElementById('modelDrop');
       modelDrop.addEventListener('dragover', handleDragOver, false);
       modelDrop.addEventListener('drop', handleModelDrop, false);
+
+      var lightClick = document.getElementById('lightClick');
+      lightClick.onclick = handleNewLight;
     }
 
     function addModel(name)
@@ -54,6 +58,11 @@
 
     var impTextures = {};
     var models = {};
+
+    function handleNewLight()
+    {
+      Game.addLight();
+    }
 
     function handleModelDrop(evt)
     {
@@ -140,16 +149,15 @@
   <div id="models" class="importControl sidebar"><center><p>Recent Models</p><div id="modelDrop">Drop models here</div></center><div id="listModels"></div></div>
   <br />
   <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
+  <br />
+  <div id="newlight" class="importControl sidebar"><center><p>Lights</p><div id="lightClick">Add light source</div></center><div id="Div3"></div></div>
   <div id="edge"></div>
   <div class="top" id="mover"></div>
 
   <div id="viewer" class="appwindow">
     <div class="mxTitle">Lighting Experimenter</div>
-    <div><canvas style="width:100%; height:80%;" id='surface'></div>
+    <div><canvas style="width:100%; height:100%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
-    <div class="importControl">
-      <div id="scaleinfo"></div>
-    </div>
   </div>
 </body>
 </html>

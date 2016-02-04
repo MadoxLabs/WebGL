@@ -5,6 +5,7 @@ var model;
 var head;
 var object;
 var lighteye;
+var lamps = [];
 // other stuff
 var uPerObject;
 var uLight;
@@ -49,6 +50,7 @@ Game.appInit = function ()
 
   Game.loadMeshPNG("sample", "assets/sample.model");
   Game.loadMeshPNG("floor", "assets/grid.model");
+  Game.loadMeshPNG("lamp", "assets/lamp.model");
 }
 
 Game.deviceReady = function ()
@@ -71,7 +73,6 @@ Game.setModel = function(name)
   }
   scale = 3.0 / scale;
   model.scale = scale;
-  document.getElementById("scaleinfo").innerHTML = "<p>Model is being scaled by a factor of: " + scale + "</p>";
 
   // create game object for model
   object = new mx.GameObject("model", model);
@@ -107,35 +108,6 @@ Game.loadingStop = function ()
   var max = (model.boundingbox[0].max[2] - model.boundingbox[0].min[2]) * scale;
   if (max < len) max = len;
 
-  /*
-  model = Game.assetMan.assets["sample"];
-  // determine model size and bring it down to reasonable proportions
-  scale = 3.0;
-  for (var i = 0; i < 2; ++i) {
-    var s = model.boundingbox[0].max[i] - model.boundingbox[0].min[i];
-    if (s > scale) scale = s;
-  }
-  scale = 3.0 / scale;
-  model.scale = scale;
-  document.getElementById("scaleinfo").innerHTML="<p>Model is being scaled by a factor of: " + scale +"</p>";
-  // determine the model's BB
-  var len = 0;
-  for (var i = 0; i < 3; ++i) {
-    var l = (model.boundingbox[0].max[i] - model.boundingbox[0].min[i]) * scale;
-    if (l > len) len = l;
-  }
-  var max = (model.boundingbox[0].max[2] - model.boundingbox[0].min[2]) * scale;
-  if (max < len) max = len;
-  // create game object for model
-  object = new mx.GameObject("model", model);
-  object.setScale(scale);
-  if (model.boundingbox[0].min[1] <= 0.0)
-    object.setPositionXYZ(0.0,
-                          model.boundingbox[0].min[1] * -1.0 * scale, //(model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
-                          0.0);
-  object.uniforms.uWorldToLight = mat4.create();
-  object.uniforms.options = vec4.create();
-  */
   // create a head for the camera
   head = new mx.GameObject("head", null);
   head.offset[0] = 0.0;
@@ -177,23 +149,49 @@ Game.loadingStop = function ()
   uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
   uLight["uLights[0].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  uLight["uLights[1].AmbientFactor"] = 0.0;
-  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
-  uLight["uLights[1].Attenuation"] = 0.5;
-  uLight["uLights[1].Position"] = [4.0, 4.0, 0.0];
-  uLight["uLights[1].WorldToLight"] = mat4.create();
-  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  uLight["uLights[2].AmbientFactor"] = 0.0;
-  uLight["uLights[2].Color"] = [0.0, 1.0, 0.0];
-  uLight["uLights[2].Attenuation"] = 0.5;
-  uLight["uLights[2].Position"] = [-4.0, 4.0, 0.0];
-  uLight["uLights[2].WorldToLight"] = mat4.create();
-  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+//  uLight["uLights[1].AmbientFactor"] = 0.0;
+//  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
+//  uLight["uLights[1].Attenuation"] = 0.5;
+//  uLight["uLights[1].Position"] = [4.0, 4.0, 0.0];
+//  uLight["uLights[1].WorldToLight"] = mat4.create();
+//  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+//  uLight["uLights[2].AmbientFactor"] = 0.0;
+//  uLight["uLights[2].Color"] = [0.0, 1.0, 0.0];
+//  uLight["uLights[2].Attenuation"] = 0.5;
+//  uLight["uLights[2].Position"] = [-4.0, 4.0, 0.0];
+//  uLight["uLights[2].WorldToLight"] = mat4.create();
+//  mat4.multiply(uLight["uLights[2].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
   inited = true;
+}
+
+Game.addLight = function()
+{
+  var model = Game.assetMan.assets["lamp"];
+  // determine model size and bring it down to reasonable proportions
+  var scale = 2.0;
+  for (var i = 0; i < 2; ++i)
+  {
+    var s = model.boundingbox[0].max[i] - model.boundingbox[0].min[i];
+    if (s > scale) scale = s;
+  }
+  scale = 2.0 / scale;
+  model.scale = scale;
+
+  // create game object for model
+  var object = new mx.GameObject("lamp"+lamps.length, model);
+  object.setScale(scale);
+  object.setPositionXYZ(Math.random() * 6.0 - 3.0,
+                        0.0,
+                        Math.random() * 6.0-3.0);
+  object.uniforms.uWorldToLight = mat4.create();
+  object.uniforms.options = vec4.create();
+  object.update();
+
+  lamps.push(object);
 }
 
 Game.appUpdate = function ()
@@ -264,10 +262,17 @@ Game.appDraw = function (eye)
   effect = Game.shaderMan.shaders["meshViewer"];
   effect.bind();
   effect.bindCamera(eye);
-  effect.setUniforms(object.uniforms);
   effect.setUniforms(uLight);
   effect.bindTexture("shadow", shadowmap.texture);
+
+  effect.setUniforms(object.uniforms);
   effect.draw(object.model);
+
+  for (var lamp in lamps)
+  {
+    effect.setUniforms(lamps[lamp].uniforms);
+    effect.draw(lamps[lamp].model);
+  }
 
   effect.setUniforms(grid.uniforms);
   effect.draw(grid.model);
@@ -275,11 +280,11 @@ Game.appDraw = function (eye)
 
 Game.handleEnterFullscreen = function()
 {
-  Game.surface.style.top = "0px";
-  Game.surface.style.left = "-200px";
-  Game.surface.style.width = window.outerWidth;
-  Game.surface.style.height = window.outerHeight;
-  Game.surface.style.position = "absolute";
+    Game.surface.style.top = "0px";
+    Game.surface.style.left = "-200px";
+    Game.surface.style.width = window.outerWidth;
+    Game.surface.style.height = window.outerHeight;
+    Game.surface.style.position = "absolute";
 }
 
 Game.handleExitFullscreen = function ()
@@ -287,7 +292,7 @@ Game.handleExitFullscreen = function ()
   Game.surface.style.top = "57px";
   Game.surface.style.left = "0px";
   Game.surface.style.width = "100%";
-  Game.surface.style.height = "80%";
+  Game.surface.style.height = "100%";
   Game.surface.style.position = "absolute";
 }
 
