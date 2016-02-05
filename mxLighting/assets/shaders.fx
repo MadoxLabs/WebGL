@@ -110,10 +110,12 @@ vec3 CalculateLight(LightDefinition light)
   vec3 pointToLight = normalize(light.Position - vec3(vPosition));
   float attenuation = 1.0;
 
-  if (d > 6.0)
+//  if (d > 6.0)
     attenuation = 1.0 / (1.0 + light.Attenuation * pow(d, 2.0));
-  else if (d > 5.0)
-    attenuation = 1.0 / (1.0 + light.Attenuation * pow(d-5.0, 2.0));
+//  else if (d > 5.0)
+//    attenuation = 1.0 / (1.0 + light.Attenuation * pow(d-5.0, 2.0));
+
+//  attenuation = 1.0 / pow(d, 2.0);
 
   vec3 ambient = ambientcolor * light.AmbientFactor * light.Color;
 

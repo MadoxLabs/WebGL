@@ -150,6 +150,8 @@ Game.loadingStop = function ()
   uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
   uLight["uLights[0].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  lamps.push(null); // ambient light is not rendered
+
   //  uLight["uLights[1].AmbientFactor"] = 0.0;
   //  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
   //  uLight["uLights[1].Attenuation"] = 0.5;
@@ -191,12 +193,11 @@ Game.addLight = function()
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
   object.update();
-
   lamps.push(object);
 
   uLight["uLights[" + uLight.uLightCount + "].AmbientFactor"] = 0.0;
   uLight["uLights[" + uLight.uLightCount + "].Color"] = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
-  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 0.5;
+  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 1.0;
   uLight["uLights[" + uLight.uLightCount + "].Position"] = [object.position[0], object.position[1]+4.0, object.position[2]];
   uLight["uLights[" + uLight.uLightCount + "].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[" + uLight.uLightCount + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
@@ -279,6 +280,12 @@ Game.appDraw = function (eye)
 
   for (var lamp in lamps)
   {
+    if (!lamps[lamp]) continue;
+
+    var color = uLight["uLights[" + lamp + "].Color"];
+    vec3.set(lamps[lamp].model.groups[0].material.diffusecolor, color[0], color[1], color[2]);
+    vec3.set(lamps[lamp].model.groups[0].material.emissivecolor, color[0], color[1], color[2]);
+
     effect.setUniforms(lamps[lamp].uniforms);
     effect.draw(lamps[lamp].model);
   }
