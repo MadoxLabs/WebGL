@@ -142,15 +142,15 @@ Game.loadingStop = function ()
   lighteye.update();
 
   uLight = effect.createUniform('light');
-  uLight.uLightCount = 1;
+  uLight.uLightCount = 0;
   uLight.uGlobalAmbientRGB = [0.5, 0.5, 0.5];
-  uLight["uLights[0].AmbientFactor"] = 0.05;
-  uLight["uLights[0].Color"] = [0.1, 0.1, 0.1];
-  uLight["uLights[0].Attenuation"] = 0.0;
-  uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
-  uLight["uLights[0].WorldToLight"] = mat4.create();
-  mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  lamps.push(null); // ambient light is not rendered
+//  uLight["uLights[0].AmbientFactor"] = 0.05;
+//  uLight["uLights[0].Color"] = [0.1, 0.1, 0.1];
+//  uLight["uLights[0].Attenuation"] = 0.0;
+//  uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
+//  uLight["uLights[0].WorldToLight"] = mat4.create();
+//  mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+//  lamps.push(null); // ambient light is not rendered
 
   //  uLight["uLights[1].AmbientFactor"] = 0.0;
   //  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
@@ -197,8 +197,8 @@ Game.addLight = function()
 
   uLight["uLights[" + uLight.uLightCount + "].AmbientFactor"] = 0.0;
   uLight["uLights[" + uLight.uLightCount + "].Color"] = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
-  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 1.0;
-  uLight["uLights[" + uLight.uLightCount + "].Position"] = [object.position[0], object.position[1]+4.0, object.position[2]];
+  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 0.5;
+  uLight["uLights[" + uLight.uLightCount + "].Position"] = [object.position[0], object.position[1]+2.0, object.position[2]];
   uLight["uLights[" + uLight.uLightCount + "].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[" + uLight.uLightCount + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
   uLight.uLightCount += 1;
