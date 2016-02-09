@@ -50,7 +50,27 @@
 
     function selectLight(n)
     {
-      Game.pickLight(n);
+      Game.pickLight(n); // array starts at 0
+      for (var i in lightControls) {
+        lightControls[i].selected = false;
+      }
+      lightControls[n].selected = true;
+      listLights();
+    }
+
+    function removeLight(n)
+    {
+      Game.removeLight(n);
+      delete lightControls[n];
+      listLights();
+    }
+
+    function listLights()
+    {
+      var buf = "<table>";
+      for (var i in lightControls)
+        buf += "<tr><td><div onclick='removeLight(\"" + i + "\");'><p style='cursor: pointer;'>-</p></div></td><td><div " + (lightControls[i].selected ? "style=\"background:#aaa\"" : "") + " onclick='selectLight(\"" + i + "\");'><p style='cursor: pointer;'> Light " + i + "</p></div></td></tr>";
+      document.getElementById("listLights").innerHTML = buf + "</table>";
     }
 
     function handleDragOver(evt)
@@ -60,15 +80,15 @@
       evt.dataTransfer.dropEffect = 'copy';
     }
 
+    var lightControls = [];
     var impTextures = {};
     var models = {};
 
     function handleNewLight()
     {
-      var buf = "";
-      var num = Game.addLight();
-      for (var n = 0; n < num; ++n) buf += "<div onclick='selectLight(\"" + n + "\");'><p> Light " + n + "</p></div>";
-      document.getElementById("listLights").innerHTML = buf;
+      Game.addLight();
+      lightControls.push({ selected: false });
+      listLights();
     }
 
     function handleModelDrop(evt)

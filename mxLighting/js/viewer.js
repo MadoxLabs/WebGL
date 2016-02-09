@@ -183,6 +183,13 @@ Game.pickLight = function(n)
   else pickedLight = n;
 }
 
+Game.removeLight = function(n)
+{
+  if (pickedLight == n) pickedLight = -1;
+  uLight.uLightCount--;
+  delete lamps[n];
+}
+
 Game.addLight = function()
 {
   var model = Game.assetMan.assets["lamp"];
@@ -458,8 +465,21 @@ Game.appHandleMouseEvent = function(type, mouse)
     case 2: // move
       if (leftClick)
       {
-        xSpeed += 0.01 * (mouse.Y - clickLoc.Y);
-        ySpeed += 0.01 * (mouse.X - clickLoc.X);
+        if (pickedLight) {
+          var offset = vec3.create();
+          vec3.copy(offset, Game.camera.left);
+          vec3.scale(offset, offset, 0.01 * (mouse.X - clickLoc.X));
+          lamps[pickedLight].updatePositionVec(offset);
+          vec3.copy(offset, Game.camera.forward);
+          vec3.scale(offset, offset, 0.01 * (mouse.Y - clickLoc.Y));
+          lamps[pickedLight].updatePositionVec(offset);
+          lamps[pickedLight].update();
+          uLight["uLights[" + pickedLight + "].Position"] = [lamps[pickedLight].position[0], lamps[pickedLight].position[1] + 2.0, lamps[pickedLight].position[2]];
+        }
+        else {
+          xSpeed += 0.01 * (mouse.Y - clickLoc.Y);
+          ySpeed += 0.01 * (mouse.X - clickLoc.X);
+        }
         clickLoc.X = mouse.X;
         clickLoc.Y = mouse.Y;
       }
