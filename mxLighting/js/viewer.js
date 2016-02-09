@@ -46,6 +46,7 @@ Game.appInit = function ()
   Game.textureLocation = "assets/";
 
   Game.loadShaderFile("assets/shaders.fx");
+  Game.loadShaderFile("assets/normalShader.fx");
   Game.loadShaderFile("assets/shadowcast.fx");
 
   Game.loadMeshPNG("sample", "assets/sample.model");
@@ -168,7 +169,18 @@ Game.loadingStop = function ()
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
+  // create a lamp wireframe
+  Game.assetMan.assets["lampoutline"] = Game.assetMan.assets["lamp"].drawBB();
+
   inited = true;
+}
+
+var pickedLight = -1;
+
+Game.pickLight = function(n)
+{
+  if (pickedLight == n) pickedLight = -1;
+  else pickedLight = n;
 }
 
 Game.addLight = function()
@@ -202,6 +214,8 @@ Game.addLight = function()
   uLight["uLights[" + uLight.uLightCount + "].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[" + uLight.uLightCount + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
   uLight.uLightCount += 1;
+
+  return uLight.uLightCount;
 }
 
 Game.appUpdate = function ()
@@ -292,6 +306,22 @@ Game.appDraw = function (eye)
 
   effect.setUniforms(grid.uniforms);
   effect.draw(grid.model);
+
+  if (pickedLight > -1) {
+    effect = Game.shaderMan.shaders["normalViewer"];
+    effect.bind();
+    effect.bindCamera(eye);
+    if (lamps[pickedLight])
+    {
+      effect.setUniforms(lamps[pickedLight].uniforms);
+      effect.draw(Game.assetMan.assets["lampoutline"]);
+    }
+  }
+
+//  if (raymesh) {
+//    effect.setUniforms(raymesh.uniforms);
+//    effect.draw(raymesh);
+//  }
 }
 
 Game.handleEnterFullscreen = function()
@@ -322,6 +352,8 @@ Game.appHandleKeyUp = function (event)
   currentlyPressedKeys[event.keyCode] = false;
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
   if (event.keyCode == 79) Game.oculusMode(!Game.isOculus);
+  if (event.keyCode == 83 && raymesh) Game.raystep(); // 's'
+  if (event.keyCode == 84 && raymesh) raymesh = null; // 't'
 }
 
 var leftClick = 0;
@@ -329,11 +361,90 @@ var rightClick = 0;
 var clickLoc = {};
 var skip = 0;
 
+////
+var raymesh = null;
+var raystep = vec4.create();
+var raynear = vec4.create();
+var rayverts = null;
+
+Game.rayset = function(mouse)
+{
+  var unproject = mat4.create();
+  var unproj = mat4.create();
+  var unview = mat4.create();
+  mat4.invert(unproj, Game.camera.eyes[0].projection);
+  mat4.invert(unview, Game.camera.eyes[0].view);
+  mat4.multiply(unproject, unview, unproj);
+
+//  var unproject = mat4.create();
+//  mat4.multiply(unproject, Game.camera.eyes[0].projection, Game.camera.eyes[0].view);
+//  mat4.invert(unproject, unproject);
+
+  var near = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, -1.0, 1.0);
+  vec4.transformMat4(near, near, unproject);
+  vec4.scale(near, near, 1.0 / near[3])
+
+  var far = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, 1.0, 1.0);
+  vec4.transformMat4(far, far, unproject);
+  vec4.scale(far, far, 1.0 / far[3])
+
+  // get the stepping vector
+  var step = vec4.create();
+  vec4.subtract(step, far, near);
+  vec4.normalize(step, step);
+
+  raynear = vec4.clone(near);
+  raystep = vec4.clone(step);
+
+  raymesh = new mx.Mesh();
+  rayverts = [];
+  rayverts.push(raynear[0]); rayverts.push(raynear[1]); rayverts.push(raynear[2]);
+  rayverts.push(far[0]); rayverts.push(far[1]); rayverts.push(far[2]);
+  raymesh.loadFromArrays(rayverts, null, { 'POS': 0 }, gl.LINES, rayverts.length / 3.0, 0);
+}
+
+Game.raystep = function()
+{
+  rayverts.push(raynear[0]); rayverts.push(raynear[1]); rayverts.push(raynear[2]);
+  vec3.add(raynear, raynear, raystep);
+  rayverts.push(raynear[0]); rayverts.push(raynear[1]); rayverts.push(raynear[2]);
+  var t = mat4.create();
+  mat4.identity(t);
+  raymesh.loadFromArrays(rayverts, null, { 'POS': 0 }, gl.LINES, rayverts.length / 3.0, 0, t);
+}
+
 Game.appHandleMouseEvent = function(type, mouse)
 {
   switch (type)
   {
     case 0: // button down
+
+      // clicked on a lamp?
+      {
+        if (!raymesh) Game.rayset(mouse);
+
+        // for each lamp
+//        for (var l in lamps)
+//        {
+//          var lamp = lamps[l];
+//          if (!lamp) continue;
+//          var minX = lamp.model.boundingbox[0].min[0];
+//          var maxX = lamp.model.boundingbox[0].max[0];
+//          var minY = lamp.model.boundingbox[0].min[1];
+//          var maxY = lamp.model.boundingbox[0].max[1];
+//          var minZ = lamp.model.boundingbox[0].min[2];
+//          var maxZ = lamp.model.boundingbox[0].max[2];
+//          var p = vec4.clone(near);
+//          for (var n = 0; n < 20; ++n) {
+//            vec3.add(p, p, step);
+//            if (p[0] >= minX && p[0] <= maxX && p[1] >= minY && p[1] <= maxY && p[2] >= minZ && p[2] <= maxX) {
+//              console.log("hit lamp #" + l);
+//              break;
+//            }
+//          }
+//        }
+      }
+
       if (mouse.button == 0) leftClick = 1;
       if (mouse.button == 2) rightClick = 1;
       clickLoc.X = mouse.X;

@@ -17,7 +17,6 @@
       staticImage.src = "assets/logo.jpg";
 
       addModel("sample");
-//      addModel("lamp");
 
       var texDrop = document.getElementById('texDrop');
       texDrop.addEventListener('dragover', handleDragOver, false);
@@ -49,6 +48,11 @@
       }
     }
 
+    function selectLight(n)
+    {
+      Game.pickLight(n);
+    }
+
     function handleDragOver(evt)
     {
       evt.stopPropagation();
@@ -61,7 +65,10 @@
 
     function handleNewLight()
     {
-      Game.addLight();
+      var buf = "";
+      var num = Game.addLight();
+      for (var n = 0; n < num; ++n) buf += "<div onclick='selectLight(\"" + n + "\");'><p> Light " + n + "</p></div>";
+      document.getElementById("listLights").innerHTML = buf;
     }
 
     function handleModelDrop(evt)
@@ -150,7 +157,7 @@
   <br />
   <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
   <br />
-  <div id="newlight" class="importControl sidebar"><center><p>Lights</p><div id="lightClick">Add light source</div></center><div id="Div3"></div></div>
+  <div id="newlight" class="importControl sidebar"><center><p>Lights</p><div id="lightClick">Add light source</div></center><div id="listLights"></div></div>
   <div id="edge"></div>
   <div class="top" id="mover"></div>
 
