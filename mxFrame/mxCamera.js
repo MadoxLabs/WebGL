@@ -288,7 +288,7 @@ mx.CAMERA_MAIN = 3;
     }
     else
     {
-      if (this.camera.type = CameraType.perspective)
+      if (this.camera.type == CameraType.perspective)
         mat4.perspective(this.projection, this.camera.fov, this.viewport[2] / this.viewport[3], this.camera.near, this.camera.far);
       else
         mat4.ortho(this.projection, -200, 200, -200, 200, this.camera.near, this.camera.far);
