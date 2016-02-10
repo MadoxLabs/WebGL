@@ -56,7 +56,9 @@
       if (pickedLight)
       {
         document.getElementById("lightAmbient").value = pickedLight.ambientFactor;
+        document.getElementById("lightDiffuse").value = pickedLight.diffuseFactor;
         document.getElementById("lightAttenuation").value = pickedLight.attenuation;
+        document.getElementById("lightAttenuationPower").value = pickedLight.attenuationPower;
         document.getElementById("lightColorR").value = pickedLight.color[0];
         document.getElementById("lightColorG").value = pickedLight.color[1];
         document.getElementById("lightColorB").value = pickedLight.color[2];
@@ -67,6 +69,8 @@
     {
       pickedLight.ambientFactor = document.getElementById("lightAmbient").value;
       pickedLight.attenuation = document.getElementById("lightAttenuation").value;
+      pickedLight.diffuseFactor = document.getElementById("lightDiffuse").value;
+      pickedLight.attenuationPower = document.getElementById("lightAttenuationPower").value;
       pickedLight.color[0] = document.getElementById("lightColorR").value;
       pickedLight.color[1] = document.getElementById("lightColorG").value;
       pickedLight.color[2] = document.getElementById("lightColorB").value;
@@ -200,7 +204,9 @@
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
     <div id="lightEdit" class="importControl" style="top:55px; left:5px; position:absolute;">
     Ambient Factor: <input size="2" id="lightAmbient" /><br />
+    Diffuse Factor: <input size="2" id="lightDiffuse" /><br />
     Attenuation:<input size="2" id="lightAttenuation" /><br />
+    Attenuation Power:<input size="2" id="lightAttenuationPower" /><br />
     Color:<input size="2" id="lightColorR" /><input size="2" id="lightColorG" /><input size="2" id="lightColorB" /><br />
     <button onclick="updateLight()">Update</button>
     </div>

@@ -226,7 +226,9 @@ Game.addLight = function()
   lamps.push(object);
 
   object.ambientFactor = 0.0;
+  object.diffuseFactor = 1.0;
   object.color = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
+  object.attenuationPower = 2.0;
   object.attenuation = 0.5;
   Game.updateLightUniform(object);
 
@@ -237,8 +239,10 @@ Game.addLight = function()
 Game.updateLightUniform = function(lamp)
 {
   uLight["uLights[" + lamp.num + "].AmbientFactor"] = lamp.ambientFactor;
+  uLight["uLights[" + lamp.num + "].DiffuseFactor"] = lamp.diffuseFactor;
   uLight["uLights[" + lamp.num + "].Color"] = [lamp.color[0], lamp.color[1], lamp.color[2]];
   uLight["uLights[" + lamp.num + "].Attenuation"] = lamp.attenuation;
+  uLight["uLights[" + lamp.num + "].AttenuationPower"] = lamp.attenuationPower;
   uLight["uLights[" + lamp.num + "].Position"] = [lamp.position[0], lamp.position[1] + 2.0, lamp.position[2]];
 
   if (!uLight["uLights[" + lamp.num + "].WorldToLight"]) uLight["uLights[" + lamp.num + "].WorldToLight"] = mat4.create();
