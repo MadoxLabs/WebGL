@@ -175,19 +175,28 @@ Game.loadingStop = function ()
   inited = true;
 }
 
-var pickedLight = -1;
+var pickedLight = null;
 
 Game.pickLight = function(n)
 {
-  if (pickedLight == n) pickedLight = -1;
-  else pickedLight = n;
+  if (pickedLight) pickedLight.selected = false;
+  if (pickedLight === lamps[n]) pickedLight = null;
+  else pickedLight = lamps[n];
+  if (pickedLight) pickedLight.selected = true;
 }
 
 Game.removeLight = function(n)
 {
-  if (pickedLight == n) pickedLight = -1;
+  if (pickedLight === lamps[n]) { pickedLight.selected = false; pickedLight = null; }
+  // bump it all down
+  for (var i = n|0; i < uLight.uLightCount-1; ++i) {
+    lamps[i] = lamps[i + 1];
+    lamps[i].num = i;
+    Game.updateLightUniform(lamps[i]);
+  }
   uLight.uLightCount--;
-  delete lamps[n];
+  delete lamps[uLight.uLightCount];
+  lamps = lamps.slice(0, uLight.uLightCount);
 }
 
 Game.addLight = function()
@@ -212,17 +221,28 @@ Game.addLight = function()
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
   object.update();
+  object.selected = false;
+  object.num = uLight.uLightCount;
   lamps.push(object);
 
-  uLight["uLights[" + uLight.uLightCount + "].AmbientFactor"] = 0.0;
-  uLight["uLights[" + uLight.uLightCount + "].Color"] = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
-  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 0.5;
-  uLight["uLights[" + uLight.uLightCount + "].Position"] = [object.position[0], object.position[1]+2.0, object.position[2]];
-  uLight["uLights[" + uLight.uLightCount + "].WorldToLight"] = mat4.create();
-  mat4.multiply(uLight["uLights[" + uLight.uLightCount + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  uLight.uLightCount += 1;
+  object.ambientFactor = 0.0;
+  object.color = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
+  object.attenuation = 0.5;
+  Game.updateLightUniform(object);
 
+  uLight.uLightCount += 1;
   return uLight.uLightCount;
+}
+
+Game.updateLightUniform = function(lamp)
+{
+  uLight["uLights[" + lamp.num + "].AmbientFactor"] = lamp.ambientFactor;
+  uLight["uLights[" + lamp.num + "].Color"] = [lamp.color[0], lamp.color[1], lamp.color[2]];
+  uLight["uLights[" + lamp.num + "].Attenuation"] = lamp.attenuation;
+  uLight["uLights[" + lamp.num + "].Position"] = [lamp.position[0], lamp.position[1] + 2.0, lamp.position[2]];
+
+  if (!uLight["uLights[" + lamp.num + "].WorldToLight"]) uLight["uLights[" + lamp.num + "].WorldToLight"] = mat4.create();
+  mat4.multiply(uLight["uLights[" + lamp.num + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
 }
 
 Game.appUpdate = function ()
@@ -314,15 +334,12 @@ Game.appDraw = function (eye)
   effect.setUniforms(grid.uniforms);
   effect.draw(grid.model);
 
-  if (pickedLight > -1) {
+  if (pickedLight) {
     effect = Game.shaderMan.shaders["normalViewer"];
     effect.bind();
     effect.bindCamera(eye);
-    if (lamps[pickedLight])
-    {
-      effect.setUniforms(lamps[pickedLight].uniforms);
-      effect.draw(Game.assetMan.assets["lampoutline"]);
-    }
+    effect.setUniforms(pickedLight.uniforms);
+    effect.draw(Game.assetMan.assets["lampoutline"]);
   }
 
 //  if (raymesh) {
@@ -429,27 +446,6 @@ Game.appHandleMouseEvent = function(type, mouse)
       // clicked on a lamp?
       {
         if (!raymesh) Game.rayset(mouse);
-
-        // for each lamp
-//        for (var l in lamps)
-//        {
-//          var lamp = lamps[l];
-//          if (!lamp) continue;
-//          var minX = lamp.model.boundingbox[0].min[0];
-//          var maxX = lamp.model.boundingbox[0].max[0];
-//          var minY = lamp.model.boundingbox[0].min[1];
-//          var maxY = lamp.model.boundingbox[0].max[1];
-//          var minZ = lamp.model.boundingbox[0].min[2];
-//          var maxZ = lamp.model.boundingbox[0].max[2];
-//          var p = vec4.clone(near);
-//          for (var n = 0; n < 20; ++n) {
-//            vec3.add(p, p, step);
-//            if (p[0] >= minX && p[0] <= maxX && p[1] >= minY && p[1] <= maxY && p[2] >= minZ && p[2] <= maxX) {
-//              console.log("hit lamp #" + l);
-//              break;
-//            }
-//          }
-//        }
       }
 
       if (mouse.button == 0) leftClick = 1;
@@ -469,12 +465,12 @@ Game.appHandleMouseEvent = function(type, mouse)
           var offset = vec3.create();
           vec3.copy(offset, Game.camera.left);
           vec3.scale(offset, offset, 0.01 * (mouse.X - clickLoc.X));
-          lamps[pickedLight].updatePositionVec(offset);
+          pickedLight.updatePositionVec(offset);
           vec3.copy(offset, Game.camera.forward);
           vec3.scale(offset, offset, 0.01 * (mouse.Y - clickLoc.Y));
-          lamps[pickedLight].updatePositionVec(offset);
-          lamps[pickedLight].update();
-          uLight["uLights[" + pickedLight + "].Position"] = [lamps[pickedLight].position[0], lamps[pickedLight].position[1] + 2.0, lamps[pickedLight].position[2]];
+          pickedLight.updatePositionVec(offset);
+          pickedLight.update();
+          uLight["uLights[" + pickedLight.num + "].Position"] = [pickedLight.position[0], pickedLight.position[1] + 2.0, pickedLight.position[2]];
         }
         else {
           xSpeed += 0.01 * (mouse.Y - clickLoc.Y);

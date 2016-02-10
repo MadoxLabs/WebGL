@@ -51,25 +51,40 @@
     function selectLight(n)
     {
       Game.pickLight(n); // array starts at 0
-      for (var i in lightControls) {
-        lightControls[i].selected = false;
-      }
-      lightControls[n].selected = true;
       listLights();
+      document.getElementById("lightEdit").style.visibility = pickedLight ? "visible" : "hidden";
+      if (pickedLight)
+      {
+        document.getElementById("lightAmbient").value = pickedLight.ambientFactor;
+        document.getElementById("lightAttenuation").value = pickedLight.attenuation;
+        document.getElementById("lightColorR").value = pickedLight.color[0];
+        document.getElementById("lightColorG").value = pickedLight.color[1];
+        document.getElementById("lightColorB").value = pickedLight.color[2];
+      }
+    }
+
+    function updateLight()
+    {
+      pickedLight.ambientFactor = document.getElementById("lightAmbient").value;
+      pickedLight.attenuation = document.getElementById("lightAttenuation").value;
+      pickedLight.color[0] = document.getElementById("lightColorR").value;
+      pickedLight.color[1] = document.getElementById("lightColorG").value;
+      pickedLight.color[2] = document.getElementById("lightColorB").value;
+      Game.updateLightUniform(pickedLight);
     }
 
     function removeLight(n)
     {
       Game.removeLight(n);
-      delete lightControls[n];
       listLights();
+      document.getElementById("lightEdit").style.visibility = pickedLight ? "visible" : "hidden";
     }
 
     function listLights()
     {
       var buf = "<table>";
-      for (var i in lightControls)
-        buf += "<tr><td><div onclick='removeLight(\"" + i + "\");'><p style='cursor: pointer;'>-</p></div></td><td><div " + (lightControls[i].selected ? "style=\"background:#aaa\"" : "") + " onclick='selectLight(\"" + i + "\");'><p style='cursor: pointer;'> Light " + i + "</p></div></td></tr>";
+      for (var i in lamps)
+        buf += "<tr><td><div onclick='removeLight(\"" + i + "\");'><p style='cursor: pointer;'>-</p></div></td><td><div " + (lamps[i].selected ? "style=\"background:#aaa\"" : "") + " onclick='selectLight(\"" + i + "\");'><p style='cursor: pointer;'> Light " + i + "</p></div></td></tr>";
       document.getElementById("listLights").innerHTML = buf + "</table>";
     }
 
@@ -80,14 +95,12 @@
       evt.dataTransfer.dropEffect = 'copy';
     }
 
-    var lightControls = [];
     var impTextures = {};
     var models = {};
 
     function handleNewLight()
     {
       Game.addLight();
-      lightControls.push({ selected: false });
       listLights();
     }
 
@@ -185,6 +198,12 @@
     <div class="mxTitle">Lighting Experimenter</div>
     <div><canvas style="width:100%; height:100%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
+    <div id="lightEdit" class="importControl" style="top:55px; left:5px; position:absolute;">
+    Ambient Factor: <input size="2" id="lightAmbient" /><br />
+    Attenuation:<input size="2" id="lightAttenuation" /><br />
+    Color:<input size="2" id="lightColorR" /><input size="2" id="lightColorG" /><input size="2" id="lightColorB" /><br />
+    <button onclick="updateLight()">Update</button>
+    </div>
   </div>
 </body>
 </html>
