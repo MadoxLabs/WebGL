@@ -17,7 +17,6 @@
       staticImage.src = "assets/logo.jpg";
 
       addModel("sample");
-//      addModel("lamp");
 
       var texDrop = document.getElementById('texDrop');
       texDrop.addEventListener('dragover', handleDragOver, false);
@@ -49,6 +48,50 @@
       }
     }
 
+    function selectLight(n)
+    {
+      Game.pickLight(n); // array starts at 0
+      listLights();
+      document.getElementById("lightEdit").style.visibility = pickedLight ? "visible" : "hidden";
+      if (pickedLight)
+      {
+        document.getElementById("lightAmbient").value = pickedLight.ambientFactor;
+        document.getElementById("lightDiffuse").value = pickedLight.diffuseFactor;
+        document.getElementById("lightAttenuation").value = pickedLight.attenuation;
+        document.getElementById("lightAttenuationPower").value = pickedLight.attenuationPower;
+        document.getElementById("lightColorR").value = pickedLight.color[0];
+        document.getElementById("lightColorG").value = pickedLight.color[1];
+        document.getElementById("lightColorB").value = pickedLight.color[2];
+      }
+    }
+
+    function updateLight()
+    {
+      pickedLight.ambientFactor = document.getElementById("lightAmbient").value;
+      pickedLight.attenuation = document.getElementById("lightAttenuation").value;
+      pickedLight.diffuseFactor = document.getElementById("lightDiffuse").value;
+      pickedLight.attenuationPower = document.getElementById("lightAttenuationPower").value;
+      pickedLight.color[0] = document.getElementById("lightColorR").value;
+      pickedLight.color[1] = document.getElementById("lightColorG").value;
+      pickedLight.color[2] = document.getElementById("lightColorB").value;
+      Game.updateLightUniform(pickedLight);
+    }
+
+    function removeLight(n)
+    {
+      Game.removeLight(n);
+      listLights();
+      document.getElementById("lightEdit").style.visibility = pickedLight ? "visible" : "hidden";
+    }
+
+    function listLights()
+    {
+      var buf = "<table>";
+      for (var i in lamps)
+        buf += "<tr><td><div onclick='removeLight(\"" + i + "\");'><p style='cursor: pointer;'>-</p></div></td><td><div " + (lamps[i].selected ? "style=\"background:#aaa\"" : "") + " onclick='selectLight(\"" + i + "\");'><p style='cursor: pointer;'> Light " + i + "</p></div></td></tr>";
+      document.getElementById("listLights").innerHTML = buf + "</table>";
+    }
+
     function handleDragOver(evt)
     {
       evt.stopPropagation();
@@ -62,6 +105,7 @@
     function handleNewLight()
     {
       Game.addLight();
+      listLights();
     }
 
     function handleModelDrop(evt)
@@ -150,7 +194,7 @@
   <br />
   <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
   <br />
-  <div id="newlight" class="importControl sidebar"><center><p>Lights</p><div id="lightClick">Add light source</div></center><div id="Div3"></div></div>
+  <div id="newlight" class="importControl sidebar"><center><p>Lights</p><div id="lightClick">Add light source</div></center><div id="listLights"></div></div>
   <div id="edge"></div>
   <div class="top" id="mover"></div>
 
@@ -158,6 +202,14 @@
     <div class="mxTitle">Lighting Experimenter</div>
     <div><canvas style="width:100%; height:100%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
+    <div id="lightEdit" class="importControl" style="top:55px; left:5px; position:absolute;">
+    Ambient Factor: <input size="2" id="lightAmbient" /><br />
+    Diffuse Factor: <input size="2" id="lightDiffuse" /><br />
+    Attenuation:<input size="2" id="lightAttenuation" /><br />
+    Attenuation Power:<input size="2" id="lightAttenuationPower" /><br />
+    Color:<input size="2" id="lightColorR" /><input size="2" id="lightColorG" /><input size="2" id="lightColorB" /><br />
+    <button onclick="updateLight()">Update</button>
+    </div>
   </div>
 </body>
 </html>

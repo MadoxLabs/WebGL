@@ -147,8 +147,8 @@ Game.loadingStop = function ()
   uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
   uLight["uLights[0].WorldToLight"] = mat4.create();
   mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  uLight["uLights[1].AmbientRGB"] = [0.2, 0.0, 0.0];
-  uLight["uLights[1].DiffuseRGB"] = [1.0, 0.0, 0.0];
+  uLight["uLights[1].AmbientRGB"] = [0.2, 0.2, 0.2];
+  uLight["uLights[1].DiffuseRGB"] = [1.0, 1.0, 1.0];
   uLight["uLights[1].SpecularRGB"] = [0.0, 0.0, 0.0];
   uLight["uLights[1].Attenuation"] = [0.0, 1.0, 0.0];
   uLight["uLights[1].Position"] = [0.0, 4.0, 0.0];

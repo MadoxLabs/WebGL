@@ -67,9 +67,10 @@ struct LightDefinition
 {
   vec3 Color;                // group light
   float AmbientFactor;       // group light
-//  float DiffuseFactor;       // group light
+  float DiffuseFactor;       // group light
 //  vec3 SpecularRGB;        // group light
   float Attenuation;         // group light
+  float AttenuationPower;         // group light
   vec3 Position;             // group light
   mat4 WorldToLight;         // group light
 };
@@ -108,11 +109,11 @@ vec3 CalculateLight(LightDefinition light)
   // work out the lighting
   float d = distance(light.Position, vec3(vPosition));
   vec3 pointToLight = normalize(light.Position - vec3(vPosition));
-  float attenuation = 1.0 / (light.Attenuation * pow(d, 2.0));
+  float attenuation = 1.0 / (light.Attenuation * pow(d, light.AttenuationPower));
 
   vec3 ambient = ambientcolor * light.AmbientFactor * light.Color;
 
-  float diffuseFactor = max(0.0, dot(vNormal, pointToLight));
+  float diffuseFactor = max(0.0, dot(vNormal, pointToLight)) * light.DiffuseFactor;
   vec3 diffuse = diffusecolor * light.Color * diffuseFactor;
 
   vec3 specular = vec3(0.0, 0.0, 0.0);

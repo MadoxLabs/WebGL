@@ -14,7 +14,7 @@ precision mediump float;
 
 [RENDERSTATE]
 name normalrender
-depth false
+depth true
 cull false
 [END]
 

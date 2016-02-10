@@ -46,6 +46,7 @@ Game.appInit = function ()
   Game.textureLocation = "assets/";
 
   Game.loadShaderFile("assets/shaders.fx");
+  Game.loadShaderFile("assets/normalShader.fx");
   Game.loadShaderFile("assets/shadowcast.fx");
 
   Game.loadMeshPNG("sample", "assets/sample.model");
@@ -168,7 +169,34 @@ Game.loadingStop = function ()
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
 
+  // create a lamp wireframe
+  Game.assetMan.assets["lampoutline"] = Game.assetMan.assets["lamp"].drawBB();
+
   inited = true;
+}
+
+var pickedLight = null;
+
+Game.pickLight = function(n)
+{
+  if (pickedLight) pickedLight.selected = false;
+  if (pickedLight === lamps[n]) pickedLight = null;
+  else pickedLight = lamps[n];
+  if (pickedLight) pickedLight.selected = true;
+}
+
+Game.removeLight = function(n)
+{
+  if (pickedLight === lamps[n]) { pickedLight.selected = false; pickedLight = null; }
+  // bump it all down
+  for (var i = n|0; i < uLight.uLightCount-1; ++i) {
+    lamps[i] = lamps[i + 1];
+    lamps[i].num = i;
+    Game.updateLightUniform(lamps[i]);
+  }
+  uLight.uLightCount--;
+  delete lamps[uLight.uLightCount];
+  lamps = lamps.slice(0, uLight.uLightCount);
 }
 
 Game.addLight = function()
@@ -193,15 +221,32 @@ Game.addLight = function()
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
   object.update();
+  object.selected = false;
+  object.num = uLight.uLightCount;
   lamps.push(object);
 
-  uLight["uLights[" + uLight.uLightCount + "].AmbientFactor"] = 0.0;
-  uLight["uLights[" + uLight.uLightCount + "].Color"] = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
-  uLight["uLights[" + uLight.uLightCount + "].Attenuation"] = 0.5;
-  uLight["uLights[" + uLight.uLightCount + "].Position"] = [object.position[0], object.position[1]+2.0, object.position[2]];
-  uLight["uLights[" + uLight.uLightCount + "].WorldToLight"] = mat4.create();
-  mat4.multiply(uLight["uLights[" + uLight.uLightCount + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  object.ambientFactor = 0.0;
+  object.diffuseFactor = 1.0;
+  object.color = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
+  object.attenuationPower = 2.0;
+  object.attenuation = 0.5;
+  Game.updateLightUniform(object);
+
   uLight.uLightCount += 1;
+  return uLight.uLightCount;
+}
+
+Game.updateLightUniform = function(lamp)
+{
+  uLight["uLights[" + lamp.num + "].AmbientFactor"] = lamp.ambientFactor;
+  uLight["uLights[" + lamp.num + "].DiffuseFactor"] = lamp.diffuseFactor;
+  uLight["uLights[" + lamp.num + "].Color"] = [lamp.color[0], lamp.color[1], lamp.color[2]];
+  uLight["uLights[" + lamp.num + "].Attenuation"] = lamp.attenuation;
+  uLight["uLights[" + lamp.num + "].AttenuationPower"] = lamp.attenuationPower;
+  uLight["uLights[" + lamp.num + "].Position"] = [lamp.position[0], lamp.position[1] + 2.0, lamp.position[2]];
+
+  if (!uLight["uLights[" + lamp.num + "].WorldToLight"]) uLight["uLights[" + lamp.num + "].WorldToLight"] = mat4.create();
+  mat4.multiply(uLight["uLights[" + lamp.num + "].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
 }
 
 Game.appUpdate = function ()
@@ -292,6 +337,19 @@ Game.appDraw = function (eye)
 
   effect.setUniforms(grid.uniforms);
   effect.draw(grid.model);
+
+  if (pickedLight) {
+    effect = Game.shaderMan.shaders["normalViewer"];
+    effect.bind();
+    effect.bindCamera(eye);
+    effect.setUniforms(pickedLight.uniforms);
+    effect.draw(Game.assetMan.assets["lampoutline"]);
+  }
+
+//  if (raymesh) {
+//    effect.setUniforms(raymesh.uniforms);
+//    effect.draw(raymesh);
+//  }
 }
 
 Game.handleEnterFullscreen = function()
@@ -322,6 +380,8 @@ Game.appHandleKeyUp = function (event)
   currentlyPressedKeys[event.keyCode] = false;
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
   if (event.keyCode == 79) Game.oculusMode(!Game.isOculus);
+  if (event.keyCode == 83 && raymesh) Game.raystep(); // 's'
+  if (event.keyCode == 84 && raymesh) raymesh = null; // 't'
 }
 
 var leftClick = 0;
@@ -329,11 +389,69 @@ var rightClick = 0;
 var clickLoc = {};
 var skip = 0;
 
+////
+var raymesh = null;
+var raystep = vec4.create();
+var raynear = vec4.create();
+var rayverts = null;
+
+Game.rayset = function(mouse)
+{
+  var unproject = mat4.create();
+  var unproj = mat4.create();
+  var unview = mat4.create();
+  mat4.invert(unproj, Game.camera.eyes[0].projection);
+  mat4.invert(unview, Game.camera.eyes[0].view);
+  mat4.multiply(unproject, unview, unproj);
+
+//  var unproject = mat4.create();
+//  mat4.multiply(unproject, Game.camera.eyes[0].projection, Game.camera.eyes[0].view);
+//  mat4.invert(unproject, unproject);
+
+  var near = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, -1.0, 1.0);
+  vec4.transformMat4(near, near, unproject);
+  vec4.scale(near, near, 1.0 / near[3])
+
+  var far = vec4.fromValues((mouse.X / Game.camera.width) * 2.0 - 1.0, -(mouse.Y / Game.camera.height) * 2.0 + 1.0, 1.0, 1.0);
+  vec4.transformMat4(far, far, unproject);
+  vec4.scale(far, far, 1.0 / far[3])
+
+  // get the stepping vector
+  var step = vec4.create();
+  vec4.subtract(step, far, near);
+  vec4.normalize(step, step);
+
+  raynear = vec4.clone(near);
+  raystep = vec4.clone(step);
+
+  raymesh = new mx.Mesh();
+  rayverts = [];
+  rayverts.push(raynear[0]); rayverts.push(raynear[1]); rayverts.push(raynear[2]);
+  rayverts.push(far[0]); rayverts.push(far[1]); rayverts.push(far[2]);
+  raymesh.loadFromArrays(rayverts, null, { 'POS': 0 }, gl.LINES, rayverts.length / 3.0, 0);
+}
+
+Game.raystep = function()
+{
+  rayverts.push(raynear[0]); rayverts.push(raynear[1]); rayverts.push(raynear[2]);
+  vec3.add(raynear, raynear, raystep);
+  rayverts.push(raynear[0]); rayverts.push(raynear[1]); rayverts.push(raynear[2]);
+  var t = mat4.create();
+  mat4.identity(t);
+  raymesh.loadFromArrays(rayverts, null, { 'POS': 0 }, gl.LINES, rayverts.length / 3.0, 0, t);
+}
+
 Game.appHandleMouseEvent = function(type, mouse)
 {
   switch (type)
   {
     case 0: // button down
+
+      // clicked on a lamp?
+      {
+        if (!raymesh) Game.rayset(mouse);
+      }
+
       if (mouse.button == 0) leftClick = 1;
       if (mouse.button == 2) rightClick = 1;
       clickLoc.X = mouse.X;
@@ -347,8 +465,21 @@ Game.appHandleMouseEvent = function(type, mouse)
     case 2: // move
       if (leftClick)
       {
-        xSpeed += 0.01 * (mouse.Y - clickLoc.Y);
-        ySpeed += 0.01 * (mouse.X - clickLoc.X);
+        if (pickedLight) {
+          var offset = vec3.create();
+          vec3.copy(offset, Game.camera.left);
+          vec3.scale(offset, offset, 0.01 * (mouse.X - clickLoc.X));
+          pickedLight.updatePositionVec(offset);
+          vec3.copy(offset, Game.camera.forward);
+          vec3.scale(offset, offset, 0.01 * (mouse.Y - clickLoc.Y));
+          pickedLight.updatePositionVec(offset);
+          pickedLight.update();
+          uLight["uLights[" + pickedLight.num + "].Position"] = [pickedLight.position[0], pickedLight.position[1] + 2.0, pickedLight.position[2]];
+        }
+        else {
+          xSpeed += 0.01 * (mouse.Y - clickLoc.Y);
+          ySpeed += 0.01 * (mouse.X - clickLoc.X);
+        }
         clickLoc.X = mouse.X;
         clickLoc.Y = mouse.Y;
       }
