@@ -1,0 +1,151 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.7
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "javascript", "javascript", "{B623D950-EC81-4937-9493-61CA0CF9BAF3}"
+	ProjectSection(SolutionItems) = preProject
+		..\js\escape.js = ..\js\escape.js
+		..\js\gameObject.js = ..\js\gameObject.js
+		..\js\movers.js = ..\js\movers.js
+		..\js\physicsHandler.js = ..\js\physicsHandler.js
+		..\js\physicsWorker.js = ..\js\physicsWorker.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{7F302DBA-147E-43B1-8B84-0B4F042D5C64}"
+	ProjectSection(SolutionItems) = preProject
+		..\js\lib\buzz.min.js = ..\js\lib\buzz.min.js
+		..\js\lib\cannon.js = ..\js\lib\cannon.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{C42C0CB8-22EB-4A33-980C-DA506A61B978}"
+	ProjectSection(SolutionItems) = preProject
+		..\css\style.css = ..\css\style.css
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{21AF7069-59D6-43FB-9341-F719DDA96ED3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sound", "sound", "{D8E9C174-FE07-4FDE-91C9-F5BDB2C366F2}"
+	ProjectSection(SolutionItems) = preProject
+		..\assets\buttonbad.wav = ..\assets\buttonbad.wav
+		..\assets\buttonok.wav = ..\assets\buttonok.wav
+		..\assets\fan.mp3 = ..\assets\fan.mp3
+		..\assets\fanSwitchOff.mp3 = ..\assets\fanSwitchOff.mp3
+		..\assets\fanSwitchOn.mp3 = ..\assets\fanSwitchOn.mp3
+		..\assets\hit.mp3 = ..\assets\hit.mp3
+		..\assets\radio.mp3 = ..\assets\radio.mp3
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "textures", "textures", "{438F2815-D92E-413A-A03A-D49FB3633BC7}"
+	ProjectSection(SolutionItems) = preProject
+		..\assets\batterytex.png = ..\assets\batterytex.png
+		..\assets\button2tex.png = ..\assets\button2tex.png
+		..\assets\buttontex.png = ..\assets\buttontex.png
+		..\assets\clock2tex.png = ..\assets\clock2tex.png
+		..\assets\clock3tex.png = ..\assets\clock3tex.png
+		..\assets\clock4tex.png = ..\assets\clock4tex.png
+		..\assets\clocktex.png = ..\assets\clocktex.png
+		..\assets\deadclocktex.png = ..\assets\deadclocktex.png
+		..\assets\doortex.png = ..\assets\doortex.png
+		..\assets\dressertex.png = ..\assets\dressertex.png
+		..\assets\fantex.png = ..\assets\fantex.png
+		..\assets\flashlighttex.png = ..\assets\flashlighttex.png
+		..\assets\floor.png = ..\assets\floor.png
+		..\assets\jengatex.png = ..\assets\jengatex.png
+		..\assets\locktex.png = ..\assets\locktex.png
+		..\assets\shelftex.png = ..\assets\shelftex.png
+		..\assets\switchtex.png = ..\assets\switchtex.png
+		..\assets\tabletex.png = ..\assets\tabletex.png
+		..\assets\title.png = ..\assets\title.png
+		..\assets\win.png = ..\assets\win.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "models", "models", "{B92392AA-1118-4444-8B2D-2A106DCDE21D}"
+	ProjectSection(SolutionItems) = preProject
+		..\assets\battery.fbx = ..\assets\battery.fbx
+		..\assets\button.fbx = ..\assets\button.fbx
+		..\assets\ceiling.fbx = ..\assets\ceiling.fbx
+		..\assets\clock.fbx = ..\assets\clock.fbx
+		..\assets\clockdead.fbx = ..\assets\clockdead.fbx
+		..\assets\door.fbx = ..\assets\door.fbx
+		..\assets\drawer.fbx = ..\assets\drawer.fbx
+		..\assets\dresser.fbx = ..\assets\dresser.fbx
+		..\assets\fan.fbx = ..\assets\fan.fbx
+		..\assets\flashlight.fbx = ..\assets\flashlight.fbx
+		..\assets\floor.fbx = ..\assets\floor.fbx
+		..\assets\floor2.fbx = ..\assets\floor2.fbx
+		..\assets\jenga.fbx = ..\assets\jenga.fbx
+		..\assets\key.fbx = ..\assets\key.fbx
+		..\assets\light.fbx = ..\assets\light.fbx
+		..\assets\light2.fbx = ..\assets\light2.fbx
+		..\assets\lock.fbx = ..\assets\lock.fbx
+		..\assets\lockbox.fbx = ..\assets\lockbox.fbx
+		..\assets\shelf.fbx = ..\assets\shelf.fbx
+		..\assets\switch.fbx = ..\assets\switch.fbx
+		..\assets\table.fbx = ..\assets\table.fbx
+		..\assets\title.fbx = ..\assets\title.fbx
+		..\assets\win.fbx = ..\assets\win.fbx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shaders", "shaders", "{AAE286F6-CB16-4625-BCAE-161347564D44}"
+	ProjectSection(SolutionItems) = preProject
+		..\assets\boxrender.fx = ..\assets\boxrender.fx
+		..\assets\buttonrender.fx = ..\assets\buttonrender.fx
+		..\assets\fanrender.fx = ..\assets\fanrender.fx
+		..\assets\lightrender.fx = ..\assets\lightrender.fx
+		..\assets\objectrender.fx = ..\assets\objectrender.fx
+		..\assets\partPixelDef.fx = ..\assets\partPixelDef.fx
+		..\assets\partPlainPixelShader.fx = ..\assets\partPlainPixelShader.fx
+		..\assets\partPlainVertexShader.fx = ..\assets\partPlainVertexShader.fx
+		..\assets\partRenderstates.fx = ..\assets\partRenderstates.fx
+		..\assets\partShadowrecieve.fx = ..\assets\partShadowrecieve.fx
+		..\assets\partVertexDef.fx = ..\assets\partVertexDef.fx
+		..\assets\shadowcast.fx = ..\assets\shadowcast.fx
+		..\assets\transparentrender.fx = ..\assets\transparentrender.fx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "html", "html", "{3A5A7566-3330-42C2-856C-E964A841A186}"
+	ProjectSection(SolutionItems) = preProject
+		..\index.html = ..\index.html
+	EndProjectSection
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "mxFrame", "..\..\mxFrame\", "{791CF3C7-A479-455D-88DB-28A29B87FBA7}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_57825"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\mxFrame\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57825\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_57825"
+		Release.AspNetCompiler.PhysicalPath = "..\..\mxFrame\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57825\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "57825"
+		SlnRelativePath = "..\..\mxFrame\"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{791CF3C7-A479-455D-88DB-28A29B87FBA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{791CF3C7-A479-455D-88DB-28A29B87FBA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C42C0CB8-22EB-4A33-980C-DA506A61B978} = {3A5A7566-3330-42C2-856C-E964A841A186}
+		{D8E9C174-FE07-4FDE-91C9-F5BDB2C366F2} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
+		{438F2815-D92E-413A-A03A-D49FB3633BC7} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
+		{B92392AA-1118-4444-8B2D-2A106DCDE21D} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
+		{AAE286F6-CB16-4625-BCAE-161347564D44} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
+	EndGlobalSection
+EndGlobal

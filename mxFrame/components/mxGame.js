@@ -153,13 +153,13 @@ var gl; // leave this global for quick access
         onConnect: bridgeConnected,
         onDisconnect: bridgeDisconnected
       });
-      Game.loadShaderFile(mx.libdir + "/oculus.fx");
+      Game.loadShaderFile(mx.libdir + "/assets/oculus.fx");
     }
 
     // let game specific stuff init
-    Game.loadShaderFile(mx.libdir + "/sprite.fx");
-    Game.loadTextureFile("mouse", mx.libdir + "/mouse.png", false);
-    Game.loadTextureFile("missing", mx.libdir + "/missing.png", true);
+    Game.loadShaderFile(mx.libdir + "/assets/sprite.fx");
+    Game.loadTextureFile("mouse", mx.libdir + "/assets/mouse.png", false);
+    Game.loadTextureFile("missing", mx.libdir + "/assets/missing.png", true);
     Game.appInit();
 
     Game.ready = true;

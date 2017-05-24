@@ -12,18 +12,18 @@ var mx = {};
   mx.WITH_TOUCH = 8;
 
   // source files to load, some optionally
-  var dependancies = ["glMatrix.js"];
-  var baseSrc = ["pako.js",
-                 "mxMesh.js",
-                 "mxTexture.js",
-                 "mxShader.js",
-                 "mxShaderManager.js",
-                 "mxAssetManager.js",
-                 "mxCamera.js",
-                 "mxMouse.js",
-                 "mxGame.js"];
-  var oculusSrc = ["oculus.lib.js"];
-  var touchSrc = ["hammer.lib.js"];
+  var dependancies = ["libs/glMatrix.js"];
+  var baseSrc = ["libs/pako.js",
+                 "components/mxMesh.js",
+                 "components/mxTexture.js",
+                 "components/mxShader.js",
+                 "components/mxShaderManager.js",
+                 "components/mxAssetManager.js",
+                 "components/mxCamera.js",
+                 "components/mxMouse.js",
+                 "components/mxGame.js"];
+  var oculusSrc = ["libs/oculus.lib.js"];
+  var touchSrc = ["libs/hammer.lib.js"];
   var perlinSrc = ["NoiseLib/mxrandom.js",
                    "NoiseLib/noise.js",
                    "NoiseLib/math.js",

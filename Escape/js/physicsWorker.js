@@ -58,7 +58,10 @@ self.onmessage = function (e)
     }
 
     if (raycastresult.body.name == "drawer") raycastresult.body.type = CANNON.Body.DYNAMIC;        // make the drawer responsive
-    if (raycastresult.body.name == "lock" && pickup == 41) world.bodies[4].type = CANNON.Body.DYNAMIC;   // clicking the lock with the key drops the lockbox
+    if (raycastresult.body.name == "lock" && pickup == 41) {
+        world.bodies[4].type = CANNON.Body.DYNAMIC;   // clicking the lock with the key drops the lockbox
+        world.bodies[4].wakeUp();
+    }
     if ((raycastresult.body.name == "flashlight" && pickup == 90) || (raycastresult.body.name == "battery" && pickup == 9))
     {
       world.bodies[90].type = CANNON.Body.KINEMATIC;

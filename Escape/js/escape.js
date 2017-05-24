@@ -57,7 +57,7 @@ Game.appInit = function ()
   Game.loadMeshPNG("titlepage", "assets/title.model");
   Game.loadMeshPNG("button", "assets/button.model");
   Game.loadMeshPNG("winpage", "assets/win.model");
-  Game.loadMeshPNG("light2", "assets/light2.model");
+//  Game.loadMeshPNG("light2", "assets/light2.model");
   // TEXTURES
   Game.loadTextureFile("button2tex", "button2tex.png", true);
   Game.loadTextureFile("clock2tex", "clock2tex.png", true);
@@ -167,8 +167,8 @@ Game.loadingStop = function ()
   var lightswitch = makeGameObject(Game.assetMan.assets["switch"], "lightswitch");
   lightswitch.setOrientationXYZ(0, Math.PI / 2, 0);
   lightswitch.setPositionXYZ(3.9, 4.5, 0.0);
-  var light2 = makeGameObject(Game.assetMan.assets["light2"], "light2");
-  light2.setPositionXYZ(3.9, 4.5, 0.0);
+ // var light2 = makeGameObject(Game.assetMan.assets["light2"], "light2");
+ // light2.setPositionXYZ(3.9, 4.5, 0.0);
   var door = makeGameObject(Game.assetMan.assets["door"], "door");
   door.setOrientationXYZ(0, -Math.PI / 2, 0);
   door.setPositionXYZ(0.0, 0.0, -3.9);
@@ -308,16 +308,6 @@ Game.appUpdate = function ()
   if (Game.loading) return;
   if (!Game.camera) return;
 
-  // oculus?
-  if (Game.isOculus)
-  {
-    var o = Game.oculusBridge.getOrientation();
-    o.y = -o.y;  // for some reason, the oculus reports inverted y axis
-    o.w = -o.w;
-    Game.world.head.setOrientationQuat(o);
-  }
-  else
-  {
     // keyboard camera rotation section
     var x = 0, y = 0, z = 0;
     if (Game.world.currentlyPressedKeys[37]) y = 0.002 * Game.elapsed;
@@ -329,7 +319,6 @@ Game.appUpdate = function ()
     if (Game.world.currentlyPressedKeys[87]) x = -0.002 * Game.elapsed;
     if (Game.world.currentlyPressedKeys[83]) x = 0.002 * Game.elapsed;
     setHeadAngle(x, y, z);
-  }
 
   // asset updates
   for (var i in Game.world.objects) Game.world.objects[i].update();
@@ -468,7 +457,7 @@ Game.flashClock = function ()
 
 Game.appDrawAux = function ()
 {
-  return;
+//  return;
   if (Game.loading) return;
 
   Game.world.lighteyeUp.engage();
@@ -526,9 +515,10 @@ Game.appDraw = function (eye)
     effect.setUniforms(obj.uniforms);
     effect.draw(obj.model);
   }
-  obj = Game.world.objects['light2'];
-  effect.setUniforms(obj.uniforms);
-  effect.draw(obj.model);
+
+//  obj = Game.world.objects['light2'];
+//  effect.setUniforms(obj.uniforms);
+//  effect.draw(obj.model);
 
   // ceiling and fan use up facing shadow map
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;
@@ -627,7 +617,6 @@ Game.appHandleKeyUp = function (event)
 
   if (over) return;
   if (event.keyCode == 70) Game.fullscreenMode(!Game.isFullscreen);
-  if (event.keyCode == 79) Game.oculusMode(!Game.isOculus);
   else if (event.keyCode == 81) Game.world.debug = !Game.world.debug;
   else if (event.keyCode == 84) Game.world.shadow = !Game.world.shadow;
 }
@@ -651,8 +640,6 @@ Game.appHandleMouseEvent = function(type, mouse)
     }
 
     {
-      if (Game.isOculus) mouse.X += 450;
-
       var unproject = mat4.create();
       var unproj = mat4.create();
       var unview = mat4.create();
@@ -672,12 +659,12 @@ Game.appHandleMouseEvent = function(type, mouse)
       vec3.subtract(d, far, near);
       vec3.normalize(d, d);
 
-      var t = Game.world.objects['light2'];
-      t.setPositionVec(near);
-      t.updatePositionVec(d);
-      t.updatePositionVec(d);
-      t.updatePositionVec(d);
-      t.updatePositionVec(d);
+//      var t = Game.world.objects['light2'];
+//      t.setPositionVec(near);
+//      t.updatePositionVec(d);
+//      t.updatePositionVec(d);
+//      t.updatePositionVec(d);
+//      t.updatePositionVec(d);
 
       Game.world.physicsWorker.queryPick(near, far);
     }
@@ -697,7 +684,7 @@ Game.appHandleMouseEvent = function(type, mouse)
 //    mouse.release();
   }
 
-  if (clicked && type == mx.MouseEvent.Move && Game.isOculus == false)
+  if (clicked && type == mx.MouseEvent.Move)
   {
     if (mouse.moveOffsetX < 20 && mouse.moveOffsetX > -20) setHeadAngle(0.01 * mouse.moveOffsetY, -0.01 * mouse.moveOffsetX, 0.0);
   }
