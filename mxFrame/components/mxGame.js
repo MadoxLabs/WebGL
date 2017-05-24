@@ -246,7 +246,7 @@ var gl; // leave this global for quick access
 
   Game.loadShaderFile = function (name)
   {
-    Game.loadingIncr();
+    Game.loadingIncr(name);
 
     var client = new XMLHttpRequest();
     client.open('GET', name);
@@ -258,7 +258,7 @@ var gl; // leave this global for quick access
   {
     if (this.assetMan.assets[name]) return;
 
-    Game.loadingIncr();
+    Game.loadingIncr(name);
 
     var tex = new mx.Texture(name);
     if (arguments.length == 3) tex.mipmap = mipmap;
@@ -267,7 +267,7 @@ var gl; // leave this global for quick access
 
   Game.loadTextureData = function (name, file, mipmap)
   {
-    Game.loadingIncr();
+    Game.loadingIncr(name);
 
     var tex = new mx.Texture(name);
     if (arguments.length == 3) tex.mipmap = mipmap;
@@ -276,7 +276,7 @@ var gl; // leave this global for quick access
 
   Game.loadMeshPNG = function (name, file)
   {
-    Game.loadingIncr();
+    Game.loadingIncr(name);
 
     var tex = new mx.MeshPNG(name);
     tex.load(file);
@@ -284,7 +284,7 @@ var gl; // leave this global for quick access
 
   Game.loadMesh = function (name, file)
   {
-    Game.loadingIncr();
+    Game.loadingIncr(name);
 
     var client = new XMLHttpRequest();
     client.open('GET', file);
@@ -295,18 +295,20 @@ var gl; // leave this global for quick access
   Game.loadingError = function (name)
   {
     Game.appLoadingError(name);
-    Game.loadingDecr();
+    Game.loadingDecr(name);
   }
 
-  Game.loadingIncr = function ()
+  Game.loadingIncr = function (name)
   {
+    if (reportLoading) reportLoading(name, Game.loading);
+
     if (Game.loading == 0) Game.loadingStart();
     Game.loading += 1;
   }
 
-  Game.loadingDecr = function ()
+  Game.loadingDecr = function (name)
   {
-    if (reportLoading) reportLoading(Game.loading);
+    if (reportLoaded) reportLoaded(name, Game.loading);
 
     if (Game.loading == 1) { Game.shaderMan.processEffects(); Game.loadingStop(); }
     if (Game.loading > 0) Game.loading -= 1;

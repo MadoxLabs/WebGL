@@ -13,7 +13,7 @@
     if (tex.mipmap) { gl.generateMipmap(gl.TEXTURE_2D); }
     gl.bindTexture(gl.TEXTURE_2D, null);
     this.assets[tex.name] = tex;
-    mx.Game.loadingDecr();
+    mx.Game.loadingDecr(tex.name);
   }
 
   AssetManager.prototype.processMesh = function (name, mesh)
@@ -21,7 +21,7 @@
     var model = new mx.Mesh();
     model.loadFromFBX(JSON.parse(mesh));
     this.assets[name] = model;
-    mx.Game.loadingDecr();
+    mx.Game.loadingDecr(name);
   }
 
   AssetManager.prototype.processMeshPNG = function (tex)
@@ -70,7 +70,7 @@
     catch (err) { data += "}"; model.loadFromFBX(JSON.parse(data)); }
 
     this.assets[tex.name] = model;
-    mx.Game.loadingDecr();
+    mx.Game.loadingDecr(tex.name);
   }
 
 

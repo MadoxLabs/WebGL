@@ -4,12 +4,19 @@
     <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
     <script src="../mxFrame/mxFrame.js"></script>
     <script>
-      function reportLoading(value)
+      let assets = {};
+      function reportLoaded(name, value)
       {
         var out = document.getElementById("loading");
-        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go..."
+        delete assets[" " +name];
+        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go...<br><br>" + Object.keys(assets).toString();
       }
-
+      function reportLoading(name, value)
+      {
+        var out = document.getElementById("loading");
+        assets[" "+name] = 1;
+        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go...<br><br>" + Object.keys(assets).toString();
+      }
       function doneLoading()
       {
         document.getElementById("loading").style.visibility = "hidden";
