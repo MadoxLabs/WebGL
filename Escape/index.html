@@ -8,14 +8,14 @@
       function reportLoaded(name, value)
       {
         var out = document.getElementById("loading");
-        delete assets[" " +name];
-        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go...<br><br>" + Object.keys(assets).toString();
+        delete assets["<br>" +name];
+        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
       }
       function reportLoading(name, value)
       {
         var out = document.getElementById("loading");
-        assets[" "+name] = 1;
-        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go...<br><br>" + Object.keys(assets).toString();
+        assets["<br>"+name] = 1;
+        out.innerHTML = "MadoxLabs Escape Room<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
       }
       function doneLoading()
       {
