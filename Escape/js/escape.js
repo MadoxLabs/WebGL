@@ -496,7 +496,6 @@ Game.appDrawAux = function ()
 Game.appDraw = function (eye)
 {
   if (!Game.ready || Game.loading) return;
-
   var obj;
 
   // light has a special shader
@@ -515,10 +514,6 @@ Game.appDraw = function (eye)
     effect.setUniforms(obj.uniforms);
     effect.draw(obj.model);
   }
-
-//  obj = Game.world.objects['light2'];
-//  effect.setUniforms(obj.uniforms);
-//  effect.draw(obj.model);
 
   // ceiling and fan use up facing shadow map
   Game.world.uScene.uWorldToLight = Game.world.uScene.uWorldToLight2;

@@ -14,7 +14,7 @@ void main(void)
   float nDotL = dot(normalize(vNormal), normalize(lightdist));
   
   float shadow = 1.0;
-  if (lighton.x > 0.5) shadow = IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition);
+	if (lighton.x > 0.5) shadow = IsShadow(vPosition, vNormal, uWorldToLight, uLightPosition);
 
   vec3 ac = vec3(0.1, 0.1, 0.1);
   vec3 color = ac + diffusecolor * nDotL * shadow;

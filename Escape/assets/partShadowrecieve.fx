@@ -7,10 +7,8 @@ uniform sampler2D shadow; // mag LINEAR, min LINEAR, wrapu CLAMP_TO_EDGE, wrapv 
 
 float IsShadow(vec4 position, vec3 normal, mat4 WorldToLight, vec3 lightpos)
 {
-  return 1.0;
-
   vec4 positionFromLight =  WorldToLight * position;
-  float weight = 0.6; //0.8 * abs(length(position.xyz - lightpos))/2.0;
+  float weight = 0.2 * abs(length(position.xyz - lightpos))/2.0;
 
   // if face is away from light - shadowed
   vec3 lightDir = vec3(position) - lightpos;
@@ -36,7 +34,7 @@ float IsShadow(vec4 position, vec3 normal, mat4 WorldToLight, vec3 lightpos)
   if (depthl.x < depthFromLight) ret -= 0.2;
   if (deptht.x < depthFromLight) ret -= 0.2;
   if (depthb.x < depthFromLight) ret -= 0.2;
-  if (ret < 1.0) { ret *= weight; ret = min( ret+0.7, 1.0); };
+  if (ret < 1.0) { ret *= weight; ret = min( ret+0.6, 1.0); };
   return ret;
 }
 [END]
