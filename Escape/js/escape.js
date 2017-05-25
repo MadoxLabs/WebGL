@@ -207,7 +207,7 @@ Game.loadingStop = function ()
 
   var lightup = new mx.GameObject("lightup", null);
   lightup.setPositionXYZ(0.0, 7.0, 0.0001);
-  lightup.setOrientationXYZ(Math.PI / 2.0, 0.0, 0.0);
+  lightup.setOrientationXYZ(Math.PI / -2.0, 0.0, 0.0);
   var lightdown = new mx.GameObject("lightdown", null);
   lightdown.setPositionXYZ(0.0, 7.0, 0.0001);
   lightdown.setOrientationXYZ(Math.PI / 2.0, 0.0, 0.0);
@@ -457,7 +457,6 @@ Game.flashClock = function ()
 
 Game.appDrawAux = function ()
 {
-//  return;
   if (Game.loading) return;
 
   Game.world.lighteyeUp.engage();
