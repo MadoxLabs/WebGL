@@ -250,7 +250,7 @@ var gl; // leave this global for quick access
 
     var client = new XMLHttpRequest();
     client.open('GET', name);
-    client.onload = function () { Game.shaderMan.storeEffect(client.responseText); }
+    client.onload = function () { Game.shaderMan.storeEffect(client.responseText); Game.loadingDecr(name); }
     client.send();
   }
 
@@ -300,18 +300,16 @@ var gl; // leave this global for quick access
 
   Game.loadingIncr = function (name)
   {
-    if (reportLoading) reportLoading(name, Game.loading);
-
     if (Game.loading == 0) Game.loadingStart();
     Game.loading += 1;
+    if (reportLoading) reportLoading(name, Game.loading);
   }
 
   Game.loadingDecr = function (name)
   {
-    if (reportLoaded) reportLoaded(name, Game.loading);
-
-    if (Game.loading == 1) { Game.shaderMan.processEffects(); Game.loadingStop(); }
-    if (Game.loading > 0) Game.loading -= 1;
+      if (Game.loading == 1) { Game.shaderMan.processEffects(); Game.loadingStop(); }
+      if (Game.loading > 0) Game.loading -= 1;
+      if (reportLoaded) reportLoaded(name, Game.loading);
   }
 
 
@@ -517,7 +515,7 @@ var gl; // leave this global for quick access
 // {
 // }
 //
-// Game.loadingStop = function ()
+// Game.loadingComplete = function ()
 // {
 // }
 //

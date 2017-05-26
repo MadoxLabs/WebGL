@@ -338,7 +338,6 @@
     var name = this.extractShaderPart(src, "[NAME]").trim();
     if (!name) name = this.extractShaderPart(src, "[PARTNAME]").trim();
     this.shaderParts[name] = src;
-    Game.loadingDecr(name);
   }
 
   ShaderManager.prototype.processEffects = function ()

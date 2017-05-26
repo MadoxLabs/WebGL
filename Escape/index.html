@@ -5,6 +5,11 @@
     <script src="../mxFrame/mxFrame.js"></script>
     <script>
       let assets = {};
+      function reportBootup(value)
+      {
+        var out = document.getElementById("loading");
+        out.innerHTML = "MadoxLabs Escape Room<br>Booting up: " + value;
+      }
       function reportLoaded(name, value)
       {
         var out = document.getElementById("loading");
@@ -29,6 +34,6 @@
                                                         'js/physicsHandler.js', 
                                                         'js/escape.js'], '../mxFrame', mx.WITH_MXFRAME);">
     <div><canvas id='surface'></canvas></div>
-    <div id="loading"></div>
+    <div id="loading">MadoxLabs Escape Room<br />Booting up:</div>
   </body>
 </html>

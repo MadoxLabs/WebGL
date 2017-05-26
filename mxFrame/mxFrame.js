@@ -66,6 +66,7 @@ var mx = {};
     {
       loadState.loadDeps -= 1;
       console.log(" " + filename + " loaded. " + loadState.loadDeps + " left");
+      if (reportBootup) reportBootup("Stage 1/3 - " + loadState.loadDeps + " files to go");
       if (!loadState.loadDeps)
       {
         console.log("Boot up phase 1");
@@ -76,6 +77,7 @@ var mx = {};
     {
       loadState.loadPhase1 -= 1;
       console.log(" " + filename + " loaded. " + loadState.loadPhase1 + " left");
+      if (reportBootup) reportBootup("Stage 2/3 - " + loadState.loadPhase1 + " files to go");
       if (!loadState.loadPhase1) 
       {
         console.log("Boot up phase 2");
@@ -84,6 +86,7 @@ var mx = {};
     }
     else if (loadState.loadPhase2) {
       loadState.loadPhase2 -= 1;
+      if (reportBootup) reportBootup("Stage 3/3 - " + loadState.loadPhase2 + " files to go");
       console.log(" " + filename + " loaded. " + loadState.loadPhase2 + " left");
       if (!loadState.loadPhase2) main();
     }
