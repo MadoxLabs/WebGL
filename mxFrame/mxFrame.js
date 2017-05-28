@@ -10,6 +10,7 @@ var mx = {};
   mx.WITH_OCULUS = 2;
   mx.WITH_NOISE = 4;
   mx.WITH_TOUCH = 8;
+  mx.WITH_DEBUG = 16;
 
   // source files to load, some optionally
   var dependancies = ["libs/glMatrix.js"];
@@ -24,6 +25,7 @@ var mx = {};
                  "components/mxGame.js"];
   var oculusSrc = ["libs/oculus.lib.js"];
   var touchSrc = ["libs/hammer.lib.js"];
+  var debugSrc = ["libs/WebGLInspector/embed.js"];
   var perlinSrc = ["NoiseLib/mxrandom.js",
                    "NoiseLib/noise.js",
                    "NoiseLib/math.js",
@@ -88,7 +90,23 @@ var mx = {};
       loadState.loadPhase2 -= 1;
       if (reportBootup) reportBootup("Stage 3/3 - " + loadState.loadPhase2 + " files to go");
       console.log(" " + filename + " loaded. " + loadState.loadPhase2 + " left");
-      if (!loadState.loadPhase2) main();
+      if (!loadState.loadPhase2)
+      {
+        include(loadState.libdir + "/libs/WebGLInspector/core/embed.js");
+        waitForDebug();
+      }
+    }
+  }
+
+  function waitForDebug()
+  {
+    console.log("debug ready?");
+    if (!HTMLCanvasElement.prototype.getContextOrig || HTMLCanvasElement.prototype.getContext != HTMLCanvasElement.prototype.getContextOrig)
+      main();
+    else
+    {
+      console.log(" debug not ready");
+      setTimeout(waitForDebug, 50);
     }
   }
 
@@ -107,6 +125,7 @@ var mx = {};
   // launch the game using the Game object
   function main()
   {
+    console.log("main called");
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
 
     mx.libdir = loadState.libdir;
@@ -120,8 +139,16 @@ var mx = {};
 
   // external loader function
   // needs array of user files, library file location, library flags
-  mx.loadApp = function(files, lib, type)
+  mx.loadApp = function (files, lib, type)
   {
+    if (urlParams["debug"]) type |= mx.WITH_DEBUG;
+
+    if (type & mx.WITH_DEBUG) {
+      console.log("with debug");
+      window["gliEmbedDebug"] = true;
+      HTMLCanvasElement.prototype.getContextOrig = HTMLCanvasElement.prototype.getContext;
+    }
+
     if (!type) { alert("Missing app type"); return; }
 
     loadState.libtype = type;
@@ -138,11 +165,11 @@ var mx = {};
     loadState.loadDeps = dependancies.length;
     loadState.loadPhase1 = src.length;
     loadState.loadPhase2 = files.length;
+    loadState.loadDebug = (type & mx.WITH_DEBUG) ? 1 : 0;
 
     console.log("Boot up phase 0");
     for (i in dependancies) include(loadState.libdir + "/" + dependancies[i]);
   };
-
 })();
 
 // useful function
@@ -151,3 +178,16 @@ function extend(obj, base)
   for (var property in base)
     if (base.hasOwnProperty(property) || base.__proto__.hasOwnProperty(property)) obj[property] = base[property];
 }
+
+var urlParams;
+(window.onpopstate = function () {
+  var match,
+    pl = /\+/g,  // Regex for replacing addition symbol with a space
+    search = /([^&=]+)=?([^&]*)/g,
+    decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+    query = window.location.search.substring(1);
+
+  urlParams = {};
+  while (match = search.exec(query))
+    urlParams[decode(match[1])] = decode(match[2]);
+})();

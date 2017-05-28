@@ -342,6 +342,8 @@
 
   ShaderManager.prototype.processEffects = function ()
   {
+    this.sources = {};
+
     for (name in this.shaderParts)
     {
       if (this.shaders[name]) continue;
@@ -360,6 +362,7 @@
         src = newsrc; // do it again
       }
 
+//      this.processEffect("[COMMON]\n#version 300 es\n// SHADER NAME: " + name + "\n[END]\n" + src);
       this.processEffect("[COMMON]\n// SHADER NAME: " + name + "\n[END]\n" + src);
       gl.flush();
     }
@@ -386,6 +389,9 @@
     if (vertex.length == 0 && pixel.length == 0) return;
 
     // make a shader
+    var s = { VS: common + vertex, PS: common + pixel };
+    this.sources[name] = s;
+
     var vertexShader = this.compileVertexShader(common + vertex);
     var fragmentShader = this.compilePixelShader(common + pixel);
 
@@ -453,8 +459,6 @@
 
     this.shaders[name] = shader;
   }
-
-
 
   mx.RenderState = RenderState;
   mx.ShaderManager = ShaderManager;
