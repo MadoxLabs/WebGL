@@ -111,13 +111,26 @@ var gl; // leave this global for quick access
     Game.elapsed = 0;
 
     try {
-      gl = Game.surface.getContext("webgl2");
-      ext.debugfx = gl.getExtension("WEBGL_debug_shaders");
-      ext.debugfx = gl.getExtension("EXT_color_buffer_float");
-      ext.debugfx = gl.getExtension("EXT_disjoint_timer_query_webgl2");
-      ext.debugfx = gl.getExtension("EXT_texture_filter_anisotropic");
-      ext.debugfx = gl.getExtension("OES_texture_float_linear");
-      ext.debugfx = gl.getExtension("WEBGL_compressed_texture_s3tc");
+      gl = Game.surface.getContext("experimental-webgl");
+      ext.angle = gl.getExtension("ANGLE_instanced_arrays");
+      ext.index = gl.getExtension("OES_element_index_uint");
+      ext.std = gl.getExtension("OES_standard_derivitives");
+      ext.float = gl.getExtension("OES_texture_float");
+      ext.floatlinear = gl.getExtension("OES_texture_float_linear");
+      ext.halffloat = gl.getExtension("OES_texture_half_float");
+      ext.halffloatlinear = gl.getExtension("OES_texture_half_float_linear");
+      ext.drawbuffers = gl.getExtension("WEBGL_draw_buffers");
+      ext.fragdepth = gl.getExtension("EXT_frag_depth");
+      ext.depthtex = gl.getExtension("WEBGL_depth_texture");
+      ext.texturelod = gl.getExtension("EXT_shader_texture_lod");
+      ext.anisotropic = gl.getExtension("EXT_texture_filter_anisotropic");
+//      gl = Game.surface.getContext("webgl2");
+//      ext.debugfx = gl.getExtension("WEBGL_debug_shaders");
+//      ext.debugfx = gl.getExtension("EXT_color_buffer_float");
+//      ext.debugfx = gl.getExtension("EXT_disjoint_timer_query_webgl2");
+//      ext.debugfx = gl.getExtension("EXT_texture_filter_anisotropic");
+//      ext.debugfx = gl.getExtension("OES_texture_float_linear");
+//      ext.debugfx = gl.getExtension("WEBGL_compressed_texture_s3tc");
 
       gl.viewportWidth = Game.surface.clientWidth;
       gl.viewportHeight = Game.surface.clientHeight;
