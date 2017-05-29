@@ -96,7 +96,7 @@ function doneLoading() { }
       console.log(" " + filename + " loaded. " + loadState.loadPhase2 + " left");
       if (!loadState.loadPhase2)
       {
-        include(loadState.libdir + "/libs/WebGLInspector/core/embed.js");
+        if (loadState.libtype & mx.WITH_DEBUG) include(loadState.libdir + "/libs/WebGLInspector/core/embed.js");
         waitForDebug();
       }
     }
