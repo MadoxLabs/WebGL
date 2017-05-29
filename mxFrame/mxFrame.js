@@ -2,6 +2,10 @@
 // predefined namespaces so loading things have a palce to go
 var LibNoise = {};
 var mx = {};
+function reportBootup(file) { }
+function reportLoaded(name, value) { }
+function reportLoading(name, value) { }
+function doneLoading() { }
 
 (function ()
 {
@@ -68,7 +72,7 @@ var mx = {};
     {
       loadState.loadDeps -= 1;
       console.log(" " + filename + " loaded. " + loadState.loadDeps + " left");
-      if (reportBootup != NULL) reportBootup("Stage 1/3 - " + loadState.loadDeps + " files to go");
+      if (reportBootup) reportBootup("Stage 1/3 - " + loadState.loadDeps + " files to go");
       if (!loadState.loadDeps)
       {
         console.log("Boot up phase 1");
