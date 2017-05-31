@@ -144,27 +144,8 @@ Game.loadingStop = function ()
 
   uLight = effect.createUniform('light');
   uLight.uLightCount = 0;
-  uLight.uGlobalAmbientRGB = [0.5, 0.5, 0.5];
-//  uLight["uLights[0].AmbientFactor"] = 0.05;
-//  uLight["uLights[0].Color"] = [0.1, 0.1, 0.1];
-//  uLight["uLights[0].Attenuation"] = 0.0;
-//  uLight["uLights[0].Position"] = [9.0, 9.0, 39.0];
-//  uLight["uLights[0].WorldToLight"] = mat4.create();
-//  mat4.multiply(uLight["uLights[0].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-//  lamps.push(null); // ambient light is not rendered
-
-  //  uLight["uLights[1].AmbientFactor"] = 0.0;
-  //  uLight["uLights[1].Color"] = [1.0, 0.0, 0.0];
-  //  uLight["uLights[1].Attenuation"] = 0.5;
-  //  uLight["uLights[1].Position"] = [4.0, 4.0, 0.0];
-  //  uLight["uLights[1].WorldToLight"] = mat4.create();
-  //  mat4.multiply(uLight["uLights[1].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
-  //  uLight["uLights[2].AmbientFactor"] = 0.0;
-  //  uLight["uLights[2].Color"] = [0.0, 1.0, 0.0];
-  //  uLight["uLights[2].Attenuation"] = 0.5;
-  //  uLight["uLights[2].Position"] = [-4.0, 4.0, 0.0];
-  //  uLight["uLights[2].WorldToLight"] = mat4.create();
-  //  mat4.multiply(uLight["uLights[2].WorldToLight"], lighteye.eyes[0].projection, lighteye.eyes[0].view);
+  uLight.AmbientFactor = 0.1;
+  uLight.AmbientColor = [0.5, 0.5, 0.5];
 
   mat4.multiply(object.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
   mat4.multiply(grid.uniforms.uWorldToLight, lighteye.eyes[0].projection, lighteye.eyes[0].view);
@@ -225,7 +206,7 @@ Game.addLight = function()
   object.num = uLight.uLightCount;
   lamps.push(object);
 
-  object.ambientFactor = 0.0;
+//  object.ambientFactor = 0.0;
   object.diffuseFactor = 1.0;
   object.color = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
   object.attenuationPower = 2.0;
@@ -236,9 +217,15 @@ Game.addLight = function()
   return uLight.uLightCount;
 }
 
+Game.updateAmbient = function(color, factor)
+{
+  uLight.AmbientColor = color;
+  uLight.AmbientFactor = factor;
+}
+
 Game.updateLightUniform = function(lamp)
 {
-  uLight["uLights[" + lamp.num + "].AmbientFactor"] = lamp.ambientFactor;
+//  uLight["uLights[" + lamp.num + "].AmbientFactor"] = lamp.ambientFactor;
   uLight["uLights[" + lamp.num + "].DiffuseFactor"] = lamp.diffuseFactor;
   uLight["uLights[" + lamp.num + "].Color"] = [lamp.color[0], lamp.color[1], lamp.color[2]];
   uLight["uLights[" + lamp.num + "].Attenuation"] = lamp.attenuation;

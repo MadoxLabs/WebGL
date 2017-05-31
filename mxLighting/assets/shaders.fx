@@ -66,7 +66,6 @@ uniform vec3 camera;             // group camera
 struct LightDefinition 
 {
   vec3 Color;                // group light
-  float AmbientFactor;       // group light
   float DiffuseFactor;       // group light
 //  vec3 SpecularRGB;        // group light
   float Attenuation;         // group light
@@ -76,6 +75,8 @@ struct LightDefinition
 };
 
 uniform int uLightCount;             // group light
+uniform float AmbientFactor;       // group light
+uniform vec3 AmbientColor;       // group light
 uniform LightDefinition uLights[10]; // group light
 
 // material options are: x: texture y/n   y: specular exponant  z: n/a   w: n/a
@@ -111,7 +112,7 @@ vec3 CalculateLight(LightDefinition light)
   vec3 pointToLight = normalize(light.Position - vec3(vPosition));
   float attenuation = 1.0 / (light.Attenuation * pow(d, light.AttenuationPower));
 
-  vec3 ambient = ambientcolor * light.AmbientFactor * light.Color;
+  vec3 ambient = (AmbientColor) * AmbientFactor * light.Color;
 
   float diffuseFactor = max(0.0, dot(vNormal, pointToLight)) * light.DiffuseFactor;
   vec3 diffuse = diffusecolor * light.Color * diffuseFactor;

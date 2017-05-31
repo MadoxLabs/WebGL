@@ -3,6 +3,7 @@
 <title>Madoxlabs Lighting Experimenter</title>
   <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
   <script src="js/tga.js"></script>
+  <script src="js/jscolor.js"></script>
   <script src="../mxFrame/mxFrame.js"></script>
   <script>
     var animImage;
@@ -28,6 +29,8 @@
 
       var lightClick = document.getElementById('lightClick');
       lightClick.onclick = handleNewLight;
+
+      if (!ambPicker) ambPicker = new jscolor(document.getElementById("ambientColor"));
     }
 
     function addModel(name)
@@ -48,6 +51,9 @@
       }
     }
 
+    var picker = null;
+    var ambPicker = null;
+
     function selectLight(n)
     {
       Game.pickLight(n); // array starts at 0
@@ -55,25 +61,41 @@
       document.getElementById("lightEdit").style.visibility = pickedLight ? "visible" : "hidden";
       if (pickedLight)
       {
-        document.getElementById("lightAmbient").value = pickedLight.ambientFactor;
         document.getElementById("lightDiffuse").value = pickedLight.diffuseFactor;
+        document.getElementById("lightDiffuseValue").innerText = pickedLight.diffuseFactor;
         document.getElementById("lightAttenuation").value = pickedLight.attenuation;
+        document.getElementById("lightAttenuationValue").innerText = pickedLight.attenuation;
         document.getElementById("lightAttenuationPower").value = pickedLight.attenuationPower;
-        document.getElementById("lightColorR").value = pickedLight.color[0];
-        document.getElementById("lightColorG").value = pickedLight.color[1];
-        document.getElementById("lightColorB").value = pickedLight.color[2];
+        document.getElementById("lightAttenuationPowerValue").innerText = pickedLight.attenuationPower;
+
+        if (!picker) picker = new jscolor(document.getElementById("lightColor"));
+        picker.fromRGB((pickedLight.color[0] * 255.0), (pickedLight.color[1] * 255.0), (pickedLight.color[2] * 255.0));
       }
+    }
+
+    function updateAmbient()
+    {
+      let factor = document.getElementById("lightAmbient").value;
+      let r = parseInt(document.getElementById("ambientColor").value.substr(0, 2), 16) / 255.0;
+      let g = parseInt(document.getElementById("ambientColor").value.substr(2, 2), 16) / 255.0;
+      let b = parseInt(document.getElementById("ambientColor").value.substr(4, 2), 16) / 255.0;
+      Game.updateAmbient([r, g, b], factor);
+      document.getElementById("lightAmbientValue").innerText = factor;
     }
 
     function updateLight()
     {
-      pickedLight.ambientFactor = document.getElementById("lightAmbient").value;
       pickedLight.attenuation = document.getElementById("lightAttenuation").value;
       pickedLight.diffuseFactor = document.getElementById("lightDiffuse").value;
       pickedLight.attenuationPower = document.getElementById("lightAttenuationPower").value;
-      pickedLight.color[0] = document.getElementById("lightColorR").value;
-      pickedLight.color[1] = document.getElementById("lightColorG").value;
-      pickedLight.color[2] = document.getElementById("lightColorB").value;
+      pickedLight.color[0] = parseInt(document.getElementById("lightColor").value.substr(0, 2), 16) / 255.0;
+      pickedLight.color[1] = parseInt(document.getElementById("lightColor").value.substr(2, 2), 16) / 255.0;
+      pickedLight.color[2] = parseInt(document.getElementById("lightColor").value.substr(4, 2), 16) / 255.0;
+
+      document.getElementById("lightDiffuseValue").innerText = pickedLight.diffuseFactor;
+      document.getElementById("lightAttenuationPowerValue").innerText = pickedLight.attenuationPower;
+      document.getElementById("lightAttenuationValue").innerText = pickedLight.attenuation;
+
       Game.updateLightUniform(pickedLight);
     }
 
@@ -202,13 +224,15 @@
     <div class="mxTitle">Lighting Experimenter</div>
     <div><canvas style="width:100%; height:100%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
-    <div id="lightEdit" class="importControl" style="top:55px; left:5px; position:absolute;">
-    Ambient Factor: <input size="2" id="lightAmbient" /><br />
-    Diffuse Factor: <input size="2" id="lightDiffuse" /><br />
-    Attenuation:<input size="2" id="lightAttenuation" /><br />
-    Attenuation Power:<input size="2" id="lightAttenuationPower" /><br />
-    Color:<input size="2" id="lightColorR" /><input size="2" id="lightColorG" /><input size="2" id="lightColorB" /><br />
-    <button onclick="updateLight()">Update</button>
+    <div id="lightEdit" class="importControl" style="top:130px; left:5px; position:absolute;">
+      Diffuse Factor: <input type=range min=0 max=1 value=1 step="0.01" id="lightDiffuse" oninput="updateLight();" /><span id="lightDiffuseValue">1</span><br />
+      Attenuation:<input type=range min=0 max=10 value=2 step="0.1" id="lightAttenuation" oninput="updateLight();" /><span id="lightAttenuationValue">2</span><br />
+      Attenuation Power:<input type=range min=0 max=5 value=2 step="0.1" id="lightAttenuationPower" oninput="updateLight();" /><span id="lightAttenuationPowerValue">2</span><br />
+      Color:<input class="jscolor" value="ffffff" id="lightColor" oninput="updateLight();" onchange="updateLight();" /><br />
+    </div>
+    <div id="ambientEdit" class="importControl" style="top:55px; left:5px; position:absolute;">
+      Ambient Factor: <input type=range min=0 max=1 value=0.1 step="0.01" id="lightAmbient" oninput="updateAmbient();" /><span id="lightAmbientValue">0.1</span><br />
+      Color:<input class="jscolor" value="ffffff" id="ambientColor" oninput="updateAmbient();" onchange="updateAmbient();" /><br />
     </div>
   </div>
 </body>
