@@ -112,8 +112,6 @@ vec3 CalculateLight(LightDefinition light)
   vec3 pointToLight = normalize(light.Position - vec3(vPosition));
   float attenuation = 1.0 / (light.Attenuation * pow(d, light.AttenuationPower));
 
-  vec3 ambient = (AmbientColor) * AmbientFactor * light.Color;
-
   float diffuseFactor = max(0.0, dot(vNormal, pointToLight)) * light.DiffuseFactor;
   vec3 diffuse = diffusecolor * light.Color * diffuseFactor;
 
@@ -130,13 +128,15 @@ vec3 CalculateLight(LightDefinition light)
 //  if (IsShadow(vPosition, vNormal, light))  
 //    return vec3(0.0, 0.0, 0.0);
 //  else   
-    return  min(ambient + ((diffuse + specular) * attenuation) + emissivecolor, 1.0);
+    return  min(((diffuse + specular) * attenuation) + emissivecolor, 1.0);
 }
 
 void main(void) 
 {
   vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
   vec3 light = vec3(0.0,0.0,0.0);
+
+  vec3 ambient = (AmbientColor) * AmbientFactor;
 
   if (uLightCount > 0) light = max(light, CalculateLight(uLights[0]));
   if (uLightCount > 1) light = max(light, CalculateLight(uLights[1]));
@@ -156,7 +156,7 @@ void main(void)
     tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
   }
 
-  gl_FragColor =  vec4(light, 1.0) * tex;
+  gl_FragColor =  vec4(min(light + ambient, 1.0), 1.0) * tex;
 }
 
 [END]

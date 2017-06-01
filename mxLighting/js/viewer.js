@@ -207,10 +207,10 @@ Game.addLight = function()
   lamps.push(object);
 
 //  object.ambientFactor = 0.0;
-  object.diffuseFactor = 1.0;
+  object.diffuseFactor = 0.9;
   object.color = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
-  object.attenuationPower = 2.0;
-  object.attenuation = 0.5;
+  object.attenuationPower = 0.0;
+  object.attenuation = 1.0;
   Game.updateLightUniform(object);
 
   uLight.uLightCount += 1;
