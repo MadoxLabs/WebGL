@@ -84,6 +84,8 @@ Game.setModel = function(name)
                           0.0);
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
+
+  modelChanged();
 }
 
 Game.loadingStop = function ()
@@ -208,13 +210,25 @@ Game.addLight = function()
 
 //  object.ambientFactor = 0.0;
   object.diffuseFactor = 0.9;
-  object.color = [(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
+  object.color = [1, 1, 1];//(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
   object.attenuationPower = 0.0;
   object.attenuation = 1.0;
   Game.updateLightUniform(object);
 
   uLight.uLightCount += 1;
   return uLight.uLightCount;
+}
+
+Game.updateMaterial = function (index, diffuse, spec, exp, tex)
+{
+  object.model.groups[index].material.diffusecolor[0] = diffuse[0];
+  object.model.groups[index].material.diffusecolor[1] = diffuse[1];
+  object.model.groups[index].material.diffusecolor[2] = diffuse[2];
+  object.model.groups[index].material.specularcolor[0] = spec[0];
+  object.model.groups[index].material.specularcolor[1] = spec[1];
+  object.model.groups[index].material.specularcolor[2] = spec[2];
+  object.model.groups[index].material.materialoptions[1] = exp;
+  object.model.groups[index].material.materialoptions[0] = tex;
 }
 
 Game.updateAmbient = function(color, factor)

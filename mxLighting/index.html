@@ -51,8 +51,44 @@
       }
     }
 
+    function modelChanged()
+    {
+      let buf = "";
+
+      document.getElementById("materialEdit").style.visibility = "hidden";
+
+      for (let i in object.model.groups)
+      {
+        buf += "<div onclick='selectMat(" + i + ");'><p style='cursor: pointer;'>Material  " + i + " ("+object.model.groups[i].texture+")</p></div>";
+      }
+      document.getElementById("listMats").innerHTML = buf;
+    }
+
     var picker = null;
     var ambPicker = null;
+
+    var pickedMat = false;
+    var pickedMatIndex = -1;
+
+    function selectMat(n)
+    {
+      if (pickedMatIndex == n && pickedMat) pickedMat = false;
+      else {        pickedMatIndex = n; pickedMat = true;      }
+      document.getElementById("materialEdit").style.visibility = pickedMat ? "visible" : "hidden";
+
+      if (pickedMat)
+      {
+        document.getElementById("materialName").innerText = "Material " + n;
+        document.getElementById("materialTexture").checked = object.model.groups[n].material.materialoptions[0];
+        document.getElementById("materialExponantValue").value = object.model.groups[n].material.materialoptions[1];
+        document.getElementById("materialExponant").value = object.model.groups[n].material.materialoptions[1];
+//        document.getElementById("materialDiffuse").innerText = object.model.groups[n].diffusecolor;
+//        document.getElementById("materialSpecular").value = object.model.groups[n].specularcolor;
+
+//        if (!picker) picker = new jscolor(document.getElementById("lightColor"));
+//        picker.fromRGB((pickedLight.color[0] * 255.0), (pickedLight.color[1] * 255.0), (pickedLight.color[2] * 255.0));
+      }
+    }
 
     function selectLight(n)
     {
@@ -81,6 +117,20 @@
       let b = parseInt(document.getElementById("ambientColor").value.substr(4, 2), 16) / 255.0;
       Game.updateAmbient([r, g, b], factor);
       document.getElementById("lightAmbientValue").innerText = factor;
+    }
+
+    function updateMaterial()
+    {
+      let factor = document.getElementById("materialExponant").value;
+      let tex = document.getElementById("materialTexture").checked ? 1 : 0;
+      let r = parseInt(document.getElementById("materialDiffuse").value.substr(0, 2), 16) / 255.0;
+      let g = parseInt(document.getElementById("materialDiffuse").value.substr(2, 2), 16) / 255.0;
+      let b = parseInt(document.getElementById("materialDiffuse").value.substr(4, 2), 16) / 255.0;
+      let rs = parseInt(document.getElementById("materialSpecular").value.substr(0, 2), 16) / 255.0;
+      let gs = parseInt(document.getElementById("materialSpecular").value.substr(2, 2), 16) / 255.0;
+      let bs = parseInt(document.getElementById("materialSpecular").value.substr(4, 2), 16) / 255.0;
+      Game.updateMaterial(pickedMatIndex, [r, g, b], [rs, gs, bs], parseInt(factor), tex);
+      document.getElementById("materialExponantValue").innerText = factor;
     }
 
     function updateLight()
@@ -214,9 +264,11 @@
   <br />
   <div id="models" class="importControl sidebar"><center><p>Recent Models</p><div id="modelDrop">Drop models here</div></center><div id="listModels"></div></div>
   <br />
-  <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
+  <div id="materials" class="importControl sidebar"><center><p>Materials</p></center><div id="listMats"></div></div>
   <br />
   <div id="newlight" class="importControl sidebar"><center><p>Lights</p><div id="lightClick">Add light source</div></center><div id="listLights"></div></div>
+  <br />
+  <div id="textures" class="importControl sidebar"><center><p>Textures</p><div id="texDrop">Drop files here</div></center><div id="listTextures"></div></div>
   <div id="edge"></div>
   <div class="top" id="mover"></div>
 
@@ -224,7 +276,7 @@
     <div class="mxTitle">Lighting Experimenter</div>
     <div><canvas style="width:100%; height:100%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
-    <div id="lightEdit" class="importControl" style="top:130px; left:5px; position:absolute;">
+    <div id="lightEdit" class="importControl" style="top:280px; left:5px; position:absolute;">
       Diffuse Factor: <input type=range min=0 max=1 value=1 step="0.01" id="lightDiffuse" oninput="updateLight();" /><span id="lightDiffuseValue">1</span><br />
       Attenuation:<input type=range min=0 max=10 value=2 step="0.1" id="lightAttenuation" oninput="updateLight();" /><span id="lightAttenuationValue">2</span><br />
       Attenuation Power:<input type=range min=0 max=5 value=2 step="0.1" id="lightAttenuationPower" oninput="updateLight();" /><span id="lightAttenuationPowerValue">2</span><br />
@@ -233,6 +285,13 @@
     <div id="ambientEdit" class="importControl" style="top:55px; left:5px; position:absolute;">
       Ambient Factor: <input type=range min=0 max=1 value=0.1 step="0.01" id="lightAmbient" oninput="updateAmbient();" /><span id="lightAmbientValue">0.1</span><br />
       Color:<input class="jscolor" value="ffffff" id="ambientColor" oninput="updateAmbient();" onchange="updateAmbient();" /><br />
+    </div>
+    <div id="materialEdit" class="importControl" style="top:130px; left:5px; position:absolute;">
+      <p id="materialName"></p><br />
+      Texture? <input id="materialTexture" type="checkbox" oninput="updateMaterial();" onchange="updateMaterial();"/><br />
+      Diffuse Color:<input class="jscolor" value="ffffff" id="materialDiffuse" oninput="updateMaterial();" onchange="updateMaterial();" /><br />
+      Specular Color:<input class="jscolor" value="ffffff" id="materialSpecular" oninput="updateMaterial();" onchange="updateMaterial();" /><br />
+      Specular Exponant: <input type=range min=0 max=20 value=9 step="0.1" id="materialExponant" oninput="updateMaterial();" /><span id="materialExponantValue">0.1</span><br />
     </div>
   </div>
 </body>
