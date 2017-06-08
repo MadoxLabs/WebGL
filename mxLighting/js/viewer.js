@@ -65,6 +65,8 @@ Game.loadingStart = function ()
 Game.setModel = function(name)
 {
   model = Game.assetMan.assets[name];
+  if (!model) return;
+
   // determine model size and bring it down to reasonable proportions
   scale = 3.0;
   for (var i = 0; i < 2; ++i)
