@@ -211,7 +211,7 @@ Game.addLight = function()
   lamps.push(object);
 
 //  object.ambientFactor = 0.0;
-  object.diffuseFactor = 0.9;
+  object.intensity = 0.9;
   object.color = [1, 1, 1];//(Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0, (Math.random() + 0.5) | 0];
   object.attenuationPower = 0.0;
   object.attenuation = 1.0;
@@ -221,7 +221,7 @@ Game.addLight = function()
   return uLight.uLightCount;
 }
 
-Game.updateMaterial = function (index, diffuse, spec, exp, tex)
+Game.updateMaterial = function (index, diffuse, spec, exp, tex, over)
 {
   object.model.groups[index].material.diffusecolor[0] = diffuse[0];
   object.model.groups[index].material.diffusecolor[1] = diffuse[1];
@@ -231,6 +231,7 @@ Game.updateMaterial = function (index, diffuse, spec, exp, tex)
   object.model.groups[index].material.specularcolor[2] = spec[2];
   object.model.groups[index].material.materialoptions[1] = exp;
   object.model.groups[index].material.materialoptions[0] = tex;
+  object.model.groups[index].material.materialoptions[2] = over;
 }
 
 Game.updateAmbient = function(color, factor)
@@ -242,7 +243,7 @@ Game.updateAmbient = function(color, factor)
 Game.updateLightUniform = function(lamp)
 {
 //  uLight["uLights[" + lamp.num + "].AmbientFactor"] = lamp.ambientFactor;
-  uLight["uLights[" + lamp.num + "].DiffuseFactor"] = lamp.diffuseFactor;
+  uLight["uLights[" + lamp.num + "].Intensity"] = lamp.intensity;
   uLight["uLights[" + lamp.num + "].Color"] = [lamp.color[0], lamp.color[1], lamp.color[2]];
   uLight["uLights[" + lamp.num + "].Attenuation"] = lamp.attenuation;
   uLight["uLights[" + lamp.num + "].AttenuationPower"] = lamp.attenuationPower;

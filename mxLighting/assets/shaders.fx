@@ -66,20 +66,19 @@ uniform vec3 camera;             // group camera
 struct LightDefinition 
 {
   vec3 Color;                // group light
-  float DiffuseFactor;       // group light
-//  vec3 SpecularRGB;        // group light
+  float Intensity;           // group light
   float Attenuation;         // group light
-  float AttenuationPower;         // group light
+  float AttenuationPower;    // group light
   vec3 Position;             // group light
   mat4 WorldToLight;         // group light
 };
 
 uniform int uLightCount;             // group light
-uniform float AmbientFactor;       // group light
-uniform vec3 AmbientColor;       // group light
+uniform float AmbientFactor;         // group light
+uniform vec3 AmbientColor;           // group light
 uniform LightDefinition uLights[10]; // group light
 
-// material options are: x: texture y/n   y: specular exponant  z: n/a   w: n/a
+// material options are: x: texture y/n   y: specular exponant  z: specular override   w: n/a
 uniform vec4 materialoptions;    // group material
 uniform vec3 ambientcolor;       // group material
 uniform vec3 diffusecolor;       // group material
@@ -105,6 +104,8 @@ bool IsShadow(vec4 position, vec3 normal, LightDefinition light)
   return false;
 }
 
+float maxSpecular = 0.0;
+
 vec3 CalculateLight(LightDefinition light)
 {
   // work out the lighting
@@ -112,22 +113,28 @@ vec3 CalculateLight(LightDefinition light)
   vec3 pointToLight = normalize(light.Position - vec3(vPosition));
   float attenuation = 1.0 / (light.Attenuation * pow(d, light.AttenuationPower));
 
-  float diffuseFactor = max(0.0, dot(vNormal, pointToLight)) * light.DiffuseFactor;
+  float diffuseFactor = max(0.0, dot(vNormal, pointToLight)) * light.Intensity;
   vec3 diffuse = diffusecolor * light.Color * diffuseFactor;
 
   vec3 specular = vec3(0.0, 0.0, 0.0);
+  float specfactor;
   if (diffuseFactor > 0.0) 
   {
     vec3 cameradir = normalize(camera - vec3(vPosition));
     vec3 reflection = normalize(reflect(-pointToLight, vNormal));
-    float specfactor = max(0.0, dot(cameradir, reflection));
+    specfactor = max(0.0, dot(cameradir, reflection));
     specfactor = pow(specfactor, materialoptions.y);
     specular =  specularcolor * light.Color * specfactor;
+
+    if (specfactor > maxSpecular) maxSpecular = specfactor;
   }
 
 //  if (IsShadow(vPosition, vNormal, light))  
 //    return vec3(0.0, 0.0, 0.0);
 //  else   
+  if (specfactor > 0.5 && materialoptions.z > 0.0)
+    return min((specular * attenuation) + emissivecolor, 1.0);
+  else 
     return  min(((diffuse + specular) * attenuation) + emissivecolor, 1.0);
 }
 
@@ -150,7 +157,11 @@ void main(void)
   if (uLightCount > 9) light = max(light, CalculateLight(uLights[9]));
 
   // work out the texture color
-  if (materialoptions.x > 0.0)
+  if (maxSpecular > 0.5 && materialoptions.z > 0.0)
+  {
+
+  }
+  else if (materialoptions.x > 0.0)
   {
     // has a texture
     tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));

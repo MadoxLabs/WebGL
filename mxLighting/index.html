@@ -80,6 +80,7 @@
       {
         document.getElementById("materialName").innerText = "Material " + n;
         document.getElementById("materialTexture").checked = object.model.groups[n].material.materialoptions[0];
+        document.getElementById("materialOverride").checked = object.model.groups[n].material.materialoptions[2];
         document.getElementById("materialExponantValue").value = object.model.groups[n].material.materialoptions[1];
         document.getElementById("materialExponant").value = object.model.groups[n].material.materialoptions[1];
 //        document.getElementById("materialDiffuse").innerText = object.model.groups[n].diffusecolor;
@@ -97,8 +98,8 @@
       document.getElementById("lightEdit").style.visibility = pickedLight ? "visible" : "hidden";
       if (pickedLight)
       {
-        document.getElementById("lightDiffuse").value = pickedLight.diffuseFactor;
-        document.getElementById("lightDiffuseValue").innerText = pickedLight.diffuseFactor;
+        document.getElementById("lightIntensity").value = pickedLight.intensity;
+        document.getElementById("lightIntensityValue").innerText = pickedLight.intensity;
         document.getElementById("lightAttenuation").value = pickedLight.attenuation;
         document.getElementById("lightAttenuationValue").innerText = pickedLight.attenuation;
         document.getElementById("lightAttenuationPower").value = pickedLight.attenuationPower;
@@ -123,26 +124,27 @@
     {
       let factor = document.getElementById("materialExponant").value;
       let tex = document.getElementById("materialTexture").checked ? 1 : 0;
+      let over = document.getElementById("materialOverride").checked ? 1 : 0;
       let r = parseInt(document.getElementById("materialDiffuse").value.substr(0, 2), 16) / 255.0;
       let g = parseInt(document.getElementById("materialDiffuse").value.substr(2, 2), 16) / 255.0;
       let b = parseInt(document.getElementById("materialDiffuse").value.substr(4, 2), 16) / 255.0;
       let rs = parseInt(document.getElementById("materialSpecular").value.substr(0, 2), 16) / 255.0;
       let gs = parseInt(document.getElementById("materialSpecular").value.substr(2, 2), 16) / 255.0;
       let bs = parseInt(document.getElementById("materialSpecular").value.substr(4, 2), 16) / 255.0;
-      Game.updateMaterial(pickedMatIndex, [r, g, b], [rs, gs, bs], parseInt(factor), tex);
+      Game.updateMaterial(pickedMatIndex, [r, g, b], [rs, gs, bs], parseInt(factor), tex, over);
       document.getElementById("materialExponantValue").innerText = factor;
     }
 
     function updateLight()
     {
       pickedLight.attenuation = document.getElementById("lightAttenuation").value;
-      pickedLight.diffuseFactor = document.getElementById("lightDiffuse").value;
+      pickedLight.intensity = document.getElementById("lightIntensity").value;
       pickedLight.attenuationPower = document.getElementById("lightAttenuationPower").value;
       pickedLight.color[0] = parseInt(document.getElementById("lightColor").value.substr(0, 2), 16) / 255.0;
       pickedLight.color[1] = parseInt(document.getElementById("lightColor").value.substr(2, 2), 16) / 255.0;
       pickedLight.color[2] = parseInt(document.getElementById("lightColor").value.substr(4, 2), 16) / 255.0;
 
-      document.getElementById("lightDiffuseValue").innerText = pickedLight.diffuseFactor;
+      document.getElementById("lightIntensityValue").innerText = pickedLight.intensity;
       document.getElementById("lightAttenuationPowerValue").innerText = pickedLight.attenuationPower;
       document.getElementById("lightAttenuationValue").innerText = pickedLight.attenuation;
 
@@ -277,7 +279,7 @@
     <div><canvas style="width:100%; height:100%;" id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
     <div id="lightEdit" class="importControl" style="top:280px; left:5px; position:absolute;">
-      Diffuse Factor: <input type=range min=0 max=1 value=1 step="0.01" id="lightDiffuse" oninput="updateLight();" /><span id="lightDiffuseValue">1</span><br />
+      Intensity: <input type=range min=0 max=1 value=1 step="0.01" id="lightIntensity" oninput="updateLight();" /><span id="lightIntensityValue">1</span><br />
       Attenuation:<input type=range min=0 max=10 value=2 step="0.1" id="lightAttenuation" oninput="updateLight();" /><span id="lightAttenuationValue">2</span><br />
       Attenuation Power:<input type=range min=0 max=5 value=2 step="0.1" id="lightAttenuationPower" oninput="updateLight();" /><span id="lightAttenuationPowerValue">2</span><br />
       Color:<input class="jscolor" value="ffffff" id="lightColor" oninput="updateLight();" onchange="updateLight();" /><br />
@@ -288,9 +290,13 @@
     </div>
     <div id="materialEdit" class="importControl" style="top:130px; left:5px; position:absolute;">
       <p id="materialName"></p><br />
-      Texture? <input id="materialTexture" type="checkbox" oninput="updateMaterial();" onchange="updateMaterial();"/><br />
+      Texture? <input id="materialTexture" type="checkbox" oninput="updateMaterial();" onchange="updateMaterial();" /><br />
+      Specular Override? <input id="materialOverride" type="checkbox" oninput="updateMaterial();" onchange="updateMaterial();" /><br />
+      Ambient Factor: <input type=range min=0 max=1 value=1 step="0.01" id="lightDiffuse" oninput="updateLight();" /><span id="lightDiffuseValue">1</span><br />
       Diffuse Color:<input class="jscolor" value="ffffff" id="materialDiffuse" oninput="updateMaterial();" onchange="updateMaterial();" /><br />
+      Diffuse Factor: <input type=range min=0 max=1 value=1 step="0.01" id="lightDiffuse" oninput="updateLight();" /><span id="lightDiffuseValue">1</span><br />
       Specular Color:<input class="jscolor" value="ffffff" id="materialSpecular" oninput="updateMaterial();" onchange="updateMaterial();" /><br />
+      Specular Factor: <input type=range min=0 max=1 value=1 step="0.01" id="lightDiffuse" oninput="updateLight();" /><span id="lightDiffuseValue">1</span><br />
       Shine: <input type=range min=1 max=100 value=9 step="1" id="materialExponant" oninput="updateMaterial();" /><span id="materialExponantValue">9</span><br />
     </div>
   </div>
