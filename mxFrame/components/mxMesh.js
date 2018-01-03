@@ -106,7 +106,7 @@
         mat4.identity(trans); mat4.multiply(trans, r, s);  mat4.multiply(trans, t, trans);
         this.loadFromArrays(data.groups[g].models[m].mesh.vertexs, data.groups[g].models[m].mesh.indexes, data.attributes, gl.TRIANGLES, data.groups[g].models[m].mesh.indexes.length, g, trans);
       }
-      this.groups[g].material.loadFromFBX(data.groups[g]);
+      if (data.groups[g].material) this.groups[g].material.loadFromFBX(data.groups[g]);
       if (data.groups[g].texture)
       {
         var name = data.groups[g].texture.lastIndexOf('/');
