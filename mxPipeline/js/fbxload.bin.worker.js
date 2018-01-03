@@ -551,8 +551,8 @@ function outputGeometry(mesh)
   curmesh.vertexs = mesh.Vertices[0];
   if (mesh.LayerElementUV) curmesh.uv = mesh.LayerElementUV.UV[0];
 
-  curmesh.normalmapping = mesh.LayerElementNormal.ReferenceInformationType[0] == "Direct" ? 1 : 0;
-  curmesh.indexmapping = mesh.LayerElementUV.ReferenceInformationType[0] == "Direct" ? 1 : 0;
+  if (mesh.LayerElementNormal) curmesh.normalmapping = mesh.LayerElementNormal.ReferenceInformationType[0] == "Direct" ? 1 : 0;
+  if (mesh.LayerElementUV) curmesh.indexmapping = mesh.LayerElementUV.ReferenceInformationType[0] == "Direct" ? 1 : 0;
 
   // new way: get all indexes until the negative one, reverse the negative one
   // push triangles from this group: 1,2,3 1,3,4 1,4,5 etc until done
