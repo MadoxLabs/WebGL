@@ -86,6 +86,7 @@
 
     for (var g = 0; g < data.groups.length; ++g)
     {
+      if (!data.groups[g].models) continue;
       for (var m = 0; m < data.groups[g].models.length; ++m)
       {
         this.boundingbox.push(data.groups[g].models[m].boundingbox);
