@@ -446,6 +446,8 @@ function process(data)
   // get full bb
   var bb = {};
   for (var g = 0; g < file.groups.length; ++g)
+  {
+    if (!file.groups[g].models) continue;
     for (var m = 0; m < file.groups[g].models.length; ++m) {
       var mbb = file.groups[g].models[m].boundingbox;
       if (!bb.min) bb.min = [mbb.min[0], mbb.min[1], mbb.min[2]];
@@ -461,6 +463,7 @@ function process(data)
         if (mbb.max[2] > bb.max[2]) bb.max[2] = mbb.max[2];
       }
     }
+  }
   file.boundingbox = bb;
 
   // encode for transmission
