@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <title>Chrome bug test</title>
+    <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
+    <script src="../mxFrame/mxFrame.js"></script>
+    <script>
+      let assets = {};
+      function reportBootup(value)
+      {
+        var out = document.getElementById("loading");
+        out.innerHTML = "Chrome bug test<br>Booting up: " + value;
+      }
+      function reportLoaded(name, value)
+      {
+        var out = document.getElementById("loading");
+        delete assets["<br>" +name];
+        out.innerHTML = "Chrome bug test<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
+      }
+      function reportLoading(name, value)
+      {
+        var out = document.getElementById("loading");
+        assets["<br>"+name] = 1;
+        out.innerHTML = "Chrome bug test<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
+      }
+      function doneLoading()
+      {
+        document.getElementById("loading").style.visibility = "hidden";
+      }
+      function toggle()
+      {
+        mx.Game.toggle();
+      }
+    </script>
+  </head>
+  <body style="margin:0;padding:0;" onload="mx.loadApp(['js/lib/cannon.js', 
+                                                        'js/escape.js'], '../mxFrame', mx.WITH_MXFRAME);">
+    <div><canvas id='surface'></canvas></div>
+    <div id="loading">Chrome bug test<br />Booting up:</div>
+    <button onclick="toggle();">Click to toggle shaders</button>
+  </body>
+</html>
