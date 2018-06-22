@@ -25,11 +25,10 @@ uniform mat4 localTransform;     // group perpart
 
 void main(void) 
 {
-  vec2 crap = aTextureCoord;
-  vec3 crap2 = aVertexNormal;
-
+  float chromeCrap = aTextureCoord.x * aVertexNormal.x * 0.0; // chrome requires every attribute to be used
+  
   gl_Position = projection * view * uWorld * localTransform * vec4(aVertexPosition, 1.0);
-  vDepth = gl_Position.z / gl_Position.w;
+  vDepth = gl_Position.z / gl_Position.w + chromeCrap;
 }
 [END]
 
