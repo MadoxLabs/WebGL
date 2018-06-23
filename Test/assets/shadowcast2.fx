@@ -15,8 +15,6 @@ noblend
 [VERTEX]
 
 attribute vec3 aVertexPosition;  // POS
-attribute vec2 aTextureCoord;    // TEX0
-attribute vec3 aVertexNormal;    // NORM
 
 uniform mat4 projection;         // group camera
 uniform mat4 view;               // group camera
