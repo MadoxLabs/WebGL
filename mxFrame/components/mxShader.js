@@ -76,7 +76,7 @@
       var size = this.attributes[attr].size;  // get the size and type for this attribute as set in the shader
       var type = this.attributes[attr].type;
       //    gl.enableVertexAttribArray(attr);
-      gl.vertexAttribPointer(attr, size, type, false, this.stride, offset);
+      gl.vertexAttribPointer(attr, size, type, false, 32, offset);
     }
   }
 
