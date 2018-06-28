@@ -165,12 +165,10 @@
       this.setUniforms(group.material);
       if (this.textures.length)
       {
-        if (group.texture)
-        {
-          if (mx.Game.assetMan.assets[group.texture]) { this.bindTexture('uTexture', mx.Game.assetMan.assets[group.texture].texture); }
-          else this.bindTexture('uTexture', mx.Game.assetMan.assets["missing"].texture);
-        }
-        else this.bindTexture('uTexture', null);
+        if (group.texture && mx.Game.assetMan.assets[group.texture]) { this.bindTexture('uTexture', mx.Game.assetMan.assets[group.texture].texture); }
+        else this.bindTexture('uTexture', mx.Game.assetMan.assets["missing"].texture);
+//        }
+//        else this.bindTexture('uTexture', null);
       }
 
       // render the parts
