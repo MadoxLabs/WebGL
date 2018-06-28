@@ -138,12 +138,12 @@ vec3 CalculateLight(LightDefinition light)
     return  min(((diffuse + specular) * attenuation) + emissivecolor, 1.0);
 }
 
-void main(void) 
+void main(void)
 {
   vec4 tex = vec4(1.0, 1.0, 1.0, 1.0);
-  vec3 light = vec3(0.0,0.0,0.0);
+  vec3 light = vec3(0.0, 0.0, 0.0);
 
-  vec3 ambient = (AmbientColor) * AmbientFactor;
+  vec3 ambient = (AmbientColor)* AmbientFactor;
 
   if (uLightCount > 0) light = max(light, CalculateLight(uLights[0]));
   if (uLightCount > 1) light = max(light, CalculateLight(uLights[1]));
@@ -157,17 +157,21 @@ void main(void)
   if (uLightCount > 9) light = max(light, CalculateLight(uLights[9]));
 
   // work out the texture color
-  if (maxSpecular > 0.5 && materialoptions.z > 0.0)
+  if (materialoptions.x > 0.0)     // has a texture
   {
-
-  }
-  else if (materialoptions.x > 0.0)
-  {
-    // has a texture
     tex = texture2D(uTexture, vec2(vTextureCoord.x, vTextureCoord.y));
   }
 
-  gl_FragColor =  vec4(min(light + ambient, 1.0), 1.0) * tex;
+  if (maxSpecular > 0.5 && materialoptions.z > 0.0)
+  {
+    tex = tex * (1.0 - maxSpecular);
+    gl_FragColor = vec4(min(light + ambient, 1.0), 1.0) + tex; // plus seems to work better here
+  }
+  else
+  {
+    gl_FragColor = vec4(min(light + ambient, 1.0), 1.0) * tex; // should be plus?
+  }
+
 }
 
 [END]

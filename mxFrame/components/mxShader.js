@@ -1,5 +1,7 @@
 (function ()
 {
+  var poorMansLookup = { "POS": 12, "TEX0": 8, "NORM": 12 };
+
   function ShaderTexture()
   {
     this.name = 0;
@@ -68,15 +70,29 @@
     else gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
+
+    // compute mesh stride
+    if (!mesh.stride)
+    {
+      mesh.stride = 0;
+      for (var code in mesh.attributes)
+      {
+        var offset = mesh.attributes[code];
+        var bytes = poorMansLookup[code];
+        if (!bytes) console.log("Missing poor man's lookup for " + code);
+        if (offset + bytes > mesh.stride) mesh.stride = offset + bytes;
+      }
+    }
+
     for (var code in mesh.attributes)          // code is what this attribute represents - IE TEX0, POSITION
     {
       var offset = mesh.attributes[code];     // get offset into the vertex buffer definition
       var attr = this.attributes[code];       // look up what attribute number this is in the shader
-      if (attr == undefined) continue;                    // shader doesnt use this
+      if (attr == undefined) continue;        // shader doesnt use this
       var size = this.attributes[attr].size;  // get the size and type for this attribute as set in the shader
       var type = this.attributes[attr].type;
       //    gl.enableVertexAttribArray(attr);
-      gl.vertexAttribPointer(attr, size, type, false, 32, offset);
+      gl.vertexAttribPointer(attr, size, type, false, mesh.stride, offset);
     }
   }
 
