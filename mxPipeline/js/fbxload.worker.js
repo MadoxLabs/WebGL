@@ -22,6 +22,11 @@ function done()
     if (objects[id].type === "material") groups[groups.length] = objects[id];
     else if (objects[id].type === "model" && objects[id].mesh)
     {
+      if (!objects[id].mesh.vertexs) { log(objects[id].name + " does not have vertex data."); continue; }
+      if (!objects[id].mesh.indexes) { log(objects[id].name + " does not have index data."); continue; }
+      if (!objects[id].mesh.uvindex) { log(objects[id].name + " does not have uvindex data."); continue; }
+      if (!objects[id].mesh.normals) { log(objects[id].name + " does not have normals data."); continue; }
+
       objects[id].mesh = bake(objects[id].name, objects[id].mesh);
       objects[id].boundingbox = getBB(objects[id])
     }
@@ -37,6 +42,7 @@ function done()
     for (var m = 0; m < groups[g].models.length; ++m)
     {
       var mbb = groups[g].models[m].boundingbox;
+      if (!mbb) continue;
       if (!bb.min) bb.min = [mbb.min[0], mbb.min[1], mbb.min[2]];
       else
       {
@@ -190,16 +196,222 @@ var lastmapping = 0;
 
 function process(data)
 {
-  var lines = data.replace(/\r/g,"").split("\n");
-  // hunt for objects
-  var i = 0;
-  var state = States.FindObjects;
+  var lines = data.replace(/\r/g, "").split("\n");
+  var state = States.FindObjects; 
 
-  for (;i < lines.length; ++i) if (lines[i].indexOf("Objects: ") != -1) { state = States.FindTag; break; }
+  // scan the lines looking for "Objects:"
+  // also be on the lookout for the version
+  var version = "";
+  for (var i = 0; i < lines.length; ++i)
+  {
+    if (lines[i].indexOf("FBXVersion: ") != -1) { version = lines[i].split(":")[1].trim(); }
+    if (lines[i].indexOf("Objects: ") != -1) { state = States.FindTag; break; }
+  }
   if (state == States.FindObjects) { log("ERROR: File is not an FBX file."); return; }
+  if (version == "6100") process6100(lines);
+  else if (version == "7300") process7300(lines);
+  else log("ERROR: Madox Pipline does not support FBX ascii " + version);
+}
 
+function process6100(lines)
+{
   // watch for geometry, model, material, connections
-  for (; i < lines.length; ++i)
+  var state = States.FindTag;
+  var objectMode = false;
+  for (var i = 0; i < lines.length; ++i)
+  {
+    datalog(lines[i]);
+
+    if (objectMode)
+    {
+      if (lines[i].indexOf("ShadingModel: ") != -1) { }
+      else if (lines[i].indexOf("Model: ") != -1)
+      {
+        save();
+        curmodel.name = lines[i].replace("::", ",").split(":")[1].split(",")[1].replace(/\"/g, "").trim();
+        curmodel.id = curmodel.name;
+        curmodel.mesh = curmesh;
+        curmesh.id = curmodel.name + ".mesh";
+        lastmapping = 0;
+        log("Found model: " + curmodel.name);
+        state = States.ParseModel;
+      }
+      else if (lines[i].indexOf("LayerElementMaterial: ") != -1) { }
+      else if (lines[i].indexOf("Material: ") != -1)
+      {
+        save();
+        curmaterial.name = lines[i].replace("::", ",").split(":")[1].split(",")[1].replace(/\"/g, "").trim();
+        curmaterial.id = curmaterial.name;
+        log("Found material: " + curmaterial.name);
+        state = States.ParseMaterial;
+      }
+      else if (lines[i].indexOf("Texture: ") != -1) // TODO
+      {
+        save();
+        curTexture.id = lines[i].split(":")[1].split(",")[0].trim();
+        state = States.ParseTexture;
+      }
+      else if (lines[i].indexOf("Relations:") != -1) 
+      {
+        objectMode = false;
+      }
+    }
+    else if (lines[i].indexOf("Objects:") != -1) 
+    {
+      objectMode = true;
+    }
+    else if (lines[i].indexOf("Connections: ") != -1)
+    {
+      save();
+      state = States.ParseConnections;
+    }
+
+    if (state == States.ParseModel)
+    {
+      if (lines[i].indexOf("Lcl Rotation") != -1)
+      {
+        var values = lines[i].trim().split(",");
+        curmodel.rotation = [parseFloat(values[3]), parseFloat(values[4]), parseFloat(values[5])];
+      }
+      else if (lines[i].indexOf("Lcl Translation") != -1)
+      {
+        var values = lines[i].trim().split(",");
+        curmodel.translation = [parseFloat(values[3]), parseFloat(values[4]), parseFloat(values[5])];
+      }
+      else if (lines[i].indexOf("Lcl Scaling") != -1)
+      {
+        var values = lines[i].trim().split(",");
+        curmodel.scale = [parseFloat(values[3]), parseFloat(values[4]), parseFloat(values[5])];
+      }
+      else if (lines[i].indexOf("Vertices: ") != -1)
+      {
+        if (curmesh.vertexs) { log("ERROR: multiple vertexes at line " + i); continue; }
+
+        var values = [];
+        values = values.concat(lines[i].split(":")[1].split(","));
+        for (++i; i < lines.length; ++i)
+        {
+          if (lines[i].indexOf(':') != -1) break;
+          values.pop();
+          values = values.concat(lines[i].split(","));
+        }
+        --i; // redo the line that ended us
+        curmesh.vertexs = values;
+      }
+      else if (lines[i].indexOf("PolygonVertexIndex: ") != -1)
+      {
+        if (curmesh.indexs) { log("ERROR: multiple indexes at line " + i); continue; }
+
+        var values = [];
+        values = values.concat(lines[i].split(":")[1].split(","));
+        for (++i; i < lines.length; ++i)
+        {
+          if (lines[i].indexOf(':') != -1) break;
+          values.pop();
+          values = values.concat(lines[i].split(","));
+        }
+        --i; // redo the line that ended us
+        // check that its trilist and flip the negative ones
+        for (var j = 2; j < values.length; j += 3)
+        {
+          if (values[j] >= 0) { log("ERROR: mesh is not a triangle list at line " + i); break; }
+          values[j] = (values[j] * -1) - 1;
+        }
+        curmesh.indexes = values;
+      }
+      else if (lines[i].indexOf("MappingInformationType: ") != -1)
+      {
+        if (lines[i].indexOf("ByVertice") != -1) lastmapping = 1;
+        else lastmapping = 0;
+      }
+      else if (lines[i].indexOf("Normals: ") != -1)
+      {
+        if (curmesh.normals) { log("ERROR: multiple normals at line " + i); continue; }
+
+        var values = [];
+        values = values.concat(lines[i].split(":")[1].split(","));
+        for (++i; i < lines.length; ++i)
+        {
+          if (lines[i].indexOf(':') != -1) break;
+          values.pop();
+          values = values.concat(lines[i].split(","));
+        }
+        --i; // redo the line that ended us
+        curmesh.normals = values;
+        curmesh.mapping = lastmapping;
+      }
+      else if (lines[i].indexOf("LayerElementUV: ") != -1) { }
+      else if (lines[i].indexOf("UV: ") != -1)
+      {
+        if (curmesh.uv) { log("ERROR: multiple UVs at line " + i); continue; }
+
+        var values = [];
+        values = values.concat(lines[i].split(":")[1].split(","));
+        for (++i; i < lines.length; ++i)
+        {
+          if (lines[i].indexOf(':') != -1) break;
+          values.pop();
+          values = values.concat(lines[i].split(","));
+        }
+        --i; // redo the line that ended us
+        curmesh.uv = values;
+      }
+      else if (lines[i].indexOf("UVIndex: ") != -1)
+      {
+        var values = [];
+        values = values.concat(lines[i].split(":")[1].split(","));
+        for (++i; i < lines.length; ++i)
+        {
+          if (lines[i].indexOf(':') != -1) break;
+          values.pop();
+          values = values.concat(lines[i].split(","));
+        }
+        --i; // redo the line that ended us
+        curmesh.uvindex = values;
+      }
+    }
+    else if (state == States.ParseMaterial)
+    {
+      if (lines[i].indexOf("Property: ") != -1)
+      {
+        var values = lines[i].split(":")[1].trim().split(",");
+        curmaterial[values[0].replace(/\"/g, "")] = values.slice(3, 6);
+      }
+    }
+    else if (state == States.ParseTexture) // TODO
+    {
+      if (lines[i].indexOf("RelativeFilename") != -1)
+      {
+        var values = lines[i].trim().split("\"");
+        var parts = values[1].trim().split("\\");
+        curTexture.file = parts[parts.length - 1];
+        log("Found texture: " + curTexture.file);
+      }
+    }
+    else if (state == States.ParseConnections)
+    {
+      if (lines[i].indexOf("Connect: ") != -1)
+      {
+        var values = lines[i].replace(/::/g, ",").split(",");
+        var obj1 = objects[values[2].replace(/\"/g, "").trim()];
+        var obj2 = objects[values[4].replace(/\"/g, "").trim()];
+        if (!obj1 || !obj2) continue;
+
+        if (obj1.type === "material" && obj2.type === "model") obj1.models[obj1.models.length] = obj2;
+        else if (obj2.type === "material" && obj1.type === "texture") obj2.texture = obj1.file;
+      }
+    }
+  }
+
+  save();
+  done();
+}
+
+function process7300(lines)
+{
+  // watch for geometry, model, material, connections
+  var state = States.FindTag;
+  for (var i = 0; i < lines.length; ++i)
   {
     datalog(lines[i]);
 

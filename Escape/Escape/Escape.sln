@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "javascript", "javascript", "{B623D950-EC81-4937-9493-61CA0CF9BAF3}"
 	ProjectSection(SolutionItems) = preProject
@@ -151,6 +151,27 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "mxLighting", "..\..\mxLight
 		SlnRelativePath = "..\..\mxLighting\"
 	EndProjectSection
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "mxPipeline", "..\..\mxPipeline\", "{E61E2FD7-4C4D-41D4-B5DC-4722EEB6F0B8}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_51136"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\mxPipeline\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_51136\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_51136"
+		Release.AspNetCompiler.PhysicalPath = "..\..\mxPipeline\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_51136\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "51136"
+		SlnRelativePath = "..\..\mxPipeline\"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -160,6 +181,8 @@ Global
 		{791CF3C7-A479-455D-88DB-28A29B87FBA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AEAB110-572B-4ECC-A47A-7AFAF975BC9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4AEAB110-572B-4ECC-A47A-7AFAF975BC9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E61E2FD7-4C4D-41D4-B5DC-4722EEB6F0B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E61E2FD7-4C4D-41D4-B5DC-4722EEB6F0B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,5 +193,8 @@ Global
 		{438F2815-D92E-413A-A03A-D49FB3633BC7} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
 		{B92392AA-1118-4444-8B2D-2A106DCDE21D} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
 		{AAE286F6-CB16-4625-BCAE-161347564D44} = {21AF7069-59D6-43FB-9341-F719DDA96ED3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6AD39468-76DC-4874-AB92-E4D6764803B5}
 	EndGlobalSection
 EndGlobal
