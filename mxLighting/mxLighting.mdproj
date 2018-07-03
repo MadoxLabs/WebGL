@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Default</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ItemType>GenericProject</ItemType>
+    <ProjectGuid>{45E861BD-4E38-49DC-9941-6BFC8D18CD38}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Default|AnyCPU' ">
+    <OutputPath>.\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="js\jscolor.js" />
+    <None Include="js\tga.js" />
+    <None Include="js\viewer.js" />
+    <None Include="css\style.css" />
+    <None Include="assets\animatedlogo.gif" />
+    <None Include="assets\grid.model" />
+    <None Include="assets\grid.png" />
+    <None Include="assets\lamp.model" />
+    <None Include="assets\logo.jpg" />
+    <None Include="assets\monkey.jpg" />
+    <None Include="assets\normalShader.fx" />
+    <None Include="assets\sample.model" />
+    <None Include="assets\shaders.fx" />
+    <None Include="assets\shadowcast.fx" />
+    <None Include="index.html" />
+  </ItemGroup>
+</Project>

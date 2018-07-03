@@ -109,57 +109,30 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "html", "html", "{3A5A7566-3
 		..\index.html = ..\index.html
 	EndProjectSection
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "mxFrame", "..\..\mxFrame\", "{791CF3C7-A479-455D-88DB-28A29B87FBA7}"
-	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
-		Debug.AspNetCompiler.VirtualPath = "/localhost_57825"
-		Debug.AspNetCompiler.PhysicalPath = "..\..\mxFrame\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57825\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/localhost_57825"
-		Release.AspNetCompiler.PhysicalPath = "..\..\mxFrame\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57825\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "57825"
-		SlnRelativePath = "..\..\mxFrame\"
-	EndProjectSection
+Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "mxFrame", "..\..\mxFrame\mxFrame.mdproj", "{86637FEA-4BDE-4085-B93F-E3BA8CC84537}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "mxLighting", "..\..\mxLighting\", "{4AEAB110-572B-4ECC-A47A-7AFAF975BC9F}"
-	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
-		Debug.AspNetCompiler.VirtualPath = "/localhost_59578"
-		Debug.AspNetCompiler.PhysicalPath = "..\..\mxLighting\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_59578\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/localhost_59578"
-		Release.AspNetCompiler.PhysicalPath = "..\..\mxLighting\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_59578\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "59578"
-		SlnRelativePath = "..\..\mxLighting\"
-	EndProjectSection
+Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "mxPipeline", "..\..\mxPipeline\mxPipeline.mdproj", "{BDA51797-56C5-482A-BF4E-1D0C2B769357}"
+EndProject
+Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "mxLighting", "..\..\mxLighting\mxLighting.mdproj", "{45E861BD-4E38-49DC-9941-6BFC8D18CD38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Default|Any CPU = Default|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{791CF3C7-A479-455D-88DB-28A29B87FBA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{791CF3C7-A479-455D-88DB-28A29B87FBA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4AEAB110-572B-4ECC-A47A-7AFAF975BC9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4AEAB110-572B-4ECC-A47A-7AFAF975BC9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86637FEA-4BDE-4085-B93F-E3BA8CC84537}.Debug|Any CPU.ActiveCfg = Default|Any CPU
+		{86637FEA-4BDE-4085-B93F-E3BA8CC84537}.Debug|Any CPU.Build.0 = Default|Any CPU
+		{86637FEA-4BDE-4085-B93F-E3BA8CC84537}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{86637FEA-4BDE-4085-B93F-E3BA8CC84537}.Default|Any CPU.Build.0 = Default|Any CPU
+		{BDA51797-56C5-482A-BF4E-1D0C2B769357}.Debug|Any CPU.ActiveCfg = Default|Any CPU
+		{BDA51797-56C5-482A-BF4E-1D0C2B769357}.Debug|Any CPU.Build.0 = Default|Any CPU
+		{BDA51797-56C5-482A-BF4E-1D0C2B769357}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{BDA51797-56C5-482A-BF4E-1D0C2B769357}.Default|Any CPU.Build.0 = Default|Any CPU
+		{45E861BD-4E38-49DC-9941-6BFC8D18CD38}.Debug|Any CPU.ActiveCfg = Default|Any CPU
+		{45E861BD-4E38-49DC-9941-6BFC8D18CD38}.Debug|Any CPU.Build.0 = Default|Any CPU
+		{45E861BD-4E38-49DC-9941-6BFC8D18CD38}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{45E861BD-4E38-49DC-9941-6BFC8D18CD38}.Default|Any CPU.Build.0 = Default|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

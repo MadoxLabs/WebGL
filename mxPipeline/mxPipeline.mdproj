@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Default</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ItemType>GenericProject</ItemType>
+    <ProjectGuid>{BDA51797-56C5-482A-BF4E-1D0C2B769357}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Default|AnyCPU' ">
+    <OutputPath>.\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="js\fbxload.bin.worker.js" />
+    <None Include="js\fbxload.worker.js" />
+    <None Include="js\glMatrix.js" />
+    <None Include="js\importer.js" />
+    <None Include="js\pako.js" />
+    <None Include="js\tga.js" />
+    <None Include="js\viewer.js" />
+    <None Include="css\style.css" />
+    <None Include="assets\animatedlogo.gif" />
+    <None Include="assets\grid.model" />
+    <None Include="assets\grid.png" />
+    <None Include="assets\logo.jpg" />
+    <None Include="assets\monkey.jpg" />
+    <None Include="assets\normalShader.fx" />
+    <None Include="assets\sample.model" />
+    <None Include="assets\shaders.fx" />
+    <None Include="assets\shadowcast.fx" />
+    <None Include="index.html" />
+  </ItemGroup>
+</Project>

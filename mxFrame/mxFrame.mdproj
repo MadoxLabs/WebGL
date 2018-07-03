@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Default</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ItemType>GenericProject</ItemType>
+    <ProjectGuid>{86637FEA-4BDE-4085-B93F-E3BA8CC84537}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Default|AnyCPU' ">
+    <OutputPath>.\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="components\mxAssetManager.js" />
+    <None Include="components\mxCamera.js" />
+    <None Include="components\mxGame.js" />
+    <None Include="components\mxMesh.js" />
+    <None Include="components\mxMouse.js" />
+    <None Include="components\mxShader.js" />
+    <None Include="components\mxShaderManager.js" />
+    <None Include="components\mxTexture.js" />
+    <None Include="libs\glMatrix.js" />
+    <None Include="libs\hammer.lib.js" />
+    <None Include="libs\oculus.lib.js" />
+    <None Include="libs\pako.js" />
+    <None Include="libs\webgl-debug.js" />
+    <None Include="libs\wtf.js" />
+    <None Include="NoiseLib\math.js" />
+    <None Include="NoiseLib\mxrandom.js" />
+    <None Include="NoiseLib\noise.js" />
+    <None Include="NoiseLib\FastGenerators\FastBillow.js" />
+    <None Include="NoiseLib\FastGenerators\FastMath.js" />
+    <None Include="NoiseLib\FastGenerators\FastPerlin.js" />
+    <None Include="NoiseLib\FastGenerators\FastRidgedMultifractal.js" />
+    <None Include="NoiseLib\FastGenerators\FastTurbulence.js" />
+    <None Include="NoiseLib\Generators\Billow.js" />
+    <None Include="NoiseLib\Generators\Checkerboard.js" />
+    <None Include="NoiseLib\Generators\Constant.js" />
+    <None Include="NoiseLib\Generators\Cylinders.js" />
+    <None Include="NoiseLib\Generators\Gradient.js" />
+    <None Include="NoiseLib\Generators\Perlin.js" />
+    <None Include="NoiseLib\Generators\RidgedMultifractal.js" />
+    <None Include="NoiseLib\Generators\Spheres.js" />
+    <None Include="NoiseLib\Generators\Voronoi.js" />
+    <None Include="NoiseLib\Models\Cylinder.js" />
+    <None Include="NoiseLib\Models\Line.js" />
+    <None Include="NoiseLib\Models\Plane.js" />
+    <None Include="NoiseLib\Models\Sphere.js" />
+    <None Include="NoiseLib\Modifiers\Chooser.js" />
+    <None Include="NoiseLib\Modifiers\Combine.js" />
+    <None Include="NoiseLib\Modifiers\CurveOutput.js" />
+    <None Include="NoiseLib\Modifiers\Displace.js" />
+    <None Include="NoiseLib\Modifiers\Invert.js" />
+    <None Include="NoiseLib\Modifiers\Scale.js" />
+    <None Include="NoiseLib\Modifiers\TerraceOutput.js" />
+    <None Include="NoiseLib\Modifiers\Turbulence.js" />
+    <None Include="assets\missing.png" />
+    <None Include="assets\mouse.png" />
+    <None Include="assets\mouse.tga" />
+    <None Include="assets\oculus.fx" />
+    <None Include="assets\sprite.fx" />
+    <None Include="mxFrame.js" />
+  </ItemGroup>
+</Project>
