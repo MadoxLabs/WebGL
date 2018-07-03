@@ -89,11 +89,12 @@
     quat.fromYawPitchRoll(rot, obj.rotation[1] * 2 * 3.14159 / 360.0, obj.rotation[0] * 2 * 3.14159 / 360.0, obj.rotation[2] * 2 * 3.14159 / 360.0);
     mat4.fromQuat(r, rot);
     // scale
-    mat4.identity(s); mat4.scale(s, s, obj.scale);
+    mat4.identity(s);
+    mat4.scale(s, s, obj.scale);
     // combine all into a transformation
     mat4.identity(trans);
-    mat4.multiply(trans, r, s);
-    mat4.multiply(trans, t, trans);
+    mat4.multiply(trans, t, r);
+    mat4.multiply(trans, s, trans);
     return trans;
   }
 

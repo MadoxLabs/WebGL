@@ -686,9 +686,9 @@ function outputModel(model)
   for (var p in model.Properties70.P)
   {
     // blender makes Y axis be up so add 90 degrees to counter it
-    if (model.Properties70.P[p][0] == "Lcl Translation") obj.translation = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
-    else if (model.Properties70.P[p][0] == "Lcl Rotation") obj.rotation = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
-    else if (model.Properties70.P[p][0] == "Lcl Scaling") obj.scale = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
+    if (model.Properties70.P[p][0] == "Lcl Translation") obj.translation = [model.Properties70.P[p][4] / 100.0, model.Properties70.P[p][5] / 100.0, model.Properties70.P[p][6] / 100.0];
+    else if (model.Properties70.P[p][0] == "Lcl Rotation") obj.rotation  = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
+    else if (model.Properties70.P[p][0] == "Lcl Scaling") obj.scale      = [model.Properties70.P[p][4] / 100.0, model.Properties70.P[p][5] / 100.0, model.Properties70.P[p][6] / 100.0];
   }
   log("Found model: " + obj.name);
   return obj;
