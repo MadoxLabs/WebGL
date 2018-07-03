@@ -18,6 +18,7 @@ function log(msg)
 {
   postMessage({ type: 2, result: msg });
 }
+
 function debug(msg)
 {
   postMessage({ type: 3, result: indent + msg });
@@ -402,6 +403,35 @@ function process(data)
   else
     save(objects, outputGeometry(root.Objects.Geometry));
 
+  // other stuff
+  // AnimationCurve
+  if (Array.isArray(root.Objects.AnimationCurve))
+    for (var m in root.Objects.AnimationCurve)
+      save(objects, outputAnimCurve(root.Objects.AnimationCurve[m]));
+  else
+    save(objects, outputAnimCurve(root.Objects.AnimationCurve));
+
+  // AnimationCurveNode
+  if (Array.isArray(root.Objects.AnimationCurveNode))
+    for (var m in root.Objects.AnimationCurveNode)
+      save(objects, outputAnimCurveNode(root.Objects.AnimationCurveNode[m]));
+  else
+    save(objects, outputAnimCurveNode(root.Objects.AnimationCurveNode));
+
+  // AnimationLayer
+  if (Array.isArray(root.Objects.AnimationLayer))
+    for (var m in root.Objects.AnimationLayer)
+      save(objects, outputAnimLayer(root.Objects.AnimationLayer[m]));
+  else
+    save(objects, outputAnimLayer(root.Objects.AnimationLayer));
+
+  // AnimationStack
+  if (Array.isArray(root.Objects.AnimationStack))
+    for (var m in root.Objects.AnimationStack)
+      save(objects, outputAnimStack(root.Objects.AnimationStack[m]));
+  else
+    save(objects, outputAnimStack(root.Objects.AnimationStack));
+
   // do connections
   var modeldone = {};
   for (var c in root.Connections.C)
@@ -414,7 +444,7 @@ function process(data)
     if (obj1.type == "texture")
     {
       if (obj2.type != "material") { log("ERROR: Texture " + obj1.name + " linked to non-material"); continue; }
-      if (con[3] != "DiffuseColor") { log("WARNING: Texture " + obj1.name + " linked to parameter " + con[3] +" not supported"); continue; }
+      if (con[3] != "DiffuseColor") { log("WARNING: Texture " + obj1.name + " linked to parameter " + con[3] + " not supported"); continue; }
       if (obj2.texture) { log("ERROR: Material " + obj2.name + " linked to extra texture " + obj1.name); continue; }
       obj2.texture = obj1.file;
       log("material " + obj2.name + " has texture " + obj1.name + ".");
@@ -424,7 +454,7 @@ function process(data)
       if (modeldone[obj2.id]) { log("ERROR: Model " + obj2.name + " linked to extra material " + obj1.name); continue; }
       if (!obj1.models) obj1.models = [];
       obj1.models.push(obj2);
-      log("model "+obj2.name + " has material " + obj1.name + ".");
+      log("model " + obj2.name + " has material " + obj1.name + ".");
       modeldone[obj2.id] = 1;
     }
     else if (obj1.type == "mesh" && obj2.type == "model")
@@ -432,7 +462,32 @@ function process(data)
       if (obj2.mesh) { log("ERROR: Model " + obj1.name + " linked to multiple meshes"); continue; }
       obj2.mesh = bake(obj1);
       obj2.boundingbox = getBB(obj2)
-      log("model " + obj2.name + " has mesh " + obj1.name +".");
+      log("model " + obj2.name + " has mesh " + obj1.name + ".");
+    }
+    else if (obj1.type == "animlayer" && obj2.type == "animstack")
+    {
+      if (!obj2.layers) obj2.layers = [];
+      obj2.layers.push(obj1);
+      log("animation stack " + obj2.name + " has animation layer " + obj1.name + ".");
+    }
+    else if (obj1.type == "animcurvenode" && obj2.type == "animlayer")
+    {
+      if (!obj2.nodes) obj2.nodes = [];
+      obj2.nodes.push(obj1);
+      log("animation layer " + obj2.name + " has animation node.");
+    }
+    else if (obj1.type == "animcurvenode" && obj2.type == "model")
+    {
+      obj1.parameter = con[3];
+      if (!obj1.models) obj1.models = [];
+      obj1.models.push(obj2);
+      log("animation node (" + obj1.parameter + ") assigned to model " + obj2.name);
+    }
+    else if (obj1.type == "animcurve" && obj2.type == "animcurvenode")
+    {
+      obj1.parameter = con[3].split("|")[1];
+      obj2[obj1.parameter] = obj1;
+      log("animation curve (" + obj1.parameter + ") assigned to animation node " + obj2.parameter);
     }
     else log("WARNING: Linking " + obj1.type + " " + obj1.name + " to " + obj2.type + " " + obj2.name + " not supported");
   }
@@ -441,7 +496,56 @@ function process(data)
   var file = {};
   file.attributes = { 'POS': 0, 'TEX0': 12, 'NORM': 20 };
   file.groups = [];
+  file.animations = [];
   for (var o in objects) if (objects[o].type == "material") file.groups.push(objects[o]);
+  for (var o in objects) if (objects[o].type == "animstack") file.animations.push(objects[o]);
+
+  // create the animation objects
+  for (var o in objects)
+  {
+    if (objects[o].type == "animlayer") 
+    {
+      // make all layers have proper named nodes
+      objects[o].keys = [];
+      objects[o].models = {};
+      for (var n in objects[o].nodes)
+      {
+        if (objects[o].nodes[n].parameter == "Lcl Translation") objects[o].translation = objects[o].nodes[n];
+        else if (objects[o].nodes[n].parameter == "Lcl Scaling") objects[o].scale = objects[o].nodes[n];
+        else if (objects[o].nodes[n].parameter == "Lcl Rotation") objects[o].rotation = objects[o].nodes[n];
+        for (var m in objects[o].nodes[n].models)
+        {
+          objects[o].models[objects[o].nodes[n].models[m].name] = true;
+          if (!objects[o].nodes[n].models[m].animations) objects[o].nodes[n].models[m].animations = {};
+          objects[o].nodes[n].models[m].animations[objects[o].name] = true;
+        }
+      }
+      objects[o].models = Object.keys(objects[o].models);
+      var num = objects[o].translation.X.numKeys;
+      if (objects[o].translation.Y.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].translation.Z.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].scale.X.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].scale.Y.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].scale.Z.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].rotation.X.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].rotation.Y.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      if (objects[o].rotation.Z.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
+      objects[o].keys = [];
+      for (var k = 0; k < num; ++k)
+      {
+        var key = {};
+        key.translation = [objects[o].translation.X.values[k] / 100.0, objects[o].translation.Y.values[k] / 100.0, objects[o].translation.Z.values[k]] / 100.0;
+        key.scale       = [objects[o].scale.X.values[k] / 100.0,       objects[o].scale.Y.values[k] / 100.0,       objects[o].scale.Z.values[k]] / 100.0;
+        key.rotation    = [objects[o].rotation.X.values[k] / 100.0,    objects[o].rotation.Y.values[k] / 100.0,    objects[o].rotation.Z.values[k]] / 100.0;
+        objects[o].keys.push(key);
+      }
+      delete objects[o].nodes;
+      delete objects[o].translation;
+      delete objects[o].scale;
+      delete objects[o].rotation;
+    }
+  }    
+  for (var o in objects) if (objects[o].type == "model" && objects[o].animations) objects[o].animations = Object.keys(objects[o].animations);
 
   // get full bb
   var bb = {};
@@ -476,6 +580,16 @@ function process(data)
 function save(objects, obj)
 {
   if (obj) objects[obj.id] = obj;
+}
+
+function outputThing(obj, type)
+{
+  if (!obj)
+    return;
+  var thing = {};
+  thing.id = obj[0];
+  thing.type = type;
+  return thing;
 }
 
 function outputMaterial(mat)
@@ -518,6 +632,50 @@ function outputTexture(tex)
   return obj;
 }
 
+function outputAnimStack(stack)
+{
+  if (!stack) return;
+  var obj = {};
+  obj.id = stack[0];
+  obj.type = "animstack";
+  obj.name = stack[1].split('\0')[0];
+  log("Found animation stack: " + obj.name);
+  return obj;
+}
+
+function outputAnimLayer(layer)
+{
+  if (!layer) return;
+  var obj = {};
+  obj.id = layer[0];
+  obj.type = "animlayer";
+  obj.name = layer[1].split('\0')[0];
+  log("Found animation layer: " + obj.name);
+  return obj;
+}
+
+function outputAnimCurveNode(node)
+{
+  if (!node) return;
+  var obj = {};
+  obj.id = node[0];
+  obj.type = "animcurvenode";
+  log("Found animation curve node");
+  return obj;
+}
+
+function outputAnimCurve(curve)
+{
+  if (!curve) return;
+  var obj = {};
+  obj.id = curve[0];
+  obj.type = "animcurve";
+  obj.numKeys = curve.KeyAttrRefCount[0][0]; // huh?
+  obj.values = curve.KeyValueFloat[0];
+  log("Found animation curve");
+  return obj;
+}
+
 function outputModel(model)
 {
   if (!model) return;
@@ -528,9 +686,9 @@ function outputModel(model)
   for (var p in model.Properties70.P)
   {
     // blender makes Y axis be up so add 90 degrees to counter it
-    if (model.Properties70.P[p][0] == "Lcl Translation") obj.translation = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
-    else if (model.Properties70.P[p][0] == "Lcl Rotation") obj.rotation = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
-    else if (model.Properties70.P[p][0] == "Lcl Scaling") obj.scale = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
+    if (model.Properties70.P[p][0] == "Lcl Translation") obj.translation = [model.Properties70.P[p][4] / 100.0, model.Properties70.P[p][5] / 100.0, model.Properties70.P[p][6] / 100.0];
+    else if (model.Properties70.P[p][0] == "Lcl Rotation") obj.rotation  = [model.Properties70.P[p][4], model.Properties70.P[p][5], model.Properties70.P[p][6]];
+    else if (model.Properties70.P[p][0] == "Lcl Scaling") obj.scale      = [model.Properties70.P[p][4] / 100.0, model.Properties70.P[p][5] / 100.0, model.Properties70.P[p][6] / 100.0];
   }
   log("Found model: " + obj.name);
   return obj;
