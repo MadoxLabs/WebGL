@@ -23,6 +23,59 @@ mx.CAMERA_MAIN = 3;
 
   var cacheMat = mat4.create();
 
+  // Animation Cursors
+  // each object can have N animations running. An animation is a cursor into a set of a list of matrixes
+  // each animation has multiple layers that affect meshes in the model. 
+  // all layers have the same number of keys
+  // all affected meshes will get matrix #N from the list that affects them for this animation, and apply it.
+  // a mesh might be affected by multiple animation, I dont know what this will look like but support it.
+  
+  function Animation(n)
+  {
+    // private
+    this.name = n;
+    this.playing = false;
+    this.length = 0;
+    this.time = 0;
+    // public
+    this.FPS = 24;
+    this.cursor = 0;
+    this.loop = false;
+  }
+
+  Animation.prototype.play = function()
+  {
+    if (this.playing) return;
+    this.playing = true;
+    this.time = Date.now();
+  };
+
+  Animation.prototype.stop = function()
+  {
+    if (this.playing == false) return;
+    this.playing = false;
+    this.cursor = 0;
+  };
+
+  Animation.prototype.pause = function()
+  {
+    if (this.playing == false) return;
+    this.playing = false;
+  };
+
+  Animation.prototype.update = function(t)
+  {
+    var elapsed = t - this.time;
+    var perframe = 1000.0/this.FPS;
+    var advance = elapsed / perframe;
+
+    this.time = t;
+    this.cursor += advance;
+    if (this.cursor > this.length) this.cursor -= this.length;
+  };
+
+  /////////////
+
   function GameObject(name, model)
   {
     this.name = name;
@@ -46,6 +99,15 @@ mx.CAMERA_MAIN = 3;
     this.uniforms.uWorld = mat4.create();
 
     this.dirty = false;
+
+    // populate animations for this model
+    this.animations = {};
+    for (var a in model.animations)
+    {
+      var obj = new Animation(model.animations[a].name);
+      obj.length = model.animations[a].layers[0].keys.length;
+      this.animations[obj.name] = obj;
+    }
   }
 
   GameObject.prototype.setScale = function(s)
@@ -108,6 +170,12 @@ mx.CAMERA_MAIN = 3;
     mat4.translate(this.translation, this.translation, this.position);
     mat4.multiply(this.uniforms.uWorld, this.translation, this.orientation);
     mat4.multiply(this.uniforms.uWorld, this.uniforms.uWorld, this.scale);
+ 
+    var now = Date.now();
+    for (var a in this.animations)
+    {
+      this.animations[a].update(now);
+    }
   }
 
   GameObject.prototype.setOrientationQuat = function (q)
@@ -207,7 +275,7 @@ mx.CAMERA_MAIN = 3;
   }
 
   mx.GameObject = GameObject;
-
+  mx.Animation = Animation;
 
 
   var cacheQuat = quat.create();

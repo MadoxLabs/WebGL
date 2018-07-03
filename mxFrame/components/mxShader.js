@@ -156,7 +156,13 @@
     return ret;
   }
 
-  Shader.prototype.draw = function (mesh)
+  Shader.prototype.drawObject = function (obj)
+  {
+    // render all parts, but augment localtransforms from any obj.animation objects that are playing.  
+    this.draw(obj.model, obj.animations);
+  };
+
+  Shader.prototype.draw = function (mesh, anim)
   {
     for (var i = 0; i < mesh.groups.length; ++i)
     {
@@ -175,8 +181,11 @@
       for (var p = 0; p < group.parts.length; ++p)
       {
         var part = group.parts[p];
+        if (anim)
+        {
+          // apply any animation keys. TODO
+        }
         this.setUniforms(part.uniforms);
-
         this.bindMesh(part);
         if (part.instanceBuffer)
         {

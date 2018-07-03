@@ -122,6 +122,19 @@
         this.groups[g].texture = name;
         this.groups[g].material.materialoptions[0] = 1.0;
       }
+      if (data.animations)
+      {
+        // create matrix keys for all animations - animation has layers, has keys
+        for (var s in data.animations)
+        {
+          for (var l in data.animations[s].layers)
+          {
+            var matrixes = [];
+            for (var l in data.animations[s].layers[k].keys) matrixes.push(getTransform(data.animations[s].layers[k].keys[k]));
+            data.animations[s].layers[k].keys = matrixes;
+          }
+        }
+      }
     }
   }
 

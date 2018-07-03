@@ -505,14 +505,15 @@ function process(data)
   {
     if (objects[o].type == "animlayer") 
     {
-      // make all layers have proper named nodes
-      objects[o].keys = [];
-      objects[o].models = {};
+      objects[o].keys = [];   // the actual animation matrixes
+      objects[o].models = {}; // list of models with this animation
+      // make all layers have proper named nodes: translation, scale, rotation
       for (var n in objects[o].nodes)
       {
         if (objects[o].nodes[n].parameter == "Lcl Translation") objects[o].translation = objects[o].nodes[n];
         else if (objects[o].nodes[n].parameter == "Lcl Scaling") objects[o].scale = objects[o].nodes[n];
         else if (objects[o].nodes[n].parameter == "Lcl Rotation") objects[o].rotation = objects[o].nodes[n];
+        // populate the models list in animation, and animation list in model
         for (var m in objects[o].nodes[n].models)
         {
           objects[o].models[objects[o].nodes[n].models[m].name] = true;
@@ -520,7 +521,9 @@ function process(data)
           objects[o].nodes[n].models[m].animations[objects[o].name] = true;
         }
       }
+      // turn the hash into a plain array - it was a hash for uniqueing
       objects[o].models = Object.keys(objects[o].models);
+      // make sure all keys have same number
       var num = objects[o].translation.X.numKeys;
       if (objects[o].translation.Y.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
       if (objects[o].translation.Z.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
@@ -531,6 +534,7 @@ function process(data)
       if (objects[o].rotation.Y.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
       if (objects[o].rotation.Z.numKeys != num) { log(objects[o].name + " has bad keys"); continue; }
       objects[o].keys = [];
+      // create a key at each keyframe. mxFrame will turn these into matrixes
       for (var k = 0; k < num; ++k)
       {
         var key = {};
@@ -539,12 +543,14 @@ function process(data)
         key.rotation    = [objects[o].rotation.X.values[k] / 100.0,    objects[o].rotation.Y.values[k] / 100.0,    objects[o].rotation.Z.values[k]] / 100.0;
         objects[o].keys.push(key);
       }
+      // delete working variables
       delete objects[o].nodes;
       delete objects[o].translation;
       delete objects[o].scale;
       delete objects[o].rotation;
     }
   }    
+  // turn all model animation hashes into arrays
   for (var o in objects) if (objects[o].type == "model" && objects[o].animations) objects[o].animations = Object.keys(objects[o].animations);
 
   // get full bb
