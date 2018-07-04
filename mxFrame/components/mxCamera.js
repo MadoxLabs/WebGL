@@ -102,11 +102,14 @@ mx.CAMERA_MAIN = 3;
 
     // populate animations for this model
     this.animations = {};
-    for (var a in model.animations)
+    if (model && model.animations)
     {
-      var obj = new Animation(model.animations[a].name);
-      obj.length = model.animations[a].layers[0].keys.length;
-      this.animations[obj.name] = obj;
+      for (var a in model.animations)
+      {
+        var obj = new Animation(model.animations[a].name);
+        obj.length = model.animations[a].layers[0].keys.length;
+        this.animations[obj.name] = obj;
+      }
     }
   }
 

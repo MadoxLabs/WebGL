@@ -538,9 +538,9 @@ function process(data)
       for (var k = 0; k < num; ++k)
       {
         var key = {};
-        key.translation = [objects[o].translation.X.values[k] / 100.0, objects[o].translation.Y.values[k] / 100.0, objects[o].translation.Z.values[k]] / 100.0;
-        key.scale       = [objects[o].scale.X.values[k] / 100.0,       objects[o].scale.Y.values[k] / 100.0,       objects[o].scale.Z.values[k]] / 100.0;
-        key.rotation    = [objects[o].rotation.X.values[k] / 100.0,    objects[o].rotation.Y.values[k] / 100.0,    objects[o].rotation.Z.values[k]] / 100.0;
+        key.translation = [objects[o].translation.X.values[k] / 100.0, objects[o].translation.Y.values[k] / 100.0, objects[o].translation.Z.values[k] / 100.0];
+        key.scale       = [objects[o].scale.X.values[k] / 100.0,       objects[o].scale.Y.values[k] / 100.0,       objects[o].scale.Z.values[k] / 100.0];
+        key.rotation    = [objects[o].rotation.X.values[k],    objects[o].rotation.Y.values[k],    objects[o].rotation.Z.values[k]];
         objects[o].keys.push(key);
       }
       // delete working variables

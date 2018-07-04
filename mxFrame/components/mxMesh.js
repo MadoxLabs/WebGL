@@ -130,10 +130,14 @@
           for (var l in data.animations[s].layers)
           {
             var matrixes = [];
-            for (var l in data.animations[s].layers[k].keys) matrixes.push(getTransform(data.animations[s].layers[k].keys[k]));
-            data.animations[s].layers[k].keys = matrixes;
+            for (var k in data.animations[s].layers[l].keys)
+            {
+              matrixes.push(getTransform(data.animations[s].layers[l].keys[k]));
+            }
+            data.animations[s].layers[l].keys = matrixes;
           }
         }
+        this.animations = data.animations;
       }
     }
   }
