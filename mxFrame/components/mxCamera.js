@@ -47,7 +47,7 @@ mx.CAMERA_MAIN = 3;
   {
     if (this.playing) return;
     this.playing = true;
-    this.time = Date.now();
+    this.time = +new Date();
   };
 
   Animation.prototype.stop = function()
@@ -67,11 +67,15 @@ mx.CAMERA_MAIN = 3;
   {
     var elapsed = t - this.time;
     var perframe = 1000.0/this.FPS;
-    var advance = elapsed / perframe;
+    var advance = (elapsed / perframe)|0;
 
-    this.time = t;
-    this.cursor += advance;
-    if (this.cursor > this.length) this.cursor -= this.length;
+    if (advance > 0)
+    {
+      this.time = t;
+      this.cursor += advance;
+      while (this.cursor > this.length)
+        this.cursor = this.cursor - this.length;
+    }
   };
 
   /////////////
@@ -174,7 +178,7 @@ mx.CAMERA_MAIN = 3;
     mat4.multiply(this.uniforms.uWorld, this.translation, this.orientation);
     mat4.multiply(this.uniforms.uWorld, this.uniforms.uWorld, this.scale);
  
-    var now = Date.now();
+    var now = +new Date();
     for (var a in this.animations)
     {
       this.animations[a].update(now);

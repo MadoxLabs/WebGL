@@ -183,7 +183,13 @@
         var part = group.parts[p];
         if (anim)
         {
-          // apply any animation keys. TODO
+          for (var a in anim)
+          {
+            if (anim[a].playing)
+            {
+              part.uniforms.localTransform = mesh.animations[0].layers[0].keys[anim[a].cursor];
+            }
+          }
         }
         this.setUniforms(part.uniforms);
         this.bindMesh(part);

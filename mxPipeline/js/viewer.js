@@ -100,11 +100,15 @@ Game.loadingStop = function ()
   object = new mx.GameObject("model", model);
   object.setScale(scale);
   if (model.boundingbox[0].min[1] <= 0.0)
+  {
     object.setPositionXYZ(0.0,
                           model.boundingbox[0].min[1] * -1.0 * scale, //(model.boundingbox[0].min[1] + (model.boundingbox[0].max[1] - model.boundingbox[0].min[1]) / 2.0) * scale,
                           0.0);
+  }
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
+  if (object.animations && object.animations["Cube|Action"]) object.animations["Cube|Action"].play();
+
   // create a head for the camera
   head = new mx.GameObject("head", null);
   head.offset[0] = 0.0;
@@ -247,7 +251,7 @@ Game.appDraw = function (eye)
       if (document.getElementById("explode").checked)
         effect.draw(explode);
       else
-        effect.draw(object.model);
+        effect.drawObject(object);
     }
 
     effect.setUniforms(grid.uniforms);
