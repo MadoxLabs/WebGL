@@ -34,6 +34,25 @@ function degToRad(degrees)
   return degrees * Math.PI / 180;
 }
 
+function doAnim(type, n)
+{
+  let name = object.animationNames[n];
+  if (!name) return;
+
+  if (type == 0) // play / continue
+  {
+    object.animations[name].play();
+  }
+  if (type == 1) // stop
+  {
+    object.animations[name].stop();
+  }
+  if (type == 2) // step
+  {
+    object.animations[name].step();
+  }
+}
+
 Game.appLoadingError = function (name)
 {
   impTextures[name] = { color: "red" };
@@ -107,7 +126,21 @@ Game.loadingStop = function ()
   }
   object.uniforms.uWorldToLight = mat4.create();
   object.uniforms.options = vec4.create();
-  if (object.animations && object.animations["Cube|Action"]) object.animations["Cube|Action"].play();
+
+  // create animation controls
+  if (object.animations)
+  {
+    let buf = "";
+    let i = 0;
+    object.animationNames = {};
+    for (var n in object.animations)
+    {
+      object.animationNames[i] = n;
+      buf += n + " <button id=anim" + i + " onclick='doAnim(0," + i + ");'>Play ></button><button onclick='doAnim(1," + i +");'>Stop X</button><button onclick='doAnim(2," + i +");'>Step >></button><br />";
+      i += 1;
+    }
+    document.getElementById("animations").innerHTML = buf;
+  }
 
   // create a head for the camera
   head = new mx.GameObject("head", null);

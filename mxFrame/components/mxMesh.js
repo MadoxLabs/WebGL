@@ -32,10 +32,11 @@
     this.scale = 1.0; // this is only to scale normals up to visible size
   }
 
-  Mesh.prototype.loadFromArrays = function(verts, indexs, attr, type, prims, group, trans)
+  Mesh.prototype.loadFromArrays = function(verts, indexs, attr, type, prims, group, trans, name)
   {
     var part = {};
 
+    if (name) part.name = name;
     part.uniforms = {};
     part.uniforms.partcolor = vec3.create();
     vec3.random(part.uniforms.partcolor);
@@ -49,6 +50,7 @@
       part.uniforms.localTransform = mat4.create();
       mat4.identity(part.uniforms.localTransform);
     }
+    part.uniforms.defaultTransform = mat4.clone(part.uniforms.localTransform);
 
     part.attributes = attr;
     part.verts = verts;
@@ -109,7 +111,7 @@
       {
         this.boundingbox.push(data.groups[g].models[m].boundingbox);
         // create mesh
-        this.loadFromArrays(data.groups[g].models[m].mesh.vertexs, data.groups[g].models[m].mesh.indexes, data.attributes, gl.TRIANGLES, data.groups[g].models[m].mesh.indexes.length, g, getTransform(data.groups[g].models[m]));
+        this.loadFromArrays(data.groups[g].models[m].mesh.vertexs, data.groups[g].models[m].mesh.indexes, data.attributes, gl.TRIANGLES, data.groups[g].models[m].mesh.indexes.length, g, getTransform(data.groups[g].models[m]), data.groups[g].models[m].name);
       }
       if (data.groups[g].material) this.groups[g].material.loadFromFBX(data.groups[g]);
       if (data.groups[g].texture)
@@ -122,23 +124,23 @@
         this.groups[g].texture = name;
         this.groups[g].material.materialoptions[0] = 1.0;
       }
-      if (data.animations)
+    }
+    if (data.animations)
+    {
+      // create matrix keys for all animations - animation has layers, has keys
+      for (var s in data.animations)
       {
-        // create matrix keys for all animations - animation has layers, has keys
-        for (var s in data.animations)
+        for (var l in data.animations[s].layers)
         {
-          for (var l in data.animations[s].layers)
+          var matrixes = [];
+          for (var k in data.animations[s].layers[l].keys)
           {
-            var matrixes = [];
-            for (var k in data.animations[s].layers[l].keys)
-            {
-              matrixes.push(getTransform(data.animations[s].layers[l].keys[k]));
-            }
-            data.animations[s].layers[l].keys = matrixes;
+            matrixes.push(getTransform(data.animations[s].layers[l].keys[k]));
           }
+          data.animations[s].layers[l].keys = matrixes;
         }
-        this.animations = data.animations;
       }
+      this.animations = data.animations;
     }
   }
 

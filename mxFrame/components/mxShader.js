@@ -173,8 +173,6 @@
       {
         if (group.texture && mx.Game.assetMan.assets[group.texture]) { this.bindTexture('uTexture', mx.Game.assetMan.assets[group.texture].texture); }
         else this.bindTexture('uTexture', mx.Game.assetMan.assets["missing"].texture);
-//        }
-//        else this.bindTexture('uTexture', null);
       }
 
       // render the parts
@@ -185,11 +183,21 @@
         {
           for (var a in anim)
           {
-            if (anim[a].playing)
+//            mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
+            for (var l in mesh.animations[anim[a].index].layers)
             {
-              part.uniforms.localTransform = mesh.animations[0].layers[0].keys[anim[a].cursor];
+              if (mesh.animations[anim[a].index].layers[l].models.includes(part.name))
+              {
+//                mat4.multiply(mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor], part.uniforms.defaultTransform, part.uniforms.localTransform);
+                mat4.copy(part.uniforms.localTransform, mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor]);
+//                mat4.multiply(part.uniforms.localTransform, mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor], part.uniforms.localTransform);
+              }
             }
           }
+        }
+        else
+        {
+          mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
         }
         this.setUniforms(part.uniforms);
         this.bindMesh(part);

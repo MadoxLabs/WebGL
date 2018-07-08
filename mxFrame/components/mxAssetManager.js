@@ -63,11 +63,13 @@
   {
     var model = new mx.Mesh();
 
+    var raw;
     var data;
-    try { data = pako.inflate(txt, { to: "string" }); } catch (err) { data = txt; }
+    try { raw = pako.inflate(txt, { to: "string" }); } catch (err) { raw = txt; }
+    try { data = JSON.parse(raw); }
+    catch (err) { raw += "}"; data = JSON.parse(raw); }
 
-    try { model.loadFromFBX(JSON.parse(data)); }
-    catch (err) { data += "}"; model.loadFromFBX(JSON.parse(data)); }
+    model.loadFromFBX(data);
 
     this.assets[tex.name] = model;
     mx.Game.loadingDecr(tex.name);

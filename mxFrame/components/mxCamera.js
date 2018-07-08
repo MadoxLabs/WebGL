@@ -30,9 +30,10 @@ mx.CAMERA_MAIN = 3;
   // all affected meshes will get matrix #N from the list that affects them for this animation, and apply it.
   // a mesh might be affected by multiple animation, I dont know what this will look like but support it.
   
-  function Animation(n)
+  function Animation(n,i)
   {
     // private
+    this.index = i;
     this.name = n;
     this.playing = false;
     this.length = 0;
@@ -52,19 +53,27 @@ mx.CAMERA_MAIN = 3;
 
   Animation.prototype.stop = function()
   {
-    if (this.playing == false) return;
     this.playing = false;
     this.cursor = 0;
   };
 
-  Animation.prototype.pause = function()
+  Animation.prototype.step = function ()
   {
-    if (this.playing == false) return;
+    if (this.playing) this.pause();
+    this.cursor += 1;
+    if (this.cursor >= this.length)
+      this.cursor = 0;
+  };
+
+  Animation.prototype.pause = function ()
+  {
     this.playing = false;
   };
 
   Animation.prototype.update = function(t)
   {
+    if (!this.playing) return;
+
     var elapsed = t - this.time;
     var perframe = 1000.0/this.FPS;
     var advance = (elapsed / perframe)|0;
@@ -73,7 +82,7 @@ mx.CAMERA_MAIN = 3;
     {
       this.time = t;
       this.cursor += advance;
-      while (this.cursor > this.length)
+      while (this.cursor >= this.length)
         this.cursor = this.cursor - this.length;
     }
   };
@@ -110,7 +119,7 @@ mx.CAMERA_MAIN = 3;
     {
       for (var a in model.animations)
       {
-        var obj = new Animation(model.animations[a].name);
+        var obj = new Animation(model.animations[a].name, a);
         obj.length = model.animations[a].layers[0].keys.length;
         this.animations[obj.name] = obj;
       }
