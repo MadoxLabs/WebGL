@@ -111,21 +111,38 @@
     <div class="mxTitle">Pipeline Viewer</div>
     <div><canvas id='surface'></div>
     <div style="top:55px; left:5px; position:absolute;"><canvas id='output' width="400" height="50"></div>
-    <div style="top:55px; left:5px;  position:absolute;" class="overlay">
-      <p>
-        <input type=checkbox id="model" checked>Show Model</input><br />
-        <input type=checkbox id="normals">Show Normals</input><br />
-        <input type=checkbox id="explode">Show Exploded</input><br />
-        <input type=checkbox id="wire">Show Wireframe</input><br />
-        <input type=checkbox id="bb">Show Bounding Boxes</input><br />
-        <input type=checkbox id="uvs">Visualize UVs</input><br />
-        <input type=checkbox id="xseams">Check for U seams</input><br />
-        <input type=checkbox id="yseams">Check for V seams</input><br />
-      </p>
-     </div>
-    <div style="top:55px; left:800px;  position:absolute;" class="overlay">
-      <p id="animations">
-      </p>
+    <div id="tools" style="top:55px; left:5px; position:absolute;" >
+      <button class="collapsible" >View Tools</button>
+      <div class="content">
+        <p>
+          <input type=checkbox id="model" checked>Show Model</input><br />
+          <input type=checkbox id="normals">Show Normals</input><br />
+          <input type=checkbox id="explode">Show Exploded</input><br />
+          <input type=checkbox id="wire">Show Wireframe</input><br />
+          <input type=checkbox id="bb">Show Bounding Boxes</input><br />
+          <input type=checkbox id="uvs">Visualize UVs</input><br />
+          <input type=checkbox id="xseams">Check for U seams</input><br />
+          <input type=checkbox id="yseams">Check for V seams</input><br />
+        </p>
+      </div>
+      <button class="collapsible">Animations</button>
+      <div class="content">
+        <p id="animations">
+        </p>
+      </div>
+      <button class="collapsible">Mesh Baking</button>
+      <div class="content">
+        <p>
+          <input type=checkbox >Model</input><input type=checkbox >Parts</input><input type=checkbox >Anims</input><br />
+          <a href="#" class="bakeButton"> </a> Flip X/Y<br>
+          <a href="#" class="bakeButton"> </a> Flip Y/Z<br>
+          <a href="#" class="bakeButton"> </a> Flip X/Z<br>
+          <a href="#" class="bakeButton"> </a> Rotate X<br>
+          <a href="#" class="bakeButton"> </a> Rotate Y<br>
+          <a href="#" class="bakeButton"> </a> Rotate Z<br>
+          <a href="#" class="bakeButton"> </a> Reset<br>
+        </p>
+      </div>
     </div>
     <div class="importControl"><div id="scaleinfo"></div>
     <p>Up/Down/Left/Right - rotate model</p>
@@ -135,5 +152,23 @@
       </div>
 
   </div>
+
+  <script>
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+    
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        });
+    }
+    </script>
+
 </body>
 </html>
