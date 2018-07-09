@@ -270,6 +270,40 @@
     return ret;
   }
 
+  Mesh.prototype.flip = function (axis1, axis2)
+  {
+    for (var i = 0; i < this.groups.length; ++i) {
+      for (var p = 0; p < this.groups[i].parts.length; ++p) {
+        var part = this.groups[i].parts[p];
+
+        for (var v = 0; v < part.verts.length; v += 8)
+        {
+          let tmp = part.verts[v + axis1];
+          part.verts[v + axis1] = part.verts[v + axis2];
+          part.verts[v + axis2] = tmp;
+
+          tmp = part.verts[v+5 + axis1];
+          part.verts[v+5 + axis1] = part.verts[v+5 + axis2];
+          part.verts[v+5 + axis2] = tmp;
+        }
+
+        for (var n = 0; n < part.indexs.length; n += 6)
+        {
+          let tmp = part.indexs[v+1];
+          part.indexs[v+1] = part.indexs[v+2];
+          part.indexs[v+2] = tmp;
+          tmp = part.indexs[v+4];
+          part.indexs[v+4] = part.indexs[v+5];
+          part.indexs[v+5] = tmp;
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, part.buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(part.verts), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, part.indexbuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(part.indexs), gl.STATIC_DRAW);
+      }
+    }    
+  }
+
   // make a copy of the mesh where the normal is the face normal, let shader do the rest
   Mesh.prototype.drawExploded = function () {
     var ret = new Mesh();

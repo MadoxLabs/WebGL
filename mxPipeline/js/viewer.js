@@ -318,3 +318,10 @@ Game.appHandleMouseEvent = function(type, mouse)
 {
 
 }
+
+function alterModel(type)
+{
+  if (type == 0) object.model.flip(0,1);
+  else if (type == 1) object.model.flip(1,2);
+  else if (type == 2) object.model.flip(0,2);
+}
