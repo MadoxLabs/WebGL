@@ -162,6 +162,10 @@
     this.draw(obj.model, obj.animations);
   };
 
+  var hardRotate = mat4.create();
+  mat4.identity(hardRotate);
+  mat4.rotateX(hardRotate, hardRotate, -90 * 2 * 3.14159 / 360.0);
+
   Shader.prototype.draw = function (mesh, anim)
   {
     for (var i = 0; i < mesh.groups.length; ++i)
@@ -179,26 +183,32 @@
       for (var p = 0; p < group.parts.length; ++p)
       {
         var part = group.parts[p];
+        
         if (anim)
         {
           for (var a in anim)
           {
-//            mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
+            // mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
             for (var l in mesh.animations[anim[a].index].layers)
             {
               if (mesh.animations[anim[a].index].layers[l].models.includes(part.name))
               {
-//                mat4.multiply(mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor], part.uniforms.defaultTransform, part.uniforms.localTransform);
+                // mat4.multiply(mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor], part.uniforms.defaultTransform, part.uniforms.localTransform);
                 mat4.copy(part.uniforms.localTransform, mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor]);
-//                mat4.multiply(part.uniforms.localTransform, mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor], part.uniforms.localTransform);
+                // mat4.multiply(part.uniforms.localTransform, mesh.animations[anim[a].index].layers[l].keys[anim[a].cursor], part.uniforms.localTransform);
               }
             }
           }
+        }
+        else if (mesh.fromBlender)
+        {
+          mat4.multiply(part.uniforms.localTransform, hardRotate, part.uniforms.defaultTransform);
         }
         else
         {
           mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
         }
+
         this.setUniforms(part.uniforms);
         this.bindMesh(part);
         if (part.instanceBuffer)

@@ -142,6 +142,7 @@
       }
       this.animations = data.animations;
     }
+//    this.fromBlender = true;
   }
 
   Mesh.prototype.setInstances = function(data, number)
