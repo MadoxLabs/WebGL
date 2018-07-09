@@ -95,8 +95,8 @@
     mat4.scale(s, s, obj.scale);
     // combine all into a transformation
     mat4.identity(trans);
-    mat4.multiply(trans, t, r);
-    mat4.multiply(trans, s, trans);
+    mat4.multiply(trans, r, s);
+    mat4.multiply(trans, t, trans);
     return trans;
   }
 
