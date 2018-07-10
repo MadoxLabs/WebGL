@@ -321,7 +321,43 @@ Game.appHandleMouseEvent = function(type, mouse)
 
 function alterModel(type)
 {
-  if (type == 0) object.model.flip(0,1);
-  else if (type == 1) object.model.flip(1,2);
-  else if (type == 2) object.model.flip(0,2);
+  if (document.getElementById("bakeModel").checked || document.getElementById("bakePart").checked)
+  {
+    if (type == 0) object.model.flip(0, 1);
+    else if (type == 1) object.model.flip(1, 2);
+    else if (type == 2) object.model.flip(0, 2);
+    else if (type == 10) object.model.negate(0);
+    else if (type == 11) object.model.negate(1);
+    else if (type == 12) object.model.negate(2);
+  }
+  if (document.getElementById("bakeModel").checked)
+  {
+    if (type == 20) 
+    {
+      let m = mat4.create();
+      mat4.identity(m);
+      mat4.rotateX(m, m, 3.14159 / 2.0);
+      mat4.multiply(object.model.worldTransform, object.model.worldTransform, m);
+    }
+    if (type == 21) 
+    {
+      let m = mat4.create();
+      mat4.identity(m);
+      mat4.rotateY(m, m, 3.14159 / 2.0);
+      mat4.multiply(object.model.worldTransform, object.model.worldTransform, m);
+    }
+    if (type == 22) 
+    {
+      let m = mat4.create();
+      mat4.identity(m);
+      mat4.rotateZ(m, m, 3.14159 / 2.0);
+      mat4.multiply(object.model.worldTransform, object.model.worldTransform, m);
+    }
+  }
+  if (document.getElementById("bakePart").checked)
+  {
+    if (type == 20) object.model.rotate(0);
+    else if (type == 21) object.model.rotate(1);
+    else if (type == 22) object.model.rotate(2);
+  }
 }

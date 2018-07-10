@@ -133,14 +133,14 @@
       <button class="collapsible">Mesh Baking</button>
       <div class="content">
         <p>
-          <input type=checkbox >Model</input><input type=checkbox >Parts</input><input type=checkbox >Anims</input><br />
-          <a href="#" onclick="alterModel(0);" class="bakeButton"> </a> Flip X/Y<br>
-          <a href="#" onclick="alterModel(1);" class="bakeButton"> </a> Flip Y/Z<br>
-          <a href="#" onclick="alterModel(2);" class="bakeButton"> </a> Flip X/Z<br>
-          <a href="#" onclick="alterModel(3);" class="bakeButton"> </a> Rotate X<br>
-          <a href="#" onclick="alterModel(4);" class="bakeButton"> </a> Rotate Y<br>
-          <a href="#" onclick="alterModel(5);" class="bakeButton"> </a> Rotate Z<br>
-          <a href="#" onclick="alterModel(6);" class="bakeButton"> </a> Reset<br>
+          <input type=checkbox id="bakeModel" >Model</input><input type=checkbox id="bakePart">Parts</input><input type=checkbox id="bakeAnim" >Anims</input><br />
+          <a href="#" onclick="alterModel(0);" class="bakeButton"> </a> Flip X/Y <a href="#" onclick="alterModel(10);" class="bakeButton"> </a> Negate X<br>
+          <a href="#" onclick="alterModel(1);" class="bakeButton"> </a> Flip Y/Z <a href="#" onclick="alterModel(11);" class="bakeButton"> </a> Negate Y<br>
+          <a href="#" onclick="alterModel(2);" class="bakeButton"> </a> Flip X/Z <a href="#" onclick="alterModel(12);" class="bakeButton"> </a> Negate Z<br>
+          <a href="#" onclick="alterModel(20);" class="bakeButton"> </a> Rotate X<br>
+          <a href="#" onclick="alterModel(21);" class="bakeButton"> </a> Rotate Y<br>
+          <a href="#" onclick="alterModel(22);" class="bakeButton"> </a> Rotate Z<br>
+          <a href="#" onclick="alterModel(30);" class="bakeButton"> </a> Reset<br>
         </p>
       </div>
     </div>
