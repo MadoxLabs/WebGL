@@ -1,0 +1,42 @@
+<html>
+	<head>
+    <meta charset="utf-8" />
+    <title>Rhythm Feature Tool</title>
+    <script src="loader.js"></script>
+		<link rel="stylesheet" href="rhythm.css" media="screen" type="text/css" />
+	</head>
+	<body onload="Game.loadApp();">
+    <div id="loading"><p style="font-size:30px; font-family:Impact; color:red">LOADING...</p></div>
+    <div id="game" style="display: none">
+		<div><canvas id='surface'></div>
+	</div>
+	<div id="step1">
+		<p>Step 1: Sync the speed with the mp3. Lock in a defualt speed.<br></p>
+		<p>Song filename: <input type="text" id="song" value="music" width="8"/>.mp3</p><br>
+		<button onclick="Game.startSync();">Begin Syncing Speed</button>
+		<button onclick="Game.stopSync();">Abort</button>
+		<button onclick="Game.lockSync();">Lock in</button>			
+		<p>Speed:</p> <input type="range" min="1" max="1000" value="200" class="slider" id="speed">
+		<p>Channels:</p> <input type="range" min="1" max="20" value="5" class="slider" id="channels">
+	</div>
+	<div id="step2" style="display: none">
+		<p>Step 2: Create the notes<br></p>
+		<button onclick="Game.startCapture();">Begin Capture</button>
+		<button onclick="Game.stopCapture();">Abort Capture</button>
+		<button onclick="Game.restartCapture();">Restart Capture</button>
+		<button onclick="Game.doneCapture();">Done Capture</button>
+		<p>Speed: </p><input type="range" min="0" max="2" value="1" step="0.1" class="slider" id="speed2">
+	</div>
+	<div id="step3" style="display: none">
+		<p>Step 3: Edit mode<br></p>
+		<button onclick="Game.playbackEdit();">Play From Here</button>
+		<button onclick="Game.stopPlaybackEdit();">Stop Playback</button>
+		<button onclick="Game.exitEdit();">Continue Capturing From Here</button>
+		<button onclick="Game.trimEdit();">Trim All Short Tails</button>
+	</div>
+	<br>
+	<input type="text" id="savename" width="8"></input><button onclick="Game.save();">Save</button><br>
+	<select id="saves"></select><button onclick="Game.load();">Load</button><button onclick="Game.delete();">Delete</button>
+
+	</body>
+</html>
