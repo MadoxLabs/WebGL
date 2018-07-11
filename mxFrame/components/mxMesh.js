@@ -30,6 +30,8 @@
   {
     this.groups = [];
     this.scale = 1.0; // this is only to scale normals up to visible size
+    this.worldTransform = mat4.create();
+    mat4.identity(this.worldTransform);
   }
 
   Mesh.prototype.loadFromArrays = function(verts, indexs, attr, type, prims, group, trans, name)
@@ -142,7 +144,6 @@
       }
       this.animations = data.animations;
     }
-//    this.fromBlender = true;
   }
 
   Mesh.prototype.setInstances = function(data, number)
@@ -302,6 +303,44 @@
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(part.indexs), gl.STATIC_DRAW);
       }
     }    
+  }
+
+  Mesh.prototype.negate = function (axis1)
+  {
+    for (var i = 0; i < this.groups.length; ++i)
+    {
+      for (var p = 0; p < this.groups[i].parts.length; ++p)
+      {
+        var part = this.groups[i].parts[p];
+
+        for (var v = 0; v < part.verts.length; v += 8)
+        {
+          part.verts[v + axis1] *= -1.0;
+          part.verts[v + 5 + axis1] *= -1.0;
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, part.buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(part.verts), gl.STATIC_DRAW);
+      }
+    }
+  }
+
+  Mesh.prototype.rotate = function (axis)
+  {
+    for (var i = 0; i < this.groups.length; ++i)
+    {
+      for (var p = 0; p < this.groups[i].parts.length; ++p)
+      {
+        var part = this.groups[i].parts[p];
+
+        let m = mat4.create();
+        mat4.identity(m);
+        if (axis == 0) mat4.rotateX(m, m, 3.14159 / 2.0);
+        if (axis == 1) mat4.rotateY(m, m, 3.14159 / 2.0);
+        if (axis == 2) mat4.rotateZ(m, m, 3.14159 / 2.0);
+        mat4.multiply(part.uniforms.defaultTransform, part.uniforms.defaultTransform, m);
+      }
+    }
   }
 
   // make a copy of the mesh where the normal is the face normal, let shader do the rest

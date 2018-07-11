@@ -162,10 +162,6 @@
     this.draw(obj.model, obj.animations);
   };
 
-  var hardRotate = mat4.create();
-  mat4.identity(hardRotate);
-  mat4.rotateX(hardRotate, hardRotate, -90 * 2 * 3.14159 / 360.0);
-
   Shader.prototype.draw = function (mesh, anim)
   {
     for (var i = 0; i < mesh.groups.length; ++i)
@@ -200,13 +196,9 @@
             }
           }
         }
-        else if (mesh.fromBlender)
-        {
-          mat4.multiply(part.uniforms.localTransform, hardRotate, part.uniforms.defaultTransform);
-        }
         else
         {
-          mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
+          mat4.multiply(part.uniforms.localTransform, mesh.worldTransform, part.uniforms.defaultTransform);
         }
 
         this.setUniforms(part.uniforms);
