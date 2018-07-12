@@ -39,8 +39,11 @@
 
 	</div>
 	<br>
-	<input type="text" id="savename" width="8"></input><button onclick="Game.save();">Save</button><br>
-	<select id="saves"></select><button onclick="Game.load();">Load</button><button onclick="Game.delete();">Delete</button>
-
+    <div style="top:55px; left:820px; position:absolute;">
+      <input type="text" id="savename" width="8"></input><button onclick="Game.save();">Save</button><br>
+      <select id="saves"></select><button onclick="Game.load();">Load</button><button onclick="Game.delete();">Delete</button><br />
+      <button onclick="Game.download()">Download file</button><br />
+      <div id="drop_zone">Drop JSON file here</div>
+    </divstyle="top:55px;>
 	</body>
 </html>

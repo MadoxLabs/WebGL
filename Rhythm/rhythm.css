@@ -36,3 +36,16 @@ p {
   border: 2px solid black;
   box-shadow: 0 0 0 4px #333333, 2px 1px 6px 4px rgba(10, 10, 0, 0.5);
 }
+
+#drop_zone {
+  width: 200px;
+  padding: 5px;
+  margin: 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border: 2px dashed #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px #333333, 2px 1px 6px 4px rgba(10, 10, 0, 0.5);
+  font-weight: normal;
+}

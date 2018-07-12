@@ -40,6 +40,9 @@ Game.init = function ()
 
   Game.lastupdate = Date.now();
 
+  var dropZone = document.getElementById('drop_zone');
+  dropZone.addEventListener('dragover', handleDragOver, false);
+  dropZone.addEventListener('drop', handleFileSelect, false);
 };
 
 Game.run = function ()
@@ -552,3 +555,53 @@ Game.addSpecial = function ()
 {
 
 };
+
+window.URL = window.URL || window.webkitURL;
+
+Game.download = function ()
+{
+  var data = JSON.stringify(Game.state);
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+  element.setAttribute('download', document.getElementById("savename").value + ".json");
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+};
+
+function handleFileSelect(evt)
+{
+  evt.stopPropagation();
+  evt.preventDefault();
+
+  var files = evt.dataTransfer.files;
+  var f = files[0];
+  Game.curFile = f.name;
+  var reader = new FileReader();
+  reader.onload = function (e) { Game.import(e.target.result); }
+  reader.readAsArrayBuffer(f);
+}
+
+function handleDragOver(evt)
+{
+  evt.stopPropagation();
+  evt.preventDefault();
+  evt.dataTransfer.dropEffect = 'copy';
+}
+
+Game.import = function (text)
+{
+  var str = new Uint8Array(text);
+  text = "";
+  var len = str.length;
+  for (var i = 0; i < len; ++i) text += String.fromCharCode(str[i]);
+
+  Game.state = JSON.parse(text);
+  document.getElementById("savename").value = Game.curFile.split(".")[0];
+  Game.music = new buzz.sound(Game.state.song, { formats: ["mp3"] });
+  Game.doneCapture();
+}
