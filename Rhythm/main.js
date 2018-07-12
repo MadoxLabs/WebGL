@@ -181,7 +181,12 @@ Game.fireMouseEvent = function (type, mouse)
     }
     if (addMode)
     {
-      addMode = false;
+			addMode = false;
+			if (addSpecial)
+			{
+				addSpecial = false;
+				currentNote.endTime = 1000000000 + ((document.getElementById("specialType").value) |0);
+			}
       Game.state.notes.push(currentNote);
       noteCache[currentNote.id] = currentNote;
       currentNote = null;
@@ -324,18 +329,30 @@ Game.drawNote = function (note)
     visibleNotes.push(note.id);
   }
 
-  // the tail
-  if (note.id == hoverTailID)
+	// the tail
+	if (note.endTime < 1000000000)
+	{
+		if (note.id == hoverTailID)
     Game.context.fillStyle = "#ffff00";		
   else	
     Game.context.fillStyle = "#00ffff";		
   Game.context.fillRect(note.x-10, note.y-10, 20, note.tail);			
+	}
   // the note
   if (note.id == hoverNoteID)
     Game.context.fillStyle = "#ffff00";		
-  else	
-    Game.context.fillStyle = "#00ffff";		
-  Game.context.fillRect(note.x-20, note.y-20, 40, 40);			
+	else if (note.endTime < 1000000000)
+		Game.context.fillStyle = "#00ffff";		
+	else {
+		Game.context.fillStyle = "#0000ff";		
+	}
+	Game.context.fillRect(note.x-20, note.y-20, 40, 40);			
+	if (note.endTime > 1000000000)
+	{
+		Game.context.fillStyle = "white";
+		Game.context.font = "bold 16px Arial";
+		Game.context.fillText("" + (note.endTime - 1000000000), note.x+30, note.y);			
+	}
   // the miniview
   Game.context.fillStyle = "#000000";
   Game.context.fillRect(790 + note.x / 80, note.startTime / 20, 1, 1);			
@@ -553,7 +570,8 @@ Game.addNote = function ()
 
 Game.addSpecial = function ()
 {
-
+  addMode = true;
+  addSpecial = true;
 };
 
 window.URL = window.URL || window.webkitURL;
