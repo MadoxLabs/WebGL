@@ -285,9 +285,16 @@ Game.update = function (elapsed)
 
   if (Game.state.active)
   {
-    Game.state.cursor = Game.timeToCursorPos(Game.music.getTime() * 1000.0);
-//    Game.state.cursor += Game.timeToCursorPos(elapsed);
-  }
+		if (Game.music.getSpeed() == 1.0)
+		{
+			Game.state.cursor = Game.timeToCursorPos(Game.music.getTime() * 1000.0);
+		}
+		else
+		{
+			Game.state.cursor += Game.timeToCursorPos(elapsed);
+		}
+//console.log((Game.music.getTime() * 1000.0) + " - " + Game.state.cursor);
+}
   if (currentNote && !addMode)
   {
     currentNote.endTime = Game.state.cursor;
