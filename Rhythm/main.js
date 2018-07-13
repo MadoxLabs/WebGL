@@ -37,12 +37,17 @@ Game.init = function ()
   Game.mouse = new Mouse(Game.canvas);
   Game.state = new CaptureState();
   Game.songs = {};
-
+  Game.hammer = new Hammer(Game.canvas);
   Game.lastupdate = Date.now();
-
+  
   var dropZone = document.getElementById('drop_zone');
   dropZone.addEventListener('dragover', handleDragOver, false);
   dropZone.addEventListener('drop', handleFileSelect, false);
+
+  Game.hammer.on("tap press", function (ev)
+  {
+    console.log(ev.type + " gesture detected.");
+  });
 };
 
 Game.run = function ()
