@@ -44,9 +44,22 @@ Game.init = function ()
   dropZone.addEventListener('dragover', handleDragOver, false);
   dropZone.addEventListener('drop', handleFileSelect, false);
 
-  Game.hammer.on("tap press pressup", function (ev)
+  Game.hammer.on("tap press", function (ev)
   {
-    console.log(ev.type + " gesture detected.");
+    let mouse = {};
+    mouse.button = 0;
+    mouse.X = ev.center.x;
+    mouse.Y = ev.center.y;
+    Game.fireMouseEvent(MouseEvent.Down, mouse);
+  });
+
+  Game.hammer.on("pressup", function (ev)
+  {
+    let mouse = {};
+    mouse.button = 0;
+    mouse.X = ev.center.x;
+    mouse.Y = ev.center.y;
+    Game.fireMouseEvent(MouseEvent.Up, mouse);
   });
 };
 
