@@ -1,0 +1,23 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: black;
+}
+
+#surface {
+    border: solid black 1px;
+    width: 800px;
+    height: 600px;
+}
+
+#loading {
+  margin: 0 auto;
+  color: red;
+  font-size: x-large;
+  position: absolute;
+  top: 0px;
+}
+
+#app {
+  visibility: hidden;
+}

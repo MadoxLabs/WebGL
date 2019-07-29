@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>MadoxLabs Ray Tracer</title>
+    <link rel="stylesheet" href="style.css" media="screen" type="text/css" />
+    <script src="rFrame.js"></script>
+    <script>
+      let assets = {};
+      function reportBootup(value)
+      {
+        var out = document.getElementById("loading");
+        out.innerHTML = "MadoxLabs Ray Tracer<br>Booting up: " + value;
+      }
+      function reportLoaded(name, value)
+      {
+        var out = document.getElementById("loading");
+        delete assets["<br>" +name];
+        out.innerHTML = "MadoxLabs Ray Tracer<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
+      }
+      function reportLoading(name, value)
+      {
+        var out = document.getElementById("loading");
+        assets["<br>"+name] = 1;
+        out.innerHTML = "MadoxLabs Ray Tracer<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
+      }
+      function doneLoading()
+      {
+        document.getElementById("loading").style.visibility = "hidden";
+        document.getElementById("app").style.visibility = "visible";
+      }
+    </script>
+  </head>
+  <body style="margin:0;padding:0;" onload="ray.loadApp();">
+    <div id="app">
+      <button onclick="ray.App.runTests()">Run Tests</button><br>
+      <div><canvas id='surface'></canvas></div>  
+    </div>
+    <div id="loading">MadoxLabs Ray Tracer<br />Booting up:</div>
+  </body>
+</html>
