@@ -26,11 +26,28 @@
 			this.y += t.y;
 			this.z += t.z;
 			this.w += t.w;
+			return this;
+		}
+
+		minus(t)
+		{
+			if (t.isPoint() && this.isVector()) throw "subtracting point from a vector";
+			this.x -= t.x;
+			this.y -= t.y;
+			this.z -= t.z;
+			this.w -= t.w;
+			return this;
 		}
 
 		static add(t1, t2)
 		{
 			return new rTouple(t1.x + t2.x, t1.y + t2.y, t1.z + t2.z, t1.w + t2.w);
+		}
+
+		static subtract(t1, t2)
+		{
+			let ret = new Touple(t1.x, t1.y, t1.z, t1.w);
+			return ret.minus(t2);
 		}
 
 		// tests
