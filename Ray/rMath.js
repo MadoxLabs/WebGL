@@ -20,9 +20,23 @@
 			return (this.w == 1) ? true : false;
 		}
 		
+		plus(t)
+		{
+			this.x += t.x;
+			this.y += t.y;
+			this.z += t.z;
+			this.w += t.w;
+		}
+
+		static add(t1, t2)
+		{
+			return new rTouple(t1.x + t2.x, t1.y + t2.y, t1.z + t2.z, t1.w + t2.w);
+		}
+
+		// tests
 		static getTests()
 		{
-			return [rTouple.test1, rTouple.test2, rTouple.test3, rTouple.test4];
+			return [rTouple.test1, rTouple.test2, rTouple.test3, rTouple.test4, rTouple.test5];
 		}
 
 		static test1()
@@ -81,9 +95,33 @@
 			}};
 		}
 
+		static test5()
+		{
+			return {name: "Check that adding touples works", test: function() {
+				let t1 = new ray.Touple(4, -4, 3, 1);
+				let t2 = new ray.Touple(-1, 2, 4, 0);
+				let t3 = ray.Touple.add(t1,t2);
+				t1.plus(t2);
+				if (t3.x != 3) return false;
+				if (t3.y != -2) return false;
+				if (t3.z != 7) return false;
+				if (t3.w != 1.0) return false;
+				if (t3.isPoint() != true) return false;
+				if (t3.isVector() != false) return false;
+				if (t1.x != 3) return false;
+				if (t1.y != -2) return false;
+				if (t1.z != 7) return false;
+				if (t1.w != 1.0) return false;
+				if (t1.isPoint() != true) return false;
+				if (t1.isVector() != false) return false;
+				return true;
+			}};
+		}
 	}
 
+	ray.Touple = rTouple;
 	ray.Point = function(x,y,z) { return new rTouple(x,y,z,1.0); }
 	ray.Vector = function(x,y,z) { return new rTouple(x,y,z,0.0); }
-	ray.Touple = rTouple;
+	ray.epsilon = 0.00001;
+	ray.isEqual = function(a,b) { return Math.abs(a-b) < ray.epsilon; }
 })();
