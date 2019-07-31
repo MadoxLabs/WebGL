@@ -34,10 +34,10 @@
         out.innerHTML = "Loading: " + value + " assets to go...";
       }
 
-      var head = 0;
+      var head = -1;
       function changeHead(src)
       {
-        if (src != head) head = src;
+        if (src != head) { head = src; }
         else return;
 
         document.getElementById("headMover").className = ["left", "right"][head];
@@ -47,13 +47,14 @@
         document.getElementById("chapters").className = "appwindow " + ["hidden", ""][head];
 
         ray.App.drawTOC(head == 0 ? "tests" : "chapters");
+        tab = -1;
         changeTab(0);
       }
 
-      var tab = 0;
+      var tab = -1;
       function changeTab(src)
       {
-        if (src != tab) tab = src;
+        if (src != tab) { tab = src; }
         else return;
 
         document.getElementById("tabMover").className = "pos" + tab;
@@ -63,6 +64,8 @@
           if (!obj) continue;
           obj.className = "mxButton " + ((tab == i) ? "active" : "inactive");
         }
+        if (head == 0) ray.App.runTest(tab);
+        else if (head == 1) ray.App.runChapter(tab+1);
       }
 
     </script>
@@ -77,7 +80,7 @@
     <div id="edge"></div>
     <div class="left" id="headMover"></div>
     <div class="pos0" id="tabMover"></div>
-    <div id="tests" class="appwindow">Tests</div>
-    <div id="chapters" class="appwindow hidden">Chapters</div>
+    <div id="tests" class="appwindow"></div>
+    <div id="chapters" class="appwindow hidden"></div>
 </body>
 </html>

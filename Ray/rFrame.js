@@ -10,7 +10,8 @@ function reportLoading(name, value) { }
   var baseSrc = ["rMath.js",
                  "rColour.js"
                 ];
-  var appSrc = ["rUnittest.js"
+  var appSrc = ["rUnittest.js",
+                "rApp.js"
                ];
 
   var loadState = {}
@@ -64,7 +65,7 @@ function reportLoading(name, value) { }
     console.log("Init");
     ray.App.init();
     console.log("Begin");
-    ray.App.run();
+//    ray.App.run();
   }
 
   // external loader function
