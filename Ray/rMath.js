@@ -501,9 +501,18 @@
     }
   }
 
+  ray.classlist.push(rTouple);
+
   ray.Touple = rTouple;
   ray.Point = function(x,y,z) { return new rTouple(x,y,z,1.0); }
   ray.Vector = function(x,y,z) { return new rTouple(x,y,z,0.0); }
+
   ray.epsilon = 0.00001;
-  ray.isEqual = function (a, b) { return Math.abs(a - b) < ray.epsilon; }
+  ray.isEqual = function (a, b)
+  {
+//    let diff = a - b;
+//    let adiff = Math.abs(diff);
+//    let comp = (adiff < ray.epsilon);
+    return Math.abs(a - b) < ray.epsilon;
+  }
 })();

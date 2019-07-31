@@ -1,14 +1,14 @@
 // predefined namespaces so loading things have a place to go
-var ray = {};
+var ray = { classlist: [] };
 function reportBootup(file) { }
 function reportLoaded(name, value) { }
 function reportLoading(name, value) { }
-function doneLoading() { }
 
 (function ()
 {
   // source files to load, some optionally
-  var baseSrc = ["rMath.js"
+  var baseSrc = ["rMath.js",
+                 "rColour.js"
                 ];
   var appSrc = ["rUnittest.js"
                ];

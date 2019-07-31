@@ -3,9 +3,14 @@
 	class Tester
 	{		
 		constructor()
-		{
-			this.suites = [];
-			this.suites.push(this.populate(ray.Touple));
+    {
+      this.names = [];
+      this.suites = [];
+      for (let c in ray.classlist)
+      {
+        this.names.push(ray.classlist[c].name);
+        this.suites.push(this.populate(ray.classlist[c]));
+      }
 		}
 
     populate(obj)
@@ -21,29 +26,38 @@
       return ret;
     }
 
+    prepare()
+    {
+      this.total = 0;
+      this.success = 0;
+    }
+
+    runSuite(s)
+    {
+      let suite = this.suites[s];
+      for (let s in suite)
+      {
+        let test = suite[s]();
+        this.total += 1;
+        console.log(test.name)
+        let result = false;
+        try
+        {
+          result = test.test();
+          if (result) this.success += 1;
+        } catch (e) { console.log(" - crash: " + e); }
+        console.log(" - " + result);
+      }
+    }
+
     run()
 		{
-			let total = 0;
-			let success = 0;
-
 			for (let s in this.suites)
-			{
-				let suite = this.suites[s];
-				for (let s in suite)
-				{
-					let test = suite[s]();
-					total += 1;
-					console.log(test.name)
-					let result = false;
-					try { 
-						result = test.test();
-						if (result) success += 1;
-					} catch(e) { console.log(" - crash: " +e); }
-					console.log(" - " + result);
-				}
+      {
+        this.runSuite(s);
 			}
 
-			console.log("RESULT: " + total +" tests. " + success + " OK. " + (total - success) +" BAD.");
+      console.log("RESULT: " + this.total + " tests. " + this.success + " OK. " + (this.total - this.success) +" BAD.");
 		}
 	}
 
@@ -56,12 +70,44 @@
 		init()
 		{
 			console.log("App init!");
-			doneLoading();
+
+      var out = document.getElementById("message");
+      out.innerHTML = "Ready";
+
+      this.tester = new ray.Tester();
+      this.drawTOC("tests");
 		}
+
+    renderTOCButton(name, id, active)
+    {
+      return "<div id=\"tab"+id+"\" class=\"mxButton "+(active ? "active" : "inactive")+"\" onclick=\"changeTab("+id+");\">"+name+"</div>";
+    }
+
+    drawTOC(type)
+    {
+      let ret = "";
+      if (type == "tests")
+      {
+        ret = this.renderTOCButton("All", 0, true);
+        for (let i in this.tester.names)
+        {
+          ret += this.renderTOCButton(this.tester.names[i], (i | 0) + 1, false);
+        }
+      }
+      if (type == "chapters")
+      {
+        for (let i = 0; i < 2; ++i)
+        {
+          ret += this.renderTOCButton("Chapter "+(i+1), i, (i == 0));
+        }
+      }
+
+      var out = document.getElementById("TOC");
+      out.innerHTML = ret;
+    }
 
 		runTests()
 		{
-			let tester = new ray.Tester();
 			tester.run();
 		}
 
