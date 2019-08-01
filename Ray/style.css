@@ -22,8 +22,6 @@ p {
 
 #surface {
     border: solid black 1px;
-    width: 800px;
-    height: 600px;
 }
 
 #message, #title {
@@ -86,6 +84,15 @@ p {
   position: absolute;
   top: -70px;
   transform: scale(0.7)
+}
+
+.mxText {
+  color: #fff;
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1.3em;
+  text-shadow: -1px -1px #aa3030;
+  font-weight: normal;
 }
 
 .mxButton {
@@ -192,4 +199,41 @@ p {
 
 .visible {
   visibility: visible;
+}
+
+table.blueTable {
+  border: 3px solid #1C6EA4;
+  background-color: #333333;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  color: white;
+}
+
+table.blueTable td, table.blueTable th {
+  padding: 3px 2px;
+}
+
+table.blueTable tbody td {
+  font-size: 13px;
+}
+
+table.blueTable tr:nth-child(even) {
+  background: #222222;
+}
+
+table.blueTable tfoot td {
+  font-size: 14px;
+}
+
+table.blueTable tfoot .links {
+  text-align: right;
+}
+
+table.blueTable tfoot .links a {
+  display: inline-block;
+  background: #1C6EA4;
+  color: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 5px;
 }

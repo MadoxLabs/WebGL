@@ -1,8 +1,8 @@
 (function (){
 
-	class Tester
-	{		
-		constructor()
+  class Tester
+  {		
+    constructor()
     {
       this.names = [];
       this.suites = [];
@@ -11,7 +11,7 @@
         this.names.push(ray.classlist[c].name);
         this.suites.push(this.populate(ray.classlist[c]));
       }
-		}
+    }
 
     populate(obj)
     {
@@ -41,7 +41,6 @@
         let test = suite[s]();
         this.total += 1;
         ret.push(test.name);
-//        console.log(test.name)
         let result = false;
         try
         {
@@ -54,17 +53,18 @@
     }
 
     run()
-		{
+    {
       let ret = [];
-			for (let s in this.suites)
+      for (let s in this.suites)
       {
-        ret.concat( this.runSuite(s) );
-			}
+        let lines = this.runSuite(s);
+        ret = [].concat( ret, lines );
+      }
 
       console.log("RESULT: " + this.total + " tests. " + this.success + " OK. " + (this.total - this.success) +" BAD.");
       return ret;
-		}
-	}
+    }
+  }
 
-	ray.Tester = Tester;
+  ray.Tester = Tester;
 })();

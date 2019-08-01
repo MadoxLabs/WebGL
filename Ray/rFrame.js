@@ -1,5 +1,5 @@
 // predefined namespaces so loading things have a place to go
-var ray = { classlist: [] };
+var ray = { classlist: [], chapters: {} };
 function reportBootup(file) { }
 function reportLoaded(name, value) { }
 function reportLoading(name, value) { }
@@ -8,7 +8,8 @@ function reportLoading(name, value) { }
 {
   // source files to load, some optionally
   var baseSrc = ["rMath.js",
-                 "rColour.js"
+                 "rColour.js",
+                 "rCanvas.js"
                 ];
   var appSrc = ["rUnittest.js",
                 "rApp.js"
