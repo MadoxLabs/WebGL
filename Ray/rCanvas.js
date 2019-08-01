@@ -39,9 +39,9 @@
       if (x < 0) return;
       if (y < 0) return;
       let red = (this.height - Math.floor(y) -1) * (this.width * 4) + Math.floor(x) * 4;
-      this.map.data[red + 0] = Math.floor(color.red * 255);
-      this.map.data[red + 1] = Math.floor(color.green * 255);
-      this.map.data[red + 2] = Math.floor(color.blue * 255);
+      this.map.data[red + 0] = (color.red * 255);
+      this.map.data[red + 1] = (color.green * 255);
+      this.map.data[red + 2] = (color.blue * 255);
       this.map.data[red + 3] = 255;
     }
 
@@ -107,7 +107,9 @@
           let c2 = new ray.Colour(0, 0, 0);
           canvas.get(c2, 5, 5);
           if (c2.red != 1) return false;
+          ray.epsilon = 0.01;
           if (!ray.isEqual(c2.green, 0.5)) return false;
+          ray.epsilon = 0.00001;
           if (c2.blue != 0) return false;
           return true;
         }

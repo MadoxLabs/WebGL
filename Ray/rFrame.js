@@ -12,6 +12,8 @@ function reportLoading(name, value) { }
                  "rCanvas.js"
                 ];
   var appSrc = ["rUnittest.js",
+                "Chapter1.js",
+                "Chapter2.js",
                 "rApp.js"
                ];
 
