@@ -184,6 +184,18 @@ p {
   top: 260px;
 }
 
+  #tabMover.pos4 {
+    top: 310px;
+  }
+
+  #tabMover.pos5 {
+    top: 360px;
+  }
+
+  #tabMover.pos6 {
+    top: 410px;
+  }
+
 .appwindow {
   position: absolute;
   left: 160px;

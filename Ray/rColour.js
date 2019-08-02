@@ -7,6 +7,7 @@
       this.red = r;
       this.green = g;
       this.blue = b;
+      this.isColour = true;
     }
 
     plus(c)

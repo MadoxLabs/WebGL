@@ -8,6 +8,7 @@
       this.y = y;
       this.z = z;
       this.w = w;
+      this.isTouple = true;
     }
 
     isVector()
@@ -19,7 +20,16 @@
     {
       return (this.w == 1) ? true : false;
     }
-    
+
+    equals(t)
+    {
+      if (this.x != t.x) return false;
+      if (this.y != t.y) return false;
+      if (this.z != t.z) return false;
+      if (this.w != t.w) return false;
+      return true;
+    }
+
     plus(t)
     {
       this.x += t.x;
@@ -499,6 +509,35 @@
         }
       };
     }
+
+    static test19()
+    {
+      return {
+        name: "Check that equality works",
+        test: function ()
+        {
+          let t1 = new ray.Vector(1, 2, 3);
+          let t2 = new ray.Vector(1, 2, 3);
+          if (!t1.equals(t2)) return false;
+          return true;
+        }
+      };
+    }
+
+    static test20()
+    {
+      return {
+        name: "Check that inequality works",
+        test: function ()
+        {
+          let t1 = new ray.Vector(1, 2, 3);
+          let t2 = new ray.Vector(2, 3, 1);
+          if (t1.equals(t2)) return false;
+          return true;
+        }
+      };
+    }
+
   }
 
   ray.classlist.push(rTouple);

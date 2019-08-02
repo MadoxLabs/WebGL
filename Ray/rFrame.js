@@ -9,7 +9,8 @@ function reportLoading(name, value) { }
   // source files to load, some optionally
   var baseSrc = ["rMath.js",
                  "rColour.js",
-                 "rCanvas.js"
+                 "rCanvas.js",
+                 "rMatrix.js"
                 ];
   var appSrc = ["rUnittest.js",
                 "Chapter1.js",
