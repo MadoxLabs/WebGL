@@ -38,9 +38,10 @@
       }
       if (type == "chapters")
       {
-        for (let i = 0; i < 2; ++i)
+        for (let i = 1; i < 30; ++i)
         {
-          ret += this.renderTOCButton("Chapter "+(i+1), i, (i == 0));
+          if (ray.chapters[i])
+            ret += this.renderTOCButton("Chapter "+i, (i-1), (i == 1));
         }
       }
 
