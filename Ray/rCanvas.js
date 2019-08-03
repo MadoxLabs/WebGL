@@ -56,6 +56,23 @@
       color.blue = this.map.data[red + 2] / 255.0; 
     }
 
+    tvstatic()
+    {
+      let stride = this.width * 4;
+      for (let x = 0; x < this.width; ++x) 
+      {
+        for (let y = 0; y < this.width; ++y) 
+        {
+          let shade = Math.random() * 128 + 128;
+          let red = y * stride + x * 4;
+          this.map.data[red + 0] = shade;
+          this.map.data[red + 1] = shade;
+          this.map.data[red + 2] = shade;
+          this.map.data[red + 3] = 255;
+        }
+      }
+    }
+
     clear()
     {
       this.context.fillStyle = "black";
