@@ -62,13 +62,15 @@
       {
         let data = new Array(4);
         let index = 0;
+        let rstride = 0;
         for (let i = 0; i < 4; ++i)
         {
-          let v = this.get(i, 0) * m.x
-                + this.get(i, 1) * m.y
-                + this.get(i, 2) * m.z
-                + this.get(i, 3) * m.w;
+          let v = this.data[rstride]   * m.x
+                + this.data[rstride+1] * m.y
+                + this.data[rstride+2] * m.z
+                + this.data[rstride+3] * m.w;
           data[index++] = v;
+          rstride += 4;
         }
         return new ray.Touple(data[0], data[1], data[2], data[3]);
       }
@@ -80,8 +82,14 @@
       let index = 0;
 
       for (let c = 0; c < this.width; ++c)
+      {
+        let rstride = 0;
         for (let r = 0; r < this.height; ++r)
-          d[index++] = this.get(r, c);
+        {
+          d[index++] = this.data[rstride + c];
+          rstride += this.width;
+        }
+      }
       this.data = d;
       return this;
     }
@@ -103,13 +111,17 @@
     {
       let data = new Array((this.width - 1) * (this.width - 1));
       let index = 0;
-      for (let r = 0; r < this.height; ++r)
-        for (let c = 0; c < this.width; ++c)
+      let rstride = 0;
+      for (let r = 0; r < this.height; ++r) 
+      {
+        for (let c = 0; c < this.width; ++c) 
         {
           if (r == badr) continue;
           if (c == badc) continue;
-          data[index++] = this.get(r, c);
+          data[index++] = this.data[rstride + c];
         }
+        rstride += this.width;
+      }
       return new rMatrix(this.width - 1, this.height - 1, data);
     }
 

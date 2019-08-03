@@ -57,8 +57,6 @@
       if (test == 0)
       {
         output = this.tester.run();
-//        for (let i = 0; i < 10000; ++i)
-//          this.tester.run();
       } else {
         output = this.tester.runSuite(test-1);
       }
