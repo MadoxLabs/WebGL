@@ -23,10 +23,10 @@
 
     equals(t)
     {
-      if (this.x != t.x) return false;
-      if (this.y != t.y) return false;
-      if (this.z != t.z) return false;
-      if (this.w != t.w) return false;
+      if (!ray.isEqual(this.x, t.x)) return false;
+      if (!ray.isEqual(this.y, t.y)) return false;
+      if (!ray.isEqual(this.z, t.z)) return false;
+      if (!ray.isEqual(this.w, t.w)) return false;
       return true;
     }
 

@@ -210,6 +210,54 @@
       return ret;
     }
 
+    static xRotation(r)
+    {
+      let c = Math.cos(r);
+      let s = Math.sin(r);
+      let ret = ray.Identity4x4.copy();
+      ret.data[5] = c;
+      ret.data[6] = -s;
+      ret.data[9] = s;
+      ret.data[10] = c;
+      return ret;
+    }
+
+    static yRotation(r)
+    {
+      let c = Math.cos(r);
+      let s = Math.sin(r);
+      let ret = ray.Identity4x4.copy();
+      ret.data[0] = c;
+      ret.data[2] = s;
+      ret.data[8] = -s;
+      ret.data[10] = c;
+      return ret;
+    }
+
+    static zRotation(r)
+    {
+      let c = Math.cos(r);
+      let s = Math.sin(r);
+      let ret = ray.Identity4x4.copy();
+      ret.data[0] = c;
+      ret.data[1] = -s;
+      ret.data[4] = s;
+      ret.data[5] = c;
+      return ret;
+    }
+
+    static shearing(Xy, Xz, Yx, Yz, Zx, Zy)
+    {
+      let ret = ray.Identity4x4.copy();
+      ret.data[1] = Xy;
+      ret.data[2] = Xz;
+      ret.data[4] = Yx;
+      ret.data[6] = Yz;
+      ret.data[8] = Zx;
+      ret.data[9] = Zy;
+      return ret;
+    }
+
     // tests
     static test1()
     {
@@ -703,6 +751,209 @@
       };
     }
 
+    static test31()
+    {
+      return {
+        name: "Check rotating a point around X",
+        test: function ()
+        {
+          let p = ray.Point(0, 1, 0);
+          let check1 = ray.Point(0, Math.sqrt(2.0) / 2.0, Math.sqrt(2.0) / 2.0);
+          let check2 = ray.Point(0, 0, 1);
+          let halfQuarter = ray.Matrix.xRotation(Math.PI / 4.0);
+          let fullQuarter = ray.Matrix.xRotation(Math.PI / 2.0);
+          if (halfQuarter.times(p).equals(check1) == false) return false;
+          if (fullQuarter.times(p).equals(check2) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test32()
+    {
+      return {
+        name: "Check inverse rotation of a point around X",
+        test: function ()
+        {
+          let p = ray.Point(0, 1, 0);
+          let check1 = ray.Point(0, Math.sqrt(2.0) / 2.0, Math.sqrt(2.0) / -2.0);
+          let halfQuarter = ray.Matrix.xRotation(Math.PI / 4.0);
+          if (halfQuarter.invert().times(p).equals(check1) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test33()
+    {
+      return {
+        name: "Check rotating a point around Y",
+        test: function ()
+        {
+          let p = ray.Point(0, 0, 1);
+          let check1 = ray.Point(Math.sqrt(2.0) / 2.0, 0, Math.sqrt(2.0) / 2.0);
+          let check2 = ray.Point(1, 0, 0);
+          let halfQuarter = ray.Matrix.yRotation(Math.PI / 4.0);
+          let fullQuarter = ray.Matrix.yRotation(Math.PI / 2.0);
+          if (halfQuarter.times(p).equals(check1) == false) return false;
+          if (fullQuarter.times(p).equals(check2) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test34()
+    {
+      return {
+        name: "Check rotating a point around Z",
+        test: function ()
+        {
+          let p = ray.Point(0, 1, 0);
+          let check1 = ray.Point(Math.sqrt(2.0) / -2.0, Math.sqrt(2.0) / 2.0, 0);
+          let check2 = ray.Point(-1, 0, 0);
+          let halfQuarter = ray.Matrix.zRotation(Math.PI / 4.0);
+          let fullQuarter = ray.Matrix.zRotation(Math.PI / 2.0);
+          if (halfQuarter.times(p).equals(check1) == false) return false;
+          if (fullQuarter.times(p).equals(check2) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test35()
+    {
+      return {
+        name: "Check shearing moves X relative to Y",
+        test: function ()
+        {
+          let p = ray.Point(2, 3, 4);
+          let check = ray.Point(5, 3, 4);
+          let shear = ray.Matrix.shearing(1, 0, 0, 0, 0, 0);
+          if (shear.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test36()
+    {
+      return {
+        name: "Check shearing moves X relative to Z",
+        test: function ()
+        {
+          let p = ray.Point(2, 3, 4);
+          let check = ray.Point(6, 3, 4);
+          let shear = ray.Matrix.shearing(0, 1, 0, 0, 0, 0);
+          if (shear.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test37()
+    {
+      return {
+        name: "Check shearing moves Y relative to X",
+        test: function ()
+        {
+          let p = ray.Point(2, 3, 4);
+          let check = ray.Point(2, 5, 4);
+          let shear = ray.Matrix.shearing(0, 0, 1, 0, 0, 0);
+          if (shear.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test38()
+    {
+      return {
+        name: "Check shearing moves Y relative to Z",
+        test: function ()
+        {
+          let p = ray.Point(2, 3, 4);
+          let check = ray.Point(2, 7, 4);
+          let shear = ray.Matrix.shearing(0, 0, 0, 1, 0, 0);
+          if (shear.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test39()
+    {
+      return {
+        name: "Check shearing moves Z relative to X",
+        test: function ()
+        {
+          let p = ray.Point(2, 3, 4);
+          let check = ray.Point(2, 3, 6);
+          let shear = ray.Matrix.shearing(0, 0, 0, 0, 1, 0);
+          if (shear.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test40()
+    {
+      return {
+        name: "Check shearing moves Z relative to Y",
+        test: function ()
+        {
+          let p = ray.Point(2, 3, 4);
+          let check = ray.Point(2, 3, 7);
+          let shear = ray.Matrix.shearing(0, 0, 0, 0, 0, 1);
+          if (shear.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test41()
+    {
+      return {
+        name: "Check transformation applied in sequence",
+        test: function ()
+        {
+          let p = ray.Point(1, 0, 1);
+          let A = ray.Matrix.xRotation(Math.PI / 2.0);
+          let B = ray.Matrix.scale(5, 5, 5);
+          let C = ray.Matrix.translation(10, 5, 7);
+
+          let check1 = ray.Point(1, -1, 0);
+          p = A.times(p);
+          if (p.equals(check1) == false) return false;
+
+          let check2 = ray.Point(5, -5, 0);
+          p = B.times(p);
+          if (p.equals(check2) == false) return false;
+
+          let check3 = ray.Point(15, 0, 7);
+          p = C.times(p);
+          if (p.equals(check3) == false) return false;
+
+          return true;
+        }
+      };
+    }
+    static test42()
+    {
+      return {
+        name: "Check chained transformations applied in reverse order",
+        test: function ()
+        {
+          let p = ray.Point(1, 0, 1);
+          let A = ray.Matrix.xRotation(Math.PI / 2.0);
+          let B = ray.Matrix.scale(5, 5, 5);
+          let C = ray.Matrix.translation(10, 5, 7);
+          let T = C.times(B.times(A));
+          let check = ray.Point(15, 0, 7);
+          if (T.times(p).equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
   }
 
   ray.classlist.push(rMatrix);

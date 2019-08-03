@@ -71,6 +71,8 @@
 
     runStage(ch)
     {
+      for (let c in ray.stages)
+        if (ray.stages[c].stop) ray.stages[c].stop();
       ray.stages[ch].run();
     }
     

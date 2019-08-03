@@ -17,7 +17,6 @@
       this.context = this.canvas.getContext("2d");
 
       this.clear();
-      this.map = this.context.getImageData(0, 0, this.width, this.height);
     }
 
     fromElement(element)
@@ -61,6 +60,7 @@
     {
       this.context.fillStyle = "black";
       this.context.fillRect(0, 0, this.width, this.height);
+      this.map = this.context.getImageData(0, 0, this.width, this.height);
     }
 
     draw()
