@@ -11,6 +11,11 @@
       this.isMatrix = true;
     }
 
+    copy()
+    {
+      return new rMatrix(this.width, this.height, this.data.slice(0));
+    }
+
     get(r, c)
     {
       return this.data[this.width * r + c];
@@ -187,12 +192,30 @@
       return m.submatrix(badr, badc);
     }
 
+    static translation(x, y, z)
+    {
+      let ret = ray.Identity4x4.copy();
+      ret.data[3]  = x;
+      ret.data[7]  = y;
+      ret.data[11] = z;
+      return ret;
+    }
+
+    static scale(x, y, z)
+    {
+      let ret = ray.Identity4x4.copy();
+      ret.data[0] = x;
+      ret.data[5] = y;
+      ret.data[10] = z;
+      return ret;
+    }
+
     // tests
     static test1()
     {
       return {
         name: "Check that 4x4 matrix works",
-        test: function ()
+        test: function () 
         {
           let c = new ray.Matrix4x4([1,2,3,4, 5.5,6.5,7.5,8.5, 9,10,11,12, 13.5,14.5,15.5,16.5]);
           if (c.get(0,0) != 1) return false;
@@ -564,6 +587,117 @@
           let B = ray.Matrix.inverse(A);
           let C = ray.Matrix.multiply(A, B);
           if (C.equals(ray.Identity4x4) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test24()
+    {
+      return {
+        name: "Check translation of a point",
+        test: function ()
+        {
+          let trans = ray.Matrix.translation(5, -3, 2);
+          let point = new ray.Point(-3, 4, 5);
+          let check = new ray.Point(2, 1, 7);
+          let result = trans.times(point);
+          if (result.equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test25()
+    {
+      return {
+        name: "Check inverse translation of a point",
+        test: function ()
+        {
+          let trans = ray.Matrix.translation(5, -3, 2);
+          let point = new ray.Point(-3, 4, 5);
+          let check = new ray.Point(-8, 7, 3);
+          let result = trans.invert().times(point);
+          if (result.equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test26()
+    {
+      return {
+        name: "Check translation of a vector",
+        test: function ()
+        {
+          let trans = ray.Matrix.translation(5, -3, 2);
+          let vec = new ray.Vector(-3, 4, 5);
+          let result = trans.times(vec);
+          if (result.equals(vec) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test27()
+    {
+      return {
+        name: "Check scaling of a point",
+        test: function ()
+        {
+          let mat = ray.Matrix.scale(2, 3, 4);
+          let point = new ray.Point(-4, 6, 8);
+          let check = new ray.Point(-8, 18, 32);
+          let result = mat.times(point);
+          if (result.equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test28()
+    {
+      return {
+        name: "Check inverse scaling of a point",
+        test: function ()
+        {
+          let mat = ray.Matrix.scale(2, 3, 4);
+          let point = new ray.Point(-4, 6, 8);
+          let check = new ray.Point(-2, 2, 2);
+          let result = mat.invert().times(point);
+          if (result.equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test29()
+    {
+      return {
+        name: "Check scaling of a vector",
+        test: function ()
+        {
+          let mat = ray.Matrix.scale(2, 3, 4);
+          let vec = new ray.Vector(-4, 6, 8);
+          let check = new ray.Vector(-8, 18, 32);
+          let result = mat.times(vec);
+          if (result.equals(check) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test30()
+    {
+      return {
+        name: "Check reflection scaling of a point",
+        test: function ()
+        {
+          let mat = ray.Matrix.scale(-1, 1, 1);
+          let point = new ray.Point(2, 3, 4);
+          let check = new ray.Point(-2, 3, 4);
+          let result = mat.times(point);
+          if (result.equals(check) == false) return false;
           return true;
         }
       };
