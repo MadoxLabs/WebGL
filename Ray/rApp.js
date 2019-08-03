@@ -36,12 +36,12 @@
           ret += this.renderTOCButton(this.tester.names[i], (i | 0) + 1, false);
         }
       }
-      if (type == "chapters")
+      if (type == "stages")
       {
         for (let i = 1; i < 30; ++i)
         {
-          if (ray.chapters[i])
-            ret += this.renderTOCButton("Chapter "+i, (i-1), (i == 1));
+          if (ray.stages[i])
+            ret += this.renderTOCButton("Stage "+i, (i-1), (i == 1));
         }
       }
 
@@ -54,8 +54,11 @@
       this.tester.prepare();
 
       let output = [];
-      if (test == 0) {
+      if (test == 0)
+      {
         output = this.tester.run();
+//        for (let i = 0; i < 10000; ++i)
+//          this.tester.run();
       } else {
         output = this.tester.runSuite(test-1);
       }
@@ -68,9 +71,9 @@
       document.getElementById("tests").innerHTML = buf;
     }
 
-    runChapter(ch)
+    runStage(ch)
     {
-      ray.chapters[ch].run();
+      ray.stages[ch].run();
     }
     
 

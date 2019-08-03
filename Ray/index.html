@@ -42,11 +42,11 @@
 
         document.getElementById("headMover").className = ["left", "right"][head];
         document.getElementById("headTests").className = "mxHeader " + ["active", "inactive"][head];
-        document.getElementById("headChapters").className = "mxHeader " + ["inactive", "active"][head];
+        document.getElementById("headStages").className = "mxHeader " + ["inactive", "active"][head];
         document.getElementById("tests").className = "appwindow " + ["", "hidden"][head];
-        document.getElementById("chapters").className = "appwindow " + ["hidden", ""][head];
+        document.getElementById("stages").className = "appwindow " + ["hidden", ""][head];
 
-        ray.App.drawTOC(head == 0 ? "tests" : "chapters");
+        ray.App.drawTOC(head == 0 ? "tests" : "stages");
         tab = -1;
         changeTab(0);
       }
@@ -65,7 +65,7 @@
           obj.className = "mxButton " + ((tab == i) ? "active" : "inactive");
         }
         if (head == 0) ray.App.runTest(tab);
-        else if (head == 1) ray.App.runChapter(tab+1);
+        else if (head == 1) ray.App.runStage(tab+1);
       }
 
     </script>
@@ -74,13 +74,13 @@
     <span id='header'><img onmouseover="this.src=animImage.src;" onmouseout="this.src=staticImage.src;" src="assets/logo.jpg"></span>
     <span id="title">MadoxLabs Ray Tracer - </span> <span id="message">Booting up:</span>
     <div id="headTests" class="mxHeader active" onclick="changeHead(0);">Tests</div>
-    <div id="headChapters" class="mxHeader inactive" onclick="changeHead(1);">Chapters</div>
+    <div id="headStages" class="mxHeader inactive" onclick="changeHead(1);">Stages</div>
     <div id="TOC"></div>
     <div id="topedge"></div>
     <div id="edge"></div>
     <div class="left" id="headMover"></div>
     <div class="pos0" id="tabMover"></div>
     <div id="tests" class="appwindow"></div>
-    <div id="chapters" class="appwindow hidden"></div>
+    <div id="stages" class="appwindow hidden"></div>
 </body>
 </html>

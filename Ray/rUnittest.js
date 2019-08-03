@@ -61,7 +61,6 @@
         ret = [].concat( ret, lines );
       }
 
-      console.log("RESULT: " + this.total + " tests. " + this.success + " OK. " + (this.total - this.success) +" BAD.");
       return ret;
     }
   }

@@ -1,11 +1,12 @@
 (function (){
 
-  class Chapter2
+  class Stage2
   {
     constructor()
     {
       this.template = `
-<p>Chapter 2 - Visible Simple Cannon</p>
+<p>Stage 2 - Rendering to canvas</p>
+<p>Test that we're able to render to a canvas by drawing the simple cannon's firing trajectory</p>
 <table>
   <tr><td><p>Gravity:</td><td><input type=text id="grav" value=-0.1></td></tr>
   <tr><td><p>Wind:</td><td><input type=text id="wind" value=-0.015></td></tr>
@@ -18,7 +19,7 @@
 
     run()
     {
-      document.getElementById("chapters").innerHTML = this.template;
+      document.getElementById("stages").innerHTML = this.template;
       document.getElementById("fire").obj = this;
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
@@ -52,5 +53,5 @@
     }
   }
 
-  ray.chapters[2] = new Chapter2();
+  ray.stages[2] = new Stage2();
 })();

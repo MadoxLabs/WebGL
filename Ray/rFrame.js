@@ -1,5 +1,5 @@
 // predefined namespaces so loading things have a place to go
-var ray = { classlist: [], chapters: {} };
+var ray = { classlist: [], stages: {} };
 function reportBootup(file) { }
 function reportLoaded(name, value) { }
 function reportLoading(name, value) { }
@@ -13,8 +13,10 @@ function reportLoading(name, value) { }
                  "rMatrix.js"
                 ];
   var appSrc = ["rUnittest.js",
-                "Chapter1.js",
-                "Chapter2.js",
+                "Stage1.js",
+                "Stage2.js",
+                "Stage3.js",
+                "Stage4.js",
                 "rApp.js"
                ];
 

@@ -1,11 +1,12 @@
 (function (){
 
-  class Chapter1
+  class Stage1
   {
     constructor()
     {
       this.template = `
-<p>Chapter 1 - Simple Cannon</p>
+<p>Stage 1 - Vector Library</p>
+<p>Test that the vector classes work but simulating a simple cannon firing</p>
 <table>
 <tr><td><p>Gravity:</td><td><input type=text id="grav" value=-0.1></td></tr>
 <tr><td><p>Wind:</td><td><input type=text id="wind" value=-0.01></td></tr>
@@ -19,7 +20,7 @@
 
     run()
     {
-      document.getElementById("chapters").innerHTML = this.template;
+      document.getElementById("stages").innerHTML = this.template;
       document.getElementById("fire").obj = this;
     }
 
@@ -55,5 +56,5 @@
     }
   }
   
-  ray.chapters[1] = new Chapter1();
+  ray.stages[1] = new Stage1();
 })();

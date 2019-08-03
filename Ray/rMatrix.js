@@ -32,16 +32,22 @@
 
     _times(m)
     {
-      let data = [];
+      let data = new Array(this.size);
+      let index = 0;
+
+      let rstride = 0;
       for (let r = 0; r < this.height; ++r)
+      {
         for (let c = 0; c < this.width; ++c)
         {
-          let v = this.get(r, 0) * m.get(0, c)
-            + this.get(r, 1) * m.get(1, c)
-            + this.get(r, 2) * m.get(2, c)
-            + this.get(r, 3) * m.get(3, c);
-          data.push(v);
+          let v = this.data[rstride]     * m.data[c]
+                + this.data[rstride + 1] * m.data[this.width+c]
+                + this.data[rstride + 2] * m.data[this.width+this.width+c]
+                + this.data[rstride + 3] * m.data[this.width+this.width+this.width+c];
+          data[index++] = v;
         }
+        rstride += this.width;
+      }
       this.data = data;
       return this;
     }
@@ -54,14 +60,15 @@
       }
       else if (m.isTouple && 4 == this.width)
       {
-        let data = [];
+        let data = new Array(4);
+        let index = 0;
         for (let i = 0; i < 4; ++i)
         {
           let v = this.get(i, 0) * m.x
                 + this.get(i, 1) * m.y
                 + this.get(i, 2) * m.z
                 + this.get(i, 3) * m.w;
-          data.push(v);
+          data[index++] = v;
         }
         return new ray.Touple(data[0], data[1], data[2], data[3]);
       }
@@ -69,10 +76,12 @@
 
     transpose()
     {
-      let d = [];
+      let d = new Array(this.size);
+      let index = 0;
+
       for (let c = 0; c < this.width; ++c)
         for (let r = 0; r < this.height; ++r)
-          d.push(this.get(r, c));
+          d[index++] = this.get(r, c);
       this.data = d;
       return this;
     }
@@ -86,19 +95,20 @@
 
       let det = 0;
       for (let c = 0; c < this.height; ++c)
-        det += this.get(0, c) * this.cofactor(0, c);
+        det += this.data[c] * this.cofactor(0, c);
       return det;
     }
 
     submatrix(badr, badc)
     {
-      let data = [];
+      let data = new Array((this.width - 1) * (this.width - 1));
+      let index = 0;
       for (let r = 0; r < this.height; ++r)
         for (let c = 0; c < this.width; ++c)
         {
           if (r == badr) continue;
           if (c == badc) continue;
-          data.push(this.get(r, c));
+          data[index++] = this.get(r, c);
         }
       return new rMatrix(this.width - 1, this.height - 1, data);
     }
@@ -125,14 +135,15 @@
     {
       if (!this.invertible()) throw "not invertible";
 
-      let d = [];
+      let d = new Array(this.size);
+      let index = 0;
       let det = this.determinant();
 
       for (let c = 0; c < this.width; ++c)
         for (let r = 0; r < this.height; ++r)
         {
           let val = this.cofactor(r, c);
-          d.push(val / det);
+          d[index++] = (val / det);
         }
 
       this.data = d;
