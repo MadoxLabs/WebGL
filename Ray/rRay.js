@@ -17,6 +17,11 @@
       return ret.times(len).plus(this.origin);
     }
 
+    transform(m)
+    {
+      return new rRay(m.times(this.origin), m.times(this.direction));      
+    }
+
     // tests
     static test1()
     {
@@ -128,6 +133,88 @@
           if (points.num != 2) return false;
           if (points.list[0].length != -6.0) return false;
           if (points.list[1].length != -4.0) return false;
+          return true;
+        }
+      };
+    }
+
+    static test8()
+    {
+      return {
+        name: "Check that a ray can be translated",
+        test: function ()
+        {
+          let r = new rRay(new ray.Point(1, 2, 3), new ray.Vector(0, 1, 0));
+          let m = ray.Matrix.translation(3, 4, 5);
+          let r2 = r.transform(m);
+          if (r2.origin.equals(ray.Point(4, 6, 8)) == false) return false;
+          if (r2.direction.equals(ray.Vector(0,1,0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test9()
+    {
+      return {
+        name: "Check that a ray can be scaled",
+        test: function ()
+        {
+          let r = new rRay(new ray.Point(1, 2, 3), new ray.Vector(0, 1, 0));
+          let m = ray.Matrix.scale(2, 3, 4);
+          let r2 = r.transform(m);
+          if (r2.origin.equals(ray.Point(2,6,12)) == false) return false;
+          if (r2.direction.equals(ray.Vector(0, 3, 0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test10()
+    {
+      return {
+        name: "Check that a ray can be rotated",
+        test: function ()
+        {
+          let r = new rRay(new ray.Point(1,2,3), new ray.Vector(0, 1, 0));
+          let m = ray.Matrix.xRotation(Math.PI);
+          let r2 = r.transform(m);
+          if (r2.origin.equals(ray.Point(1,-2,-3)) == false) return false;
+          if (r2.direction.equals(ray.Vector(0, -1, 0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test11()
+    {
+      return {
+        name: "Check that a ray can intersect a scaled sphere",
+        test: function ()
+        {
+          let r = new rRay(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let s = new rSphere();
+          s.setTransform(ray.Matrix.scale(2, 2, 2));
+          let points = s.intersect(r);
+          if (points.num != 2) return false;
+          if (points.list[0].length != 3) return false;
+          if (points.list[1].length != 7) return false;
+          return true;
+        }
+      };
+    }
+
+    static test12()
+    {
+      return {
+        name: "Check that a ray can intersect a translated sphere",
+        test: function ()
+        {
+          let r = new rRay(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let s = new rSphere();
+          s.setTransform(ray.Matrix.translation(5, 0, 0));
+          let points = s.intersect(r);
+          if (points.num != 0) return false;
           return true;
         }
       };
@@ -302,16 +389,34 @@
       this.isObject = true;
       this.radius = 1;
       this.origin = new ray.Point(0, 0, 0);
+      this.transform = ray.Identity4x4;
+      this.inverse = null;
+      this.dirty = true;
+    }
+
+    setTransform(t)
+    {
+      this.transform = t;
+      this.inverse = null;
+      this.dirty = true;
     }
 
     intersect(r)
     {
       let ret = new rIntersections();
 
-      let sphereToRay = ray.Touple.subtract(r.origin, this.origin);
-      let a = r.direction.dot(r.direction);
-      let b = 2.0 * r.direction.dot(sphereToRay);
-      let c = sphereToRay.dot(sphereToRay) - 1;
+      if (this.dirty)
+      {
+        this.dirty = false;
+        this.inverse = ray.Matrix.inverse(this.transform);
+      }
+
+      let r2 = r.transform(this.inverse);
+
+      let sphereToRay = ray.Touple.subtract(r2.origin, this.origin);
+      let a = r2.direction.dot(r2.direction);
+      let b = 2.0 * r2.direction.dot(sphereToRay);
+      let c = sphereToRay.dot(sphereToRay) - this.radius;
       let aa = a + a;
       let discr = b * b - 2.0 * aa * c;
       if (discr < 0) return ret;
@@ -339,6 +444,35 @@
         }
       };
     }
+
+    static test2()
+    {
+      return {
+        name: "Check that spheres have a transform",
+        test: function ()
+        {
+          let s = new rSphere();
+          if (s.transform.equals(ray.Identity4x4) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test3()
+    {
+      return {
+        name: "Check that transform can be set on sphere",
+        test: function ()
+        {
+          let s = new rSphere();
+          let t = ray.Matrix.translation(2, 3, 4);
+          s.setTransform(t);
+          if (s.transform.equals(t) == false) return false;
+          return true;
+        }
+      };
+    }
+
   }
 
   function generateUUID()

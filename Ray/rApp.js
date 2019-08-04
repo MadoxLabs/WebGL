@@ -10,8 +10,7 @@
 		{
 			console.log("App init!");
 
-      var out = document.getElementById("message");
-      out.innerHTML = "Ready";
+      this.setMessage("Ready");
 
       this.tester = new ray.Tester();
       this.drawTOC("tests");
@@ -19,6 +18,12 @@
       changeHead(0);
       changeTab(0);
 		}
+
+    setMessage(m)
+    {
+      var out = document.getElementById("message");
+      out.innerHTML = m;
+    }
 
     renderTestButton(name, id, active)
     {
