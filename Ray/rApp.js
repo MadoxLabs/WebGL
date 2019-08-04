@@ -16,13 +16,18 @@
       this.tester = new ray.Tester();
       this.drawTOC("tests");
 
-      changeHead(1);
+      changeHead(0);
       changeTab(0);
 		}
 
-    renderTOCButton(name, id, active)
+    renderTestButton(name, id, active)
     {
       return "<div id=\"tab"+id+"\" class=\"mxButton "+(active ? "active" : "inactive")+"\" onclick=\"changeTab("+id+");\">"+name+"</div>";
+    }
+
+    renderStageButton(name, id, stage, active)
+    {
+      return "<div id=\"tab" + id + "\" class=\"mxButton " + (active ? "active" : "inactive") + "\" onclick=\"changeTab(" + id + "," + stage + ");\">" + name + "</div>";
     }
 
     drawTOC(type)
@@ -30,18 +35,23 @@
       let ret = "";
       if (type == "tests")
       {
-        ret = this.renderTOCButton("All", 0, true);
+        ret = this.renderTestButton("All", 0, true);
         for (let i in this.tester.names)
         {
-          ret += this.renderTOCButton(this.tester.names[i], (i | 0) + 1, false);
+          ret += this.renderTestButton(this.tester.names[i], (i | 0) + 1, false);
         }
       }
       if (type == "stages")
       {
-        for (let i = 1; i < 30; ++i)
+        ret += this.renderStageButton("Info", 0, 999, true);
+        let id = 1;
+        for (let i = 30; i > 0; --i)
         {
           if (ray.stages[i])
-            ret += this.renderTOCButton("Stage "+i, (i-1), (i == 1));
+          {
+            ret += this.renderStageButton("Stage " + i, id, i, false);
+            id++;
+          }
         }
       }
 
@@ -61,7 +71,8 @@
         output = this.tester.runSuite(test-1);
       }
 
-      let buf = "<div class='mxText'>Test Results: "+this.tester.total+" Total, "+this.tester.success+" Success, "+(this.tester.total - this.tester.success)+" Fail</div>";
+      let buf = "<div class='mxText'>Test Results: " + this.tester.total + " Total, " + this.tester.success + " Success, " + (this.tester.total - this.tester.success) + " Fail";
+      buf += " <button onclick='ray.App.runTest("+test+")'>Run Again</button></div > ";
       buf += "<div style='width: 80%; height: 80%; overflow-x: hidden; overflow-y: scroll;'><table class=\"blueTable\"><tbody><tr>";
       for (let i in output)
         buf += "<tr><td>"+output[i]+"</td></tr>";
@@ -71,6 +82,16 @@
 
     runStage(ch)
     {
+      if (!ch || ch == 999)
+      {
+        let info = `
+<p>Info</p>
+<p>This is a landing page so the site won't immediately fire off an intensive ray tracing job.</p>
+`;
+        document.getElementById("stages").innerHTML = info;
+        return;
+      }
+
       for (let c in ray.stages)
         if (ray.stages[c].stop) ray.stages[c].stop();
       ray.stages[ch].run();

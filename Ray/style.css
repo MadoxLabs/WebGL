@@ -42,13 +42,13 @@ p {
 
 #headTests {
   position: absolute;
-  left: 200px;
+  left: 410px;
   top: 50px;
 }
 
 #headStages {
   position: absolute;
-  left: 410px;
+  left: 200px;
   top: 50px;
 }
 

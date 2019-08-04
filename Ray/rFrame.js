@@ -10,7 +10,8 @@ function reportLoading(name, value) { }
   var baseSrc = ["rMath.js",
                  "rColour.js",
                  "rCanvas.js",
-                 "rMatrix.js"
+                 "rMatrix.js",
+                 "rRay.js"
                 ];
   var appSrc = ["rUnittest.js",
                 "Stage1.js",

@@ -11,6 +11,11 @@
       this.isTouple = true;
     }
 
+    copy()
+    {
+      return new rTouple(this.x, this.y, this.z, this.w);
+    }
+
     isVector()
     {
       return (this.w == 0) ? true : false;
