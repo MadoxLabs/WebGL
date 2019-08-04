@@ -11,6 +11,12 @@
       this.load = navigator.hardwareConcurrency;
     }
 
+    shuffle(arr)
+    {
+      for (var i, tmp, n = arr.length; n; i = Math.floor(Math.random() * n), tmp = arr[--n], arr[n] = arr[i], arr[i] = tmp);
+      return arr;
+    }
+
     run()
     {
       document.getElementById("stages").innerHTML = this.template;
@@ -19,6 +25,12 @@
       this.canvas.fromElement("surface");
       this.canvas.tvstatic();
       this.canvas.draw();
+
+      // scramble rows
+      this.rows = new Array(400);
+      for (let i = 0; i < 400; ++i)
+        this.rows[i] = i;
+      this.shuffle(this.rows);
 
       // world data
       let setupDef = {
@@ -61,7 +73,7 @@
       }
 
       ray.App.setMessage("Rendering row " + this.renderY);
-      this.workers[id].postMessage({ cmd: 'render', y: this.renderY, buffer: this.buffers[id] }, [this.buffers[id].buffer]);
+      this.workers[id].postMessage({ cmd: 'render', y: this.rows[this.renderY], buffer: this.buffers[id] }, [this.buffers[id].buffer]);
       this.renderY += 1;
     }
 
