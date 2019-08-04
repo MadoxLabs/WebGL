@@ -6,8 +6,8 @@
     {
       this.origin = o;
       this.direction = d;
-      if (o.isPoint == false) throw "origin not a point";
-      if (d.isVector == false) throw "direction not a vector";
+//      if (o.isPoint == false) throw "origin not a point";
+//      if (d.isVector == false) throw "direction not a vector";
       this.isRay = true;
     }
 

@@ -28,7 +28,9 @@
       this.redDot = new ray.Colour(1, 0, 0);
       this.blackDot = new ray.Colour(0, 0, 0);
       this.ball = new ray.Sphere();
+      this.ray = new ray.Ray(this.eye, ray.Vector(0,0,1));
 
+      this.start = performance.now();
       this.renderRow();
     }
 
@@ -36,7 +38,11 @@
     {
       if (this.renderY == 400)
       {
-        ray.App.setMessage("Ready");
+        this.end = performance.now();
+        let ms = (this.end - this.start);
+        let mspp = Math.floor((ms / (400 * 400)) * 1000) / 1000;
+        let seconds = Math.floor((ms / 1000.0) * 10) / 10;
+        ray.App.setMessage("Elapsed time: " + seconds +" seconds. " + mspp + " ms/pixel");
         return;
       }
 
@@ -45,9 +51,9 @@
       for (let renderX = 0; renderX < 400; ++renderX)
       {
         let worldX = -this.half + this.pixelSize * renderX;
-        let pos = ray.Point(worldX, worldY, this.wallDepth);        
-        let r = new ray.Ray(this.eye, pos.minus(this.eye).normalize());
-        let points = this.ball.intersect(r);
+        let pos = ray.Point(worldX, worldY, this.wallDepth);      
+        this.ray.direction = pos.minus(this.eye).normalize();
+        let points = this.ball.intersect(this.ray);
         if (points.hit())
           this.canvas.set(this.redDot, renderX, this.renderY);
         else

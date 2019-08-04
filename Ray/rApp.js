@@ -22,7 +22,7 @@
     setMessage(m)
     {
       var out = document.getElementById("message");
-      out.innerHTML = m;
+      out.innerText = m;
     }
 
     renderTestButton(name, id, active)
