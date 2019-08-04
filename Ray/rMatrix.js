@@ -150,7 +150,7 @@
 
     invert()
     {
-      if (!this.invertible()) throw "not invertible";
+      if (!this.invertible()) return null; //throw "not invertible";
 
       let d = new Array(this.size);
       let index = 0;

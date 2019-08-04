@@ -228,7 +228,7 @@
     {
       this.length = len;
       this.object = obj;
-      if (obj.isObject == false) throw "obj is not an object";
+//      if (obj.isObject == false) throw "obj is not an object";
       this.isIntersection = true;
     }
 
@@ -261,7 +261,7 @@
 
     add(i)
     {
-      if (i.Intersection == false) throw "not an intersection";
+//      if (i.Intersection == false) throw "not an intersection";
       this.list[this.num++] = i;
       this.sorted = false;
       if (this.num == this.max)

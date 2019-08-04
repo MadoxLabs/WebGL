@@ -46,7 +46,7 @@
 
     minus(t)
     {
-      if (t.isPoint() && this.isVector()) throw "subtracting point from a vector";
+      if (t.isPoint() && this.isVector()) return null;//throw "subtracting point from a vector";
       this.x -= t.x;
       this.y -= t.y;
       this.z -= t.z;
@@ -74,7 +74,7 @@
 
     magnitude()
     {
-      if (this.isPoint()) throw "getting magnitude of a point";
+      if (this.isPoint()) return null;//throw "getting magnitude of a point";
       let sum = this.x * this.x;
       sum += this.y * this.y;
       sum += this.z * this.z;
@@ -311,14 +311,9 @@
         {
           let t1 = new ray.Vector(3, 2, 1);
           let t2 = new ray.Point(5, 6, 7);
-          try
-          {
-            let t3 = ray.Touple.subtract(t1, t2);
-            return false;
-          } catch (e)
-          {
-            return true;
-          }
+          let t3 = ray.Touple.subtract(t1, t2);
+          if (t3) return false;
+          return true;
         }
       };
     }
@@ -417,14 +412,9 @@
         test: function ()
         {
           let t1 = new ray.Point(1, 0, 0);
-          try
-          {
-            t1.magnitude();
-            return false;
-          } catch (e)
-          {
-            return true;
-          }
+          let m = t1.magnitude();
+          if (m) return false;
+          return true;
         }
       };
     }

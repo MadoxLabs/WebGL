@@ -8,6 +8,14 @@
       this.green = g;
       this.blue = b;
       this.isColour = true;
+      this.makeByte();
+    }
+
+    makeByte()
+    {
+      this.redByte = this.red * 255;
+      this.greenByte = this.green * 255;
+      this.blueByte = this.blue * 255;
     }
 
     plus(c)
@@ -15,6 +23,7 @@
       this.red += c.red;
       this.blue += c.blue;
       this.green += c.green;
+      this.makeByte();
       return this;
     }
 
@@ -23,6 +32,7 @@
       this.red  -= c.red;
       this.blue -= c.blue;
       this.green -= c.green;
+      this.makeByte();
       return this;
     }
 
@@ -33,12 +43,14 @@
         this.red   *= s.red;
         this.blue  *= s.blue;
         this.green *= s.green;
+        this.makeByte();
       }
       else
       {
         this.red *= s;
         this.blue *= s;
         this.green *= s;
+        this.makeByte();
       }
       return this;
     }

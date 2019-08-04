@@ -34,30 +34,29 @@ class Renderer
   }
 
   // perform a render of row Y
-  render(y)
+  render(y, buffer)
   {
-    buffer = new Uint8ClampedArray(400 * 4);
-
     let worldY = this.half - this.pixelSize * y;
     let index = 0;
+    let object = this.objects[0];
     for (let renderX = 0; renderX < 400; ++renderX)
     {
       let worldX = -this.half + this.pixelSize * renderX;
       let pos = ray.Point(worldX, worldY, this.wallDepth);
       this.ray.direction = pos.minus(this.eye).normalize();
-      let points = this.objects[0].intersect(this.ray);
+      let points = object.intersect(this.ray);
       if (points.hit())
       {
-        buffer[index++] = this.redDot.red * 255;
-        buffer[index++] = this.redDot.green * 255;
-        buffer[index++] = this.redDot.blue * 255;
+        buffer[index++] = this.redDot.redByte;
+        buffer[index++] = this.redDot.greenByte;
+        buffer[index++] = this.redDot.blueByte;
         buffer[index++] = 255;
       }
       else
       {
-        buffer[index++] = this.blackDot.red * 255;
-        buffer[index++] = this.blackDot.green * 255;
-        buffer[index++] = this.blackDot.blue * 255;
+        buffer[index++] = this.blackDot.redByte;
+        buffer[index++] = this.blackDot.greenByte;
+        buffer[index++] = this.blackDot.blueByte;
         buffer[index++] = 255;
       }
     }
@@ -76,8 +75,8 @@ function messagehandler(e)
       renderer.setup(data.definition);
       break;
     case 'render':
-      renderer.render(data.y);
-      postMessage({ id: renderer.id, y: data.y, buffer: buffer }, [buffer.buffer]);
+      renderer.render(data.y, data.buffer);
+      postMessage({ id: renderer.id, y: data.y, buffer: data.buffer }, [data.buffer.buffer]);
       break;
   }
 }
