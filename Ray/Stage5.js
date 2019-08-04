@@ -19,49 +19,56 @@
       this.canvas.tvstatic();
       this.canvas.draw();
 
-      this.eye = ray.Point(0, 0, -5);
-      this.wallDepth = 10;
-      this.wallSize = 7;
-      this.pixelSize = 7.0 / 400.0;
-      this.half = this.wallSize / 2.0;
-      this.renderY = 0;
-      this.redDot = new ray.Colour(1, 0, 0);
-      this.blackDot = new ray.Colour(0, 0, 0);
-      this.ball = new ray.Sphere();
-      this.ray = new ray.Ray(this.eye, ray.Vector(0,0,1));
+      // world data
+      let setupDef = {
+        eye: [0, 0, -5],
+        wallDepth: 10,
+        wallSize: 7,
+        objects: [
+          { type: "sphere" }
+        ]
+      };
 
+      // workers setup
+      let obj = this;
+      this.workers = new Array(4);
+      for (let i = 0; i < 4; ++i)
+      {
+        this.workers[i] = new Worker('worker.js');
+        this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
+        this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': setupDef });
+      }
+
+      // begin!
+      this.renderY = 0;
       this.start = performance.now();
-      this.renderRow();
+      for (let i = 0; i < 4; ++i) this.renderRow(i);
     }
 
-    renderRow()
+    renderRow(id)
     {
-      if (this.renderY == 400)
+      if (this.renderY >= 400)
       {
         this.end = performance.now();
         let ms = (this.end - this.start);
         let mspp = Math.floor((ms / (400 * 400)) * 1000) / 1000;
         let seconds = Math.floor((ms / 1000.0) * 10) / 10;
-        ray.App.setMessage("Elapsed time: " + seconds +" seconds. " + mspp + " ms/pixel");
+        ray.App.setMessage("Elapsed time: " + seconds + " seconds. " + mspp + " ms/pixel");
         return;
       }
 
       ray.App.setMessage("Rendering row " + this.renderY);
-      let worldY = this.half - this.pixelSize * this.renderY;
-      for (let renderX = 0; renderX < 400; ++renderX)
-      {
-        let worldX = -this.half + this.pixelSize * renderX;
-        let pos = ray.Point(worldX, worldY, this.wallDepth);      
-        this.ray.direction = pos.minus(this.eye).normalize();
-        let points = this.ball.intersect(this.ray);
-        if (points.hit())
-          this.canvas.set(this.redDot, renderX, this.renderY);
-        else
-          this.canvas.set(this.blackDot, renderX, this.renderY);
-      }
+      this.workers[id].postMessage({ 'cmd': 'render', 'y': this.renderY });
       this.renderY += 1;
+    }
+
+    receivePixels(msg)
+    {
+      this.canvas.bltData(msg.data.buffer, 0, msg.data.y);
+
       let obj = this;
-      setTimeout(function () { obj.renderRow(); }, 0);
+      setTimeout(function () { obj.renderRow(msg.data.id); }, 0);
+
       this.canvas.draw();
     }
   }

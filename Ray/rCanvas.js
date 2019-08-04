@@ -31,6 +31,12 @@
       this.map = this.context.getImageData(0, 0, this.width, this.height);
     }
 
+    bltData(data, x, y)
+    {
+      let loc = (this.height - Math.floor(y) - 1) * (this.width * 4) + Math.floor(x) * 4;
+      this.map.data.set(data, loc);
+    }
+
     set(color, x, y)
     {
       if (y >= this.height) return;

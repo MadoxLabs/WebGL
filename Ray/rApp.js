@@ -92,6 +92,7 @@
         let info = `
 <p>Info</p>
 <p>This is a landing page so the site won't immediately fire off an intensive ray tracing job.</p>
+<p>Your computer can handle `+ navigator.hardwareConcurrency + ` web workers</p>
 `;
         document.getElementById("stages").innerHTML = info;
         return;
