@@ -59,9 +59,9 @@
           let r = new rRay(new ray.Point(0, 0, -5), new ray.Vector(0, 0, 1));
           let s = new rSphere();
           let points = s.intersect(r);
-          if (points.length != 2) return false;
-          if (points[0] != 4.0) return false;
-          if (points[1] != 6.0) return false;
+          if (points.num != 2) return false;
+          if (points.list[0].length != 4.0) return false;
+          if (points.list[1].length != 6.0) return false;
           return true;
         }
       };
@@ -76,9 +76,9 @@
           let r = new rRay(new ray.Point(0, 1, -5), new ray.Vector(0, 0, 1));
           let s = new rSphere();
           let points = s.intersect(r);
-          if (points.length != 2) return false;
-          if (points[0] != 5.0) return false;
-          if (points[1] != 5.0) return false;
+          if (points.num != 2) return false;
+          if (points.list[0].length != 5.0) return false;
+          if (points.list[1].length != 5.0) return false;
           return true;
         }
       };
@@ -87,13 +87,13 @@
     static test5()
     {
       return {
-        name: "Check that a ray ca nmiss a sphere",
+        name: "Check that a ray can miss a sphere",
         test: function ()
         {
           let r = new rRay(new ray.Point(0, 2, -5), new ray.Vector(0, 0, 1));
           let s = new rSphere();
           let points = s.intersect(r);
-          if (points.length != 0) return false;
+          if (points.num != 0) return false;
           return true;
         }
       };
@@ -108,9 +108,9 @@
           let r = new rRay(new ray.Point(0, 0, 0), new ray.Vector(0, 0, 1));
           let s = new rSphere();
           let points = s.intersect(r);
-          if (points.length != 2) return false;
-          if (points[0] != -1.0) return false;
-          if (points[1] != 1.0) return false;
+          if (points.num != 2) return false;
+          if (points.list[0].length != -1.0) return false;
+          if (points.list[1].length != 1.0) return false;
           return true;
         }
       };
@@ -125,9 +125,9 @@
           let r = new rRay(new ray.Point(0, 0, 5), new ray.Vector(0, 0, 1));
           let s = new rSphere();
           let points = s.intersect(r);
-          if (points.length != 2) return false;
-          if (points[0] != -6.0) return false;
-          if (points[1] != -4.0) return false;
+          if (points.num != 2) return false;
+          if (points.list[0].length != -6.0) return false;
+          if (points.list[1].length != -4.0) return false;
           return true;
         }
       };
@@ -162,6 +162,138 @@
     }
   }
 
+  class rIntersections
+  {
+    constructor()
+    {
+      this.list = new Array(20);
+      this.max = 20;
+      this.num = 0;
+      this.sorted = false;
+    }
+
+    add(i)
+    {
+      if (i.Intersection == false) throw "not an intersection";
+      this.list[this.num++] = i;
+      this.sorted = false;
+      if (this.num == this.max)
+      {
+        this.max += 20;
+        console.log("Hit the max!");
+        this.list[this.max] = null;
+      }
+    }
+
+    hit()
+    {
+      this.list.sort(function (a, b) { return a.length - b.length; });
+      this.sorted = true;
+      for (let i = 0; i < this.num; ++i)
+      {
+        if (this.list[i].length >= 0) return this.list[i];
+      }
+      return null;
+    }
+
+    // tests
+    static test1()
+    {
+      return {
+        name: "Check that intersections aggregate intersection objects",
+        test: function ()
+        {
+          let s = new rSphere();
+          let i1 = new rIntersection(1, s);
+          let i2 = new rIntersection(2, s);
+          let points = new rIntersections();
+          points.add(i1);
+          points.add(i2);
+          if (points.num != 2) return false;
+          if (points.list[0].length != 1) return false;
+          if (points.list[1].length != 2) return false;
+          return true;
+        }
+      };
+    }
+
+    static test2()
+    {
+      return {
+        name: "Check for the hit, when all intersections are positive",
+        test: function ()
+        {
+          let s = new rSphere();
+          let i1 = new rIntersection(1, s);
+          let i2 = new rIntersection(2, s);
+          let points = new rIntersections();
+          points.add(i1);
+          points.add(i2);
+          if (points.hit().length != 1) return false;
+          return true;
+        }
+      };
+    }
+
+    static test3()
+    {
+      return {
+        name: "Check for the hit, when some intersections are negative",
+        test: function ()
+        {
+          let s = new rSphere();
+          let i1 = new rIntersection(-1, s);
+          let i2 = new rIntersection(1, s);
+          let points = new rIntersections();
+          points.add(i1);
+          points.add(i2);
+          if (points.hit().length != 1) return false;
+          return true;
+        }
+      };
+    }
+    static test4()
+    {
+      return {
+        name: "Check for the hit, when all intersections are negative",
+        test: function ()
+        {
+          let s = new rSphere();
+          let i1 = new rIntersection(-2, s);
+          let i2 = new rIntersection(-1, s);
+          let points = new rIntersections();
+          points.add(i1);
+          points.add(i2);
+          if (points.hit() != null) return false;
+          return true;
+        }
+      };
+    }
+
+    static test5()
+    {
+      return {
+        name: "Check for the hit being the lowest non negative intersection",
+        test: function ()
+        {
+          let s = new rSphere();
+          let i1 = new rIntersection(5, s);
+          let i2 = new rIntersection(7, s);
+          let i3 = new rIntersection(-3, s);
+          let i4 = new rIntersection(2, s);
+          let points = new rIntersections();
+          points.add(i1);
+          points.add(i2);
+          points.add(i3);
+          points.add(i4);
+          if (points.hit().length != 2) return false;
+          return true;
+        }
+      };
+    }
+
+  }
+
   class rSphere
   {
     constructor()
@@ -174,7 +306,7 @@
 
     intersect(r)
     {
-      let ret = [0, 0];
+      let ret = new rIntersections();
 
       let sphereToRay = ray.Touple.subtract(r.origin, this.origin);
       let a = r.direction.dot(r.direction);
@@ -182,12 +314,30 @@
       let c = sphereToRay.dot(sphereToRay) - 1;
       let aa = a + a;
       let discr = b * b - 2.0 * aa * c;
-      if (discr < 0) return [];
+      if (discr < 0) return ret;
 
       let rootDiscr = Math.sqrt(discr);
-      ret[0] = (-b - rootDiscr) / aa;
-      ret[1] = (-b + rootDiscr) / aa;
+      ret.add(new rIntersection((-b - rootDiscr) / aa, this));;
+      ret.add(new rIntersection((-b + rootDiscr) / aa, this));;
       return ret;
+    }
+
+    // tests
+    static test1()
+    {
+      return {
+        name: "Check that intersect sets the object",
+        test: function ()
+        {
+          let s = new rSphere();
+          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let points = s.intersect(r);
+          if (points.num != 2) return false;
+          if (points.list[0].object.id != s.id) return false;
+          if (points.list[1].object.id != s.id) return false;
+          return true;
+        }
+      };
     }
   }
 
@@ -206,8 +356,10 @@
   ray.classlist.push(rRay);
   ray.classlist.push(rSphere);
   ray.classlist.push(rIntersection);
+  ray.classlist.push(rIntersections);
   ray.Ray = rRay;
   ray.Sphere = rSphere;
   ray.Intersection = rIntersection;
+  ray.Intersections = rIntersections;
 
 })();
