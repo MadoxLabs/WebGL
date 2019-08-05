@@ -25,11 +25,20 @@ class Renderer
     this.redDot = new ray.Colour(1, 0, 0);
     this.blackDot = new ray.Colour(0, 0, 0);
     this.ray = new ray.Ray(this.eye, ray.Vector(0, 0, 1));
-  
+
+    let T = ray.Matrix.translation(def.translate[0], def.translate[1], def.translate[2]);
+    let S = ray.Matrix.scale(def.scale[0], def.scale[1], def.scale[2]);
+    let trans = T.times(S);
+
     this.objects = [];
     for (let i in def.objects)
     {
-      if (def.objects[i].type == "sphere") this.objects.push(new ray.Sphere());
+      if (def.objects[i].type == "sphere")
+      {
+        let obj = new ray.Sphere();
+        obj.setTransform(trans);
+        this.objects.push(obj);
+      }
     }
   }
 
