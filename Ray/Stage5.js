@@ -23,6 +23,18 @@ Z: <input type="range" min="0.1" max="3" value="1" onInput="obj.transform()" ste
       this.load = navigator.hardwareConcurrency;
     }
 
+    stop()
+    {
+      this.restart = false;
+      this.kill = true;
+
+      if (this.renderY >= 400)
+      {
+        for (let i = 0; i < this.load; ++i)
+          this.workers[i].terminate();
+      }
+    }
+
     shuffle(arr)
     {
       for (var i, tmp, n = arr.length; n; i = Math.floor(Math.random() * n), tmp = arr[--n], arr[n] = arr[i], arr[i] = tmp);
@@ -82,6 +94,7 @@ Z: <input type="range" min="0.1" max="3" value="1" onInput="obj.transform()" ste
         this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': this.setupDef });
 
       // begin!
+      this.kill = false;
       this.restart = false;
       this.renderY = 0;
       this.start = performance.now();
@@ -112,6 +125,12 @@ Z: <input type="range" min="0.1" max="3" value="1" onInput="obj.transform()" ste
         ray.App.setMessage("Elapsed time: " + seconds + " seconds. " + mspp + " ms/pixel");
 
         if (this.restart) this.begin();
+
+        if (this.kill)
+        {
+          for (let i = 0; i < this.load; ++i)
+            this.workers[i].terminate();
+        }
 
         return;
       }

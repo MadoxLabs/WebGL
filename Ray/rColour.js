@@ -11,6 +11,15 @@
       this.makeByte();
     }
 
+    equals(t)
+    {
+      if (!t) return false;
+      if (!ray.isEqual(this.red, t.red)) return false;
+      if (!ray.isEqual(this.green, t.green)) return false;
+      if (!ray.isEqual(this.blue, t.blue)) return false;
+      return true;
+    }
+
     makeByte()
     {
       this.redByte = this.red * 255;
@@ -172,8 +181,95 @@
     }
   }
 
-  ray.classlist.push(rColour);
+  class rLightPoint
+  {
+    constructor(p, c)
+    {
+      this.position = p;
+      this.colour = c;
+      this.isLight = true;
+    }
 
+    equals(l)
+    {
+      if (!l) return false;
+      if (this.colour.equals(l.colour) == false) return false;
+      if (this.position.equals(l.position) == false) return false;
+      return true;
+    }
+
+    static test1()
+    {
+      return {
+        name: "Check that point light ctor works",
+        test: function ()
+        {
+          let c = new ray.Colour(1, 1, 1);
+          let p = ray.Point(0, 0, 0);
+          let light = new rLightPoint(p, c);
+          if (light.position.equals(p) == false) return false;
+          if (light.colour.equals(c) == false) return false;
+          return true;
+        }
+      };
+    }
+
+  }
+
+  class rMaterial
+  {
+    constructor()
+    {
+      this.ambient = 0.1;
+      this.diffuse = 0.9;
+      this.specular = 0.9;
+      this.shininess = 200.0;
+      this.colour = new ray.Colour(1, 1, 1);
+    }
+
+    equals(m)
+    {
+      if (!m) return false;
+      if (this.colour.equals(m.colour) == false) return false;
+      if (ray.isEqual(this.ambient, m.ambient) == false) return false;
+      if (ray.isEqual(this.diffuse, m.diffuse) == false) return false;
+      if (ray.isEqual(this.specular, m.specular) == false) return false;
+      if (ray.isEqual(this.shininess, m.shininess) == false) return false;
+      return true;
+    }
+
+    static test1()
+    {
+      return {
+        name: "Check that material ctor works",
+        test: function ()
+        {
+          let m = new ray.Material();
+          if (ray.isEqual(m.ambient, 0.1) == false) return false;
+          if (ray.isEqual(m.diffuse, 0.9) == false) return false;
+          if (ray.isEqual(m.specular, 0.9) == false) return false;
+          if (ray.isEqual(m.shininess, 200.0) == false) return false;
+          if (m.colour.equals(new ray.Colour(1,1,1)) == false) return false;
+          return true;
+        }
+      };
+    }
+  }
+
+  ray.classlist.push(rColour);
+  ray.classlist.push(rLightPoint);
+  ray.classlist.push(rMaterial);
+  ray.Material = rMaterial;
+  ray.LightPoint = rLightPoint;
   ray.Colour = rColour;
+
+  ray.White = new rColour(1, 1, 1);
+  ray.White.plus = null;
+  ray.White.minus = null;
+  ray.White.times = null;
+  ray.Black = new rColour(0, 0, 0);
+  ray.Black.plus = null;
+  ray.Black.minus = null;
+  ray.Black.times = null;
 
 })();

@@ -28,6 +28,7 @@
 
     equals(t)
     {
+      if (!t) return false;
       if (!ray.isEqual(this.x, t.x)) return false;
       if (!ray.isEqual(this.y, t.y)) return false;
       if (!ray.isEqual(this.z, t.z)) return false;
@@ -103,11 +104,17 @@
       return ret;
     }
 
-    cross(t)
+    static cross(v, t)
     {
-      return new rTouple(this.y * t.z - this.z * t.y,
-                         this.z * t.x - this.x * t.z,
-                         this.x * t.y - this.y * t.x);
+      return new rTouple(v.y * t.z - v.z * t.y,
+                         v.z * t.x - v.x * t.z,
+                         v.x * t.y - v.y * t.x);
+    }
+
+    static reflect(v, n)
+    {
+      let scaleN = n.copy().times(2.0 * v.dot(n));
+      return v.copy().minus(scaleN);
     }
 
     static add(t1, t2)
@@ -491,8 +498,8 @@
         {
           let t1 = new ray.Vector(1, 2, 3);
           let t2 = new ray.Vector(2, 3, 4);
-          let t3 = t1.cross(t2);
-          let t4 = t2.cross(t1);
+          let t3 = ray.Touple.cross(t1,t2);
+          let t4 = ray.Touple.cross(t2,t1);
           if (t3.x != -1) return false;
           if (t3.y != 2) return false;
           if (t3.z != -1) return false;
@@ -533,6 +540,37 @@
       };
     }
 
+    static test21()
+    {
+      return {
+        name: "Check reflecting a 45 degree vector",
+        test: function ()
+        {
+          let v = new ray.Vector(1, -1, 0);
+          let n = new ray.Vector(0, 1, 0);
+          let r = ray.Touple.reflect(v, n);
+          if (r.equals(ray.Vector(1,1,0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test22()
+    {
+      return {
+        name: "Check reflecting of a slanted surface",
+        test: function ()
+        {
+          let num = Math.sqrt(2) / 2;
+          let v = new ray.Vector(0, -1, 0);
+          let n = new ray.Vector(num, num, 0);
+          let r = ray.Touple.reflect(v, n);
+          if (r.equals(ray.Vector(1, 0, 0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
   }
 
   ray.classlist.push(rTouple);
@@ -540,6 +578,13 @@
   ray.Touple = rTouple;
   ray.Point = function(x,y,z) { return new rTouple(x,y,z,1.0); }
   ray.Vector = function(x,y,z) { return new rTouple(x,y,z,0.0); }
+
+  ray.Origin = ray.Point(0, 0, 0);
+  ray.Origin.plus = null;
+  ray.Origin.minus = null;
+  ray.Origin.negate = null;
+  ray.Origin.times = null;
+  ray.Origin.normalize = null;
 
   ray.epsilon = 0.00001;
   ray.isEqual = function (a, b)

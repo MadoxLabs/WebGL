@@ -390,27 +390,44 @@
       this.radius = 1;
       this.origin = new ray.Point(0, 0, 0);
       this.transform = ray.Identity4x4;
+      this.material = new ray.Material();
+
       this.inverse = null;
+      this.transpose = null
+
       this.dirty = true;
     }
 
     setTransform(t)
     {
       this.transform = t;
+      this.transpose = null
       this.inverse = null;
       this.dirty = true;
     }
 
+    normalAt(p)
+    {
+      if (this.dirty) this.clean();
+
+      let normal = this.inverse.times(p).minus(ray.Origin);
+      let wNormal = this.transpose.times(normal);
+      wNormal.w = 0;
+      return wNormal.normalize();
+    }
+
+    clean()
+    {
+      this.dirty = false;
+      this.inverse = ray.Matrix.inverse(this.transform);
+      this.transpose = ray.Matrix.transpose(this.inverse);
+    }
+
     intersect(r)
     {
+      if (this.dirty) this.clean();
+
       let ret = new rIntersections();
-
-      if (this.dirty)
-      {
-        this.dirty = false;
-        this.inverse = ray.Matrix.inverse(this.transform);
-      }
-
       let r2 = r.transform(this.inverse);
 
       let sphereToRay = ray.Touple.subtract(r2.origin, this.origin);
@@ -468,6 +485,139 @@
           let t = ray.Matrix.translation(2, 3, 4);
           s.setTransform(t);
           if (s.transform.equals(t) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test4()
+    {
+      return {
+        name: "Check normals on a sphere on X",
+        test: function ()
+        {
+          let s = new rSphere();
+          let n = s.normalAt(ray.Point(1, 0, 0));
+          if (n.equals(ray.Vector(1, 0, 0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test5()
+    {
+      return {
+        name: "Check normals on a sphere on Y",
+        test: function ()
+        {
+          let s = new rSphere();
+          let n = s.normalAt(ray.Point(0, 1, 0));
+          if (n.equals(ray.Vector(0, 1, 0)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test6()
+    {
+      return {
+        name: "Check normals on a sphere on Z",
+        test: function ()
+        {
+          let s = new rSphere();
+          let n = s.normalAt(ray.Point(0, 0, 1));
+          if (n.equals(ray.Vector(0, 0, 1)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test7()
+    {
+      return {
+        name: "Check normals on a sphere",
+        test: function ()
+        {
+          let num = Math.sqrt(3.0) / 3.0;
+          let s = new rSphere();
+          let n = s.normalAt(ray.Point(num,num,num));
+          if (n.equals(ray.Vector(num, num, num)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test8()
+    {
+      return {
+        name: "Check normals on a sphere are normal",
+        test: function ()
+        {
+          let num = Math.sqrt(3.0) / 3.0;
+          let s = new rSphere();
+          let n = s.normalAt(ray.Point(num, num, num));
+          if (n.equals(ray.Touple.normalize(n)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test9()
+    {
+      return {
+        name: "Check normals on a translated sphere",
+        test: function ()
+        {
+          let s = new rSphere();
+          s.setTransform(ray.Matrix.translation(0, 1, 0));
+          let n = s.normalAt(ray.Point(0, 1.70711, -0.70711));
+          if (n.equals(ray.Vector(0, 0.70711, -0.70711)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test10()
+    {
+      return {
+        name: "Check normals on a transformed sphere",
+        test: function ()
+        {
+          let num = Math.sqrt(2.0) / 2.0;
+          let s = new rSphere();
+          s.setTransform(ray.Matrix.multiply(ray.Matrix.scale(1, 0.5, 1), ray.Matrix.zRotation(Math.PI / 5.0)));
+          let n = s.normalAt(ray.Point(0, num, -num));
+          if (n.equals(ray.Vector(0, 0.97014, -0.24254)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test11()
+    {
+      return {
+        name: "Check sphere has a material",
+        test: function ()
+        {
+          let s = new rSphere();
+          let m = s.material;
+          if (m.equals(new ray.Material()) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test12()
+    {
+      return {
+        name: "Check sphere can be assigned a material",
+        test: function ()
+        {
+          let s = new rSphere();
+          let m = new ray.Material();
+          m.ambient = 1.0;
+          s.material = m;
+          if (s.material.ambient != 1.0) return false;
           return true;
         }
       };

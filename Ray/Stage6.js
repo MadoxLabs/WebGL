@@ -17,8 +17,21 @@
       return arr;
     }
 
+    stop()
+    {
+      this.restart = false;
+      this.kill = true;
+
+      if (this.renderY >= 400)
+      {
+        for (let i = 0; i < this.load; ++i)
+          this.workers[i].terminate();
+      }
+    }
+
     run()
     {
+      this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
 
       this.canvas = new ray.Canvas();
@@ -33,7 +46,35 @@
       this.shuffle(this.rows);
 
       // world data
-      let setupDef = {
+      this.setupDef = {
+        lighting: true,
+        eye: [0, 0, -5],
+        wallDepth: 10,
+        wallSize: 7,
+        translate: [0, 0, 0],
+        scale: [1, 1, 1],
+        materials: [
+          {
+            name: "ball",
+            colour: [1, 0.2, 0.2]
+          }
+        ],
+        objects: [
+          {
+            type: "sphere",
+            material: "ball"
+          },
+          {
+            type: "pointlight",
+            position: [10, 10, -10],
+            colour: [0.00000001, 0, 1],
+          },
+          {
+            type: "pointlight",
+            position: [-10, 10, -10],
+            colour: [1, 1, 1],
+          }
+        ]
       };
 
       // workers setup
@@ -45,7 +86,7 @@
         this.buffers[i] = new Uint8ClampedArray(400 * 4);
         this.workers[i] = new Worker('worker.js');
         this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
-        this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': setupDef });
+        this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': this.setupDef });
       }
 
       // begin!
@@ -69,6 +110,12 @@
       ray.App.setMessage("Rendering row " + this.renderY);
       this.workers[id].postMessage({ cmd: 'render', y: this.rows[this.renderY], buffer: this.buffers[id] }, [this.buffers[id].buffer]);
       this.renderY += 1;
+
+      if (this.kill)
+      {
+        for (let i = 0; i < this.load; ++i)
+          this.workers[i].terminate();
+      }
     }
 
     receivePixels(msg)

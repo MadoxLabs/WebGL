@@ -29,6 +29,7 @@
 
     equals(m)
     {
+      if (!m) return false;
       if (this.size != m.size) return false;
       for (let i = 0; i < this.size; ++i)
         if (!ray.isEqual(this.data[i], m.data[i])) return false;
