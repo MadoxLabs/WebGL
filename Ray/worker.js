@@ -37,6 +37,8 @@ class Renderer
     {
       if (!def.materials[i].name) continue;
       let mat = new ray.Material();
+      if (def.materials[i].shininess)
+        mat.shininess = def.materials[i].shininess;
       if (def.materials[i].colour)
         mat.colour = new ray.Colour(def.materials[i].colour[0], def.materials[i].colour[1], def.materials[i].colour[2]);
       this.materials[def.materials[i].name] = mat;
@@ -70,6 +72,8 @@ class Renderer
   // perform a render of row Y
   render(y, buffer)
   {
+    ray.usePool = true;
+
     let worldY = this.half - this.pixelSize * y;
     let index = 0;
     let object = this.objects[0];
@@ -113,6 +117,8 @@ class Renderer
         buffer[index++] = 255;
       }
     }
+
+    ray.usePool = false;
   }
 }
 

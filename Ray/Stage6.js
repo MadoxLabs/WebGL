@@ -56,6 +56,7 @@
         materials: [
           {
             name: "ball",
+            shininess: 50,
             colour: [1, 0.2, 0.2]
           }
         ],

@@ -66,18 +66,18 @@
 
     static add(c1, c2)
     {
-      return new rColour(c1.red + c2.red, c1.green + c2.green, c1.blue + c2.blue);
+      return makeColour(c1.red + c2.red, c1.green + c2.green, c1.blue + c2.blue);
     }
 
     static subtract(c1, c2)
     {
-      let ret = new rColour(c1.red, c1.green, c1.blue);
+      let ret = makeColour(c1.red, c1.green, c1.blue);
       return ret.minus(c2);
     }
 
     static multiply(c1, s)
     {
-      let ret = new rColour(c1.red, c1.green, c1.blue);
+      let ret = makeColour(c1.red, c1.green, c1.blue);
       return ret.times(s);
     }
 
@@ -224,7 +224,7 @@
       this.diffuse = 0.9;
       this.specular = 0.9;
       this.shininess = 200.0;
-      this.colour = new ray.Colour(1, 1, 1);
+      this.colour = makeColour(1, 1, 1);
     }
 
     equals(m)
@@ -254,6 +254,33 @@
         }
       };
     }
+  }
+
+  class ColourPool
+  {
+    constructor()
+    {
+      this.pool = new Array(100);
+      this.next = 0;
+      for (let i = 0; i < 100; ++i) this.pool[i] = new rColour(0, 0, 0);
+    }
+
+    getColour(r,g,b)
+    {
+      let ret = this.pool[this.next++];
+      if (this.next >= 100) this.next = 0;
+      ret.red = r;
+      ret.green = g;
+      ret.blue = b;
+      return ret;
+    }
+  }
+
+  var pool = new ColourPool();
+  function makeColour(r,g,b)
+  {
+    if (ray.usePool) return pool.getColour(r,g,b);
+    return new rColour(r,g,b);
   }
 
   ray.classlist.push(rColour);

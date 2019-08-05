@@ -13,7 +13,7 @@
 
     copy()
     {
-      return new rTouple(this.x, this.y, this.z, this.w);
+      return makeTouple(this.x, this.y, this.z, this.w);
     }
 
     isVector()
@@ -106,7 +106,7 @@
 
     static cross(v, t)
     {
-      return new rTouple(v.y * t.z - v.z * t.y,
+      return makeTouple(v.y * t.z - v.z * t.y,
                          v.z * t.x - v.x * t.z,
                          v.x * t.y - v.y * t.x);
     }
@@ -119,30 +119,30 @@
 
     static add(t1, t2)
     {
-      return new rTouple(t1.x + t2.x, t1.y + t2.y, t1.z + t2.z, t1.w + t2.w);
+      return makeTouple(t1.x + t2.x, t1.y + t2.y, t1.z + t2.z, t1.w + t2.w);
     }
 
     static subtract(t1, t2)
     {
-      let ret = new rTouple(t1.x, t1.y, t1.z, t1.w);
+      let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
       return ret.minus(t2);
     }
 
     static negate(t1)
     {
-      let ret = new rTouple(t1.x, t1.y, t1.z, t1.w);
+      let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
       return ret.negate();
     }
 
     static multiply(t1, s)
     {
-      let ret = new rTouple(t1.x, t1.y, t1.z, t1.w);
+      let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
       return ret.times(s);
     }
 
     static normalize(t1)
     {
-      let ret = new rTouple(t1.x, t1.y, t1.z, t1.w);
+      let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
       return ret.normalize();
     }
 
@@ -573,11 +573,40 @@
 
   }
 
+  class TouplePool
+  {
+    constructor()
+    {
+      this.pool = new Array(100);
+      this.next = 0;
+      for (let i = 0; i < 100; ++i) this.pool[i] = new rTouple(0, 0, 0, 0);
+    }
+
+    getTouple(x, y, z, w)
+    {
+      let ret = this.pool[this.next++];
+      if (this.next >= 100) this.next = 0;
+      ret.x = x;
+      ret.y = y;
+      ret.z = z;
+      ret.w = w;
+      return ret;
+    }
+  }
+
+  var pool = new TouplePool();
+  function makeTouple(x, y, z, w)
+  {
+    if (ray.usePool) return pool.getTouple(x, y, z, w);
+    return new rTouple(x, y, z, w);
+  }
+
+
   ray.classlist.push(rTouple);
 
   ray.Touple = rTouple;
-  ray.Point = function(x,y,z) { return new rTouple(x,y,z,1.0); }
-  ray.Vector = function(x,y,z) { return new rTouple(x,y,z,0.0); }
+  ray.Point = function (x, y, z) { return makeTouple(x,y,z,1.0); }
+  ray.Vector = function (x, y, z) { return makeTouple(x,y,z,0.0); }
 
   ray.Origin = ray.Point(0, 0, 0);
   ray.Origin.plus = null;
@@ -585,6 +614,8 @@
   ray.Origin.negate = null;
   ray.Origin.times = null;
   ray.Origin.normalize = null;
+
+  ray.usePool = false;
 
   ray.epsilon = 0.00001;
   ray.isEqual = function (a, b)
