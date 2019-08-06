@@ -37,10 +37,11 @@ class Renderer
     {
       if (!def.materials[i].name) continue;
       let mat = new ray.Material();
-      if (def.materials[i].shininess)
-        mat.shininess = def.materials[i].shininess;
-      if (def.materials[i].colour)
-        mat.colour = new ray.Colour(def.materials[i].colour[0], def.materials[i].colour[1], def.materials[i].colour[2]);
+      if (null != def.materials[i].shininess) mat.shininess = def.materials[i].shininess;
+      if (null != def.materials[i].ambient) mat.ambient = def.materials[i].ambient;
+      if (null != def.materials[i].diffuse) mat.diffuse = def.materials[i].diffuse;
+      if (null != def.materials[i].specular) mat.specular = def.materials[i].specular;
+      if (null != def.materials[i].colour)     mat.colour = new ray.Colour(def.materials[i].colour[0], def.materials[i].colour[1], def.materials[i].colour[2]);
       this.materials[def.materials[i].name] = mat;
     }
     for (let i in def.objects)
