@@ -180,7 +180,7 @@ Light Hue: <input type="range" min="0" max="360" value="0" onInput="obj.transfor
             out.b = q;
             break;
         }
-        this.setupDef.objects[2].colour = [out.r,out.g,out.b];
+//        this.setupDef.objects[2].colour = [out.r,out.g,out.b];
       }
       this.restart = true;
 
