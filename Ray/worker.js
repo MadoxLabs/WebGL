@@ -4,6 +4,7 @@ importScripts("rMath.js",
               "rColour.js",
               "rCanvas.js",
               "rMatrix.js",
+              "rWorld.js",
               "rRay.js");
 
 let buffer = null;

@@ -232,6 +232,24 @@
       this.isIntersection = true;
     }
 
+    precompute(r)
+    {
+      let ret = {};
+      ret.length = this.length;
+      ret.object = this.object;
+      ret.point = r.position(ret.length);
+      ret.normal = this.object.normalAt(ret.point);
+      ret.eye = r.direction.copy().negate();
+      if (ret.normal.dot(ret.eye) < 0)
+      {
+        ret.inside = true;
+        ret.normal.negate();
+      }
+      else
+        ret.inside = false;
+      return ret;
+    }
+
     // tests
     static test1()
     {
@@ -247,6 +265,62 @@
         }
       };
     }
+
+    static test2()
+    {
+      return {
+        name: "Check that intersection values are precomputed",
+        test: function ()
+        {
+          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let s = new ray.Sphere();
+          let i = new rIntersection(4, s);
+          let comp = i.precompute(r);
+          if (comp.length != i.length) return false;
+          if (comp.point.equals(ray.Point(0,0,-1)) == false) return false;
+          if (comp.eye.equals(ray.Vector(0,0,-1)) == false) return false;
+          if (comp.normal.equals(ray.Vector(0, 0, -1)) == false) return false;
+          if (comp.object.id != s.id) return false;
+          return true;
+        }
+      };
+    }
+
+    static test3()
+    {
+      return {
+        name: "Check that intersection can be on the outside",
+        test: function ()
+        {
+          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let s = new ray.Sphere();
+          let i = new rIntersection(4, s);
+          let comp = i.precompute(r);
+          if (comp.inside != false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test4()
+    {
+      return {
+        name: "Check that intersection can be on the inside",
+        test: function ()
+        {
+          let r = new ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
+          let s = new ray.Sphere();
+          let i = new rIntersection(1, s);
+          let comp = i.precompute(r);
+          if (comp.inside != true) return false;
+          if (comp.point.equals(ray.Point(0, 0, 1)) == false) return false;
+          if (comp.eye.equals(ray.Vector(0, 0, -1)) == false) return false;
+          if (comp.normal.equals(ray.Vector(0, 0, -1)) == false) return false;
+          return true;
+        }
+      };
+    }
+
   }
 
   class rIntersections
@@ -257,25 +331,47 @@
       this.max = 20;
       this.num = 0;
       this.sorted = false;
+      this.isIntersections = true;
     }
 
     add(i)
     {
-//      if (i.Intersection == false) throw "not an intersection";
-      this.list[this.num++] = i;
-      this.sorted = false;
-      if (this.num == this.max)
+      if (i.isIntersection)
       {
-        this.max += 20;
-        console.log("Hit the max!");
-        this.list[this.max] = null;
+        this.list[this.num++] = i;
+        if (this.num == this.max)
+        {
+          this.max += 20;
+          console.log("Hit the max!");
+          this.list[this.max] = null;
+        }
       }
+      else if (i.isIntersections)
+      {
+        for (let x = 0; x < i.num; ++x)
+        {
+          this.list[this.num++] = i.list[x];
+          if (this.num == this.max)
+          {
+            this.max += 20;
+            console.log("Hit the max!");
+            this.list[this.max] = null;
+          }
+        }
+      }
+      this.sorted = false;
+    }
+
+    sort()
+    {
+      if (this.sorted) return;
+      this.list.sort(function (a, b) { return a.length - b.length; });
+      this.sorted = true;
     }
 
     hit()
     {
-      this.list.sort(function (a, b) { return a.length - b.length; });
-      this.sorted = true;
+      this.sort();
       for (let i = 0; i < this.num; ++i)
       {
         if (this.list[i].length >= 0) return this.list[i];

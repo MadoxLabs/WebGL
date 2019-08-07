@@ -11,6 +11,7 @@ function reportLoading(name, value) { }
                  "rColour.js",
                  "rCanvas.js",
                  "rMatrix.js",
+                 "rWorld.js",
                  "rRay.js"
                 ];
   var appSrc = ["rUnittest.js",
