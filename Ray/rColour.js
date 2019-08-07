@@ -47,7 +47,7 @@
 
     times(s)
     {
-      if (s.red)
+      if (s.red != null)
       {
         this.red   *= s.red;
         this.blue  *= s.blue;
@@ -187,6 +187,9 @@
     {
       this.position = p;
       this.colour = c;
+      this.intensityDiffuse = 1.0;
+      this.intensityAmbient = 1.0;
+      this.attenuation = [1.0, 0.0, 0.0];
       this.isLight = true;
     }
 

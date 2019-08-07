@@ -14,12 +14,24 @@ Move one of the lights around:<br>
 X:  <input type="range" min="-20" max="20" value="-10" onInput="obj.transform()" step="0.1" class="slider" id="xTrans"> <br>
 Y:  <input type="range" min="-20" max="20" value="10" onInput="obj.transform()" step="0.1" class="slider" id="yTrans"><br>
 Z:  <input type="range" min="-20" max="20" value="-10" onInput="obj.transform()" step="0.1" class="slider" id="zTrans"><br>
-Alter some parameters:<br>                             
+Light parameters:<br>                             
+Ambient Intensityfactor: <input type="range" min="0" max="1" value="1.0" onInput="obj.transform()" step="0.1" class="slider" id="ambL"><br>
+Diffuse Intensity: <input type="range" min="0" max="1" value="1.0" onInput="obj.transform()" step="0.1" class="slider" id="difL"><br>
+Constant Atten: <input type="range" min="0.01" max="4" value="1.0" onInput="obj.transform()" step="0.1" class="slider" id="attenC"><br>
+Linear Atten: <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="0.05" class="slider" id="attenL"><br>
+Squared Atten: <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="0.05" class="slider" id="attenS"><br>
+Color R: <input type="range" min="0" max="1" value="1" onInput="obj.transform()" step="0.1" class="slider" id="rL"><br>
+Color G: <input type="range" min="0" max="1" value="1" onInput="obj.transform()" step="0.1" class="slider" id="gL"><br>
+Color B: <input type="range" min="0" max="1" value="1" onInput="obj.transform()" step="0.1" class="slider" id="bL"><br>
+</p></td><td><p>
+Ball parameters:<br>
 Ambient factor: <input type="range" min="0" max="1" value="0.1" onInput="obj.transform()" step="0.1" class="slider" id="amb"><br>
 Diffuse factor: <input type="range" min="0" max="1" value="0.9" onInput="obj.transform()" step="0.1" class="slider" id="dif"><br>
 Specular factor: <input type="range" min="0" max="1" value="0.9" onInput="obj.transform()" step="0.1" class="slider" id="spec"><br>
-Shine: <input type="range" min="1" max="300" value="200" onInput="obj.transform()" step="1" class="slider" id="shine"><br>
-Light Hue: <input type="range" min="0" max="360" value="0" onInput="obj.transform()" step="1" class="slider" id="hue"><br>
+Shine: <input type="range" min="1" max="300" value="50" onInput="obj.transform()" step="1" class="slider" id="shine"><br>
+Color R: <input type="range" min="0" max="1" value="1" onInput="obj.transform()" step="0.1" class="slider" id="rB"><br>
+Color G: <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="0.1" class="slider" id="gB"><br>
+Color B: <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="0.1" class="slider" id="bB"><br>
 </p>
 </td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
@@ -50,11 +62,21 @@ Light Hue: <input type="range" min="0" max="360" value="0" onInput="obj.transfor
       document.getElementById("xTrans").obj = this;
       document.getElementById("yTrans").obj = this;
       document.getElementById("zTrans").obj = this;
+      document.getElementById("ambL").obj = this;
+      document.getElementById("difL").obj = this;
+      document.getElementById("attenC").obj = this;
+      document.getElementById("attenL").obj = this;
+      document.getElementById("attenS").obj = this;
+      document.getElementById("rL").obj = this;
+      document.getElementById("gL").obj = this;
+      document.getElementById("bL").obj = this;
       document.getElementById("amb").obj = this;
       document.getElementById("dif").obj = this;
       document.getElementById("spec").obj = this;
       document.getElementById("shine").obj = this;
-      document.getElementById("hue").obj = this;
+      document.getElementById("rB").obj = this;
+      document.getElementById("gB").obj = this;
+      document.getElementById("bB").obj = this;
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
@@ -130,58 +152,23 @@ Light Hue: <input type="range" min="0" max="360" value="0" onInput="obj.transfor
     transform()
     {
       this.setupDef.objects[2].position = [parseFloat(document.getElementById("xTrans").value),
-                                 parseFloat(document.getElementById("yTrans").value),
-                                 parseFloat(document.getElementById("zTrans").value)];
+                                           parseFloat(document.getElementById("yTrans").value),
+                                           parseFloat(document.getElementById("zTrans").value)];
+      this.setupDef.objects[2].colour = [parseFloat(document.getElementById("rL").value),
+                                         parseFloat(document.getElementById("gL").value),
+                                         parseFloat(document.getElementById("bL").value)];
+      this.setupDef.objects[2].intensityAmbient = parseFloat(document.getElementById("ambL").value);
+      this.setupDef.objects[2].intensityDiffuse = parseFloat(document.getElementById("difL").value);
+      this.setupDef.objects[2].attenuation = [parseFloat(document.getElementById("attenC").value),
+                                              parseFloat(document.getElementById("attenL").value),
+                                              parseFloat(document.getElementById("attenS").value)];
       this.setupDef.materials[0].ambient = parseFloat(document.getElementById("amb").value);
       this.setupDef.materials[0].diffuse = parseFloat(document.getElementById("dif").value);
       this.setupDef.materials[0].specular = parseFloat(document.getElementById("spec").value);
       this.setupDef.materials[0].shininess = parseFloat(document.getElementById("shine").value);
-
-      let h = parseFloat(document.getElementById("hue").value)
-      {
-        h /= 60.0;
-        let i = Math.floor(h);
-        let ff = h - i;
-        let p = 0;
-        let q = 0.5 * (1.0 - ff);
-        let t = 0.5 * (1.0 - (1.0 - ff));
-        let out = {};
-        switch (i)
-        {
-          case 0:
-            out.r = 0.5;
-            out.g = t;
-            out.b = p;
-            break;
-          case 1:
-            out.r = q;
-            out.g = 0.5;
-            out.b = p;
-            break;
-          case 2:
-            out.r = p;
-            out.g = 0.5;
-            out.b = t;
-            break;
-          case 3:
-            out.r = p;
-            out.g = q;
-            out.b = 0.5;
-            break;
-          case 4:
-            out.r = t;
-            out.g = p;
-            out.b = 0.5;
-            break;
-          case 5:
-          default:
-            out.r = 0.5;
-            out.g = p;
-            out.b = q;
-            break;
-        }
-//        this.setupDef.objects[2].colour = [out.r,out.g,out.b];
-      }
+      this.setupDef.materials[0].colour = [parseFloat(document.getElementById("rB").value),
+                                           parseFloat(document.getElementById("gB").value),
+                                           parseFloat(document.getElementById("bB").value)];
       this.restart = true;
 
       if (this.renderY >= 400) this.begin();

@@ -149,11 +149,13 @@
     lighting(material, light, point, eye, normal)
     {
       let effectiveColour = ray.Colour.multiply(material.colour, light.colour);
-      let ambient = ray.Colour.multiply(effectiveColour, material.ambient);
+      let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
       let diffuse = null;
       let specular = null;
 
-      let toLight = ray.Touple.subtract(light.position, point).normalize();
+      let toLight = ray.Touple.subtract(light.position, point);
+      let distance = toLight.magnitude();
+      toLight.normalize();
       let lightDotNormal = toLight.dot(normal);
       if (lightDotNormal < 0)
       {
@@ -162,7 +164,7 @@
       }
       else
       {
-        diffuse = ray.Colour.multiply(effectiveColour, material.diffuse).times(lightDotNormal);
+        diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal);
         let reflect = ray.Touple.reflect(toLight.negate(), normal);
         let reflectDotEye = reflect.dot(eye);
         if (reflectDotEye <= 0)
@@ -173,7 +175,8 @@
           specular = ray.Colour.multiply(light.colour, material.specular).times(factor);
         }
       }
-      return ambient.plus(diffuse).plus(specular);
+      let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
+      return ambient.plus(diffuse).plus(specular).times(1.0/attenuation);
     }
 
     static test1()

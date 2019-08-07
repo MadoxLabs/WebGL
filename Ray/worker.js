@@ -38,10 +38,10 @@ class Renderer
       if (!def.materials[i].name) continue;
       let mat = new ray.Material();
       if (null != def.materials[i].shininess) mat.shininess = def.materials[i].shininess;
-      if (null != def.materials[i].ambient) mat.ambient = def.materials[i].ambient;
-      if (null != def.materials[i].diffuse) mat.diffuse = def.materials[i].diffuse;
-      if (null != def.materials[i].specular) mat.specular = def.materials[i].specular;
-      if (null != def.materials[i].colour)     mat.colour = new ray.Colour(def.materials[i].colour[0], def.materials[i].colour[1], def.materials[i].colour[2]);
+      if (null != def.materials[i].ambient)   mat.ambient = def.materials[i].ambient;
+      if (null != def.materials[i].diffuse)   mat.diffuse = def.materials[i].diffuse;
+      if (null != def.materials[i].specular)  mat.specular = def.materials[i].specular;
+      if (null != def.materials[i].colour)    mat.colour = new ray.Colour(def.materials[i].colour[0], def.materials[i].colour[1], def.materials[i].colour[2]);
       this.materials[def.materials[i].name] = mat;
     }
     for (let i in def.objects)
@@ -58,12 +58,12 @@ class Renderer
       {
         let p = ray.Origin;
         let c = ray.White;
-        if (def.objects[i].position)
-          p = ray.Point(def.objects[i].position[0], def.objects[i].position[1], def.objects[i].position[2]);
-        if (def.objects[i].colour)
-          c = new ray.Colour(def.objects[i].colour[0], def.objects[i].colour[1], def.objects[i].colour[2]);
-
+        if (null != def.objects[i].position) p = ray.Point(def.objects[i].position[0], def.objects[i].position[1], def.objects[i].position[2]);
+        if (null != def.objects[i].colour)   c = new ray.Colour(def.objects[i].colour[0], def.objects[i].colour[1], def.objects[i].colour[2]);
         let obj = new ray.LightPoint(p, c);
+        if (null != def.objects[i].intensityDiffuse) obj.intensityDiffuse = def.objects[i].intensityDiffuse;
+        if (null != def.objects[i].intensityAmbient) obj.intensityAmbient = def.objects[i].intensityAmbient;
+        if (null != def.objects[i].attenuation) obj.attenuation = def.objects[i].attenuation;
         this.lights.push(obj);
       }
 
