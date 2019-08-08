@@ -4,6 +4,11 @@
   {
     constructor()
     {
+      this.reset();
+    }
+
+    reset()
+    {
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
       this.objects = [];
@@ -117,6 +122,7 @@
 
     loadFromJSON(json)
     {
+      this.reset();
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
       if (json.materials) this.parseMaterials(json.materials);
       if (json.transforms) this.parseTransforms(json.transforms);

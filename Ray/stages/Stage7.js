@@ -9,8 +9,9 @@
 <p>Adding a manager to take care of complex scenes, and cameras</p>
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
-</td><td>
-</td></tr></table>`;
+</td><td><p>
+X:  <input type="range" min="-20" max="20" value="-3" onInput="obj.transform()" step="0.1" class="slider" id="xTrans"> <br>
+</p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
 
@@ -36,6 +37,7 @@
     {
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
+      document.getElementById("xTrans").obj = this;
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
@@ -50,8 +52,6 @@
 
       // world data
       this.setupDef = {
-        lighting: true,
-        eye: [0, 0, -5],
         cameras: [
           {
             name: "main",
@@ -181,6 +181,8 @@
 
     transform()
     {
+      this.setupDef.transforms[5].series[0].value[0] = parseFloat(document.getElementById("xTrans").value);
+
       this.restart = true;
       if (this.renderY >= 400) this.begin();
     }
