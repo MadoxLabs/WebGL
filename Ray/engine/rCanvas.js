@@ -100,7 +100,7 @@
         {
           let canvas = new ray.Canvas();
           canvas.fromMemory(10, 10);
-          let c = new ray.Colour(1,1,1);
+          let c = ray.RGBColour(1,1,1);
 
           for (let i = 0; i < 10; ++i)
           {
@@ -125,9 +125,9 @@
         {
           let canvas = new ray.Canvas();
           canvas.fromMemory(10, 10);
-          let c1 = new ray.Colour(1, 0.5, 0);
+          let c1 = ray.RGBColour(1, 0.5, 0);
           canvas.set(c1, 5, 5);
-          let c2 = new ray.Colour(0, 0, 0);
+          let c2 = ray.RGBColour(0, 0, 0);
           canvas.get(c2, 5, 5);
           if (c2.red != 1) return false;
           ray.epsilon = 0.01;
@@ -189,9 +189,9 @@
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
-          let light = new ray.LightPoint(ray.Point(0, 0, -10), new ray.Colour(1, 1, 1));
+          let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
           let result = ray.Render.lighting(m, light, p, eye, normal);
-          if (result.equals(new ray.Colour(1.9, 1.9, 1.9)) == false) return false;
+          if (result.equals(ray.RGBColour(1.9, 1.9, 1.9)) == false) return false;
           return true;
         }
       };
@@ -208,9 +208,9 @@
           let num = Math.sqrt(2) / 2;
           let eye = ray.Vector(0, num, -num);
           let normal = ray.Vector(0, 0, -1);
-          let light = new ray.LightPoint(ray.Point(0, 0, -10), new ray.Colour(1, 1, 1));
+          let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
           let result = ray.Render.lighting(m, light, p, eye, normal);
-          if (result.equals(new ray.Colour(1.0, 1.0, 1.0)) == false) return false;
+          if (result.equals(ray.RGBColour(1.0, 1.0, 1.0)) == false) return false;
           return true;
         }
       };
@@ -226,9 +226,9 @@
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
-          let light = new ray.LightPoint(ray.Point(0, 10, -10), new ray.Colour(1, 1, 1));
+          let light = new ray.LightPoint(ray.Point(0, 10, -10), ray.RGBColour(1, 1, 1));
           let result = ray.Render.lighting(m, light, p, eye, normal);
-          if (result.equals(new ray.Colour(0.7364, 0.7364, 0.7364)) == false) return false;
+          if (result.equals(ray.RGBColour(0.7364, 0.7364, 0.7364)) == false) return false;
           return true;
         }
       };
@@ -245,9 +245,9 @@
           let p = ray.Origin;
           let eye = ray.Vector(0, -num, -num);
           let normal = ray.Vector(0, 0, -1);
-          let light = new ray.LightPoint(ray.Point(0, 10, -10), new ray.Colour(1, 1, 1));
+          let light = new ray.LightPoint(ray.Point(0, 10, -10), ray.RGBColour(1, 1, 1));
           let result = ray.Render.lighting(m, light, p, eye, normal);
-          if (result.equals(new ray.Colour(1.6364, 1.6364, 1.6364)) == false) return false;
+          if (result.equals(ray.RGBColour(1.6364, 1.6364, 1.6364)) == false) return false;
           return true;
         }
       };
@@ -263,9 +263,9 @@
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
-          let light = new ray.LightPoint(ray.Point(0, 0, 10), new ray.Colour(1, 1, 1));
+          let light = new ray.LightPoint(ray.Point(0, 0, 10), ray.RGBColour(1, 1, 1));
           let result = ray.Render.lighting(m, light, p, eye, normal);
-          if (result.equals(new ray.Colour(0.1, 0.1, 0.1)) == false) return false;
+          if (result.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
           return true;
         }
       };

@@ -11,6 +11,12 @@
       this.makeByte();
     }
 
+    copy()
+    {
+      return makeColour(this.r, this.g, this.b);
+    }
+
+
     equals(t)
     {
       if (!t) return false;
@@ -88,7 +94,7 @@
         name: "Check that colours work",
         test: function ()
         {
-          let c = new ray.Colour(-0.5, 0.4, 1.7);
+          let c = ray.RGBColour(-0.5, 0.4, 1.7);
           if (!ray.isEqual(c.red,  -0.5)) return false;
           if (!ray.isEqual(c.green, 0.4)) return false;
           if (!ray.isEqual(c.blue,  1.7)) return false;
@@ -103,8 +109,8 @@
         name: "Check that adding colours works",
         test: function ()
         {
-          let t1 = new ray.Colour(0.9, 0.6, 0.75);
-          let t2 = new ray.Colour(0.7, 0.1, 0.25);
+          let t1 = ray.RGBColour(0.9, 0.6, 0.75);
+          let t2 = ray.RGBColour(0.7, 0.1, 0.25);
           let t3 = ray.Colour.add(t1, t2);
           t1.plus(t2);
           if (!ray.isEqual(t3.red,   1.6)) return false;
@@ -124,8 +130,8 @@
         name: "Check that subtracting colours works",
         test: function ()
         {
-          let t1 = new ray.Colour(0.9, 0.6, 0.75);
-          let t2 = new ray.Colour(0.7, 0.1, 0.25);
+          let t1 = ray.RGBColour(0.9, 0.6, 0.75);
+          let t2 = ray.RGBColour(0.7, 0.1, 0.25);
           let t3 = ray.Colour.subtract(t1, t2);
           t1.minus(t2);
           if (!ray.isEqual(t3.red,   0.2)) return false;
@@ -145,7 +151,7 @@
         name: "Check that colours can be scaled",
         test: function ()
         {
-          let t1 = new ray.Colour(0.2, 0.3, 0.4);
+          let t1 = ray.RGBColour(0.2, 0.3, 0.4);
           let t2 = ray.Colour.multiply(t1, 2);
           t1.times(2);
           if (!ray.isEqual(t2.red, 0.4)) return false;
@@ -165,8 +171,8 @@
         name: "Check that colours can be combined",
         test: function ()
         {
-          let t1 = new ray.Colour(1.0, 0.2, 0.4);
-          let t2 = new ray.Colour(0.9, 1.0, 0.1);
+          let t1 = ray.RGBColour(1.0, 0.2, 0.4);
+          let t2 = ray.RGBColour(0.9, 1.0, 0.1);
           let t3 = ray.Colour.multiply(t1, t2);
           t1.times(t2);
           if (!ray.isEqual(t3.red, 0.9)) return false;
@@ -193,6 +199,15 @@
       this.isLight = true;
     }
 
+    fromJSON(def)
+    {
+      if (null != def.position) this.position = ray.Point(def.position[0], def.position[1], def.position[2]);
+      if (null != def.colour) this.colour = ray.RGBColour(def.colour[0], def.colour[1], def.colour[2]);
+      if (null != def.intensityDiffuse) this.intensityDiffuse = def.intensityDiffuse;
+      if (null != def.intensityAmbient) this.intensityAmbient = def.intensityAmbient;
+      if (null != def.attenuation) this.attenuation = def.attenuation;
+    }
+
     equals(l)
     {
       if (!l) return false;
@@ -207,7 +222,7 @@
         name: "Check that point light ctor works",
         test: function ()
         {
-          let c = new ray.Colour(1, 1, 1);
+          let c = ray.RGBColour(1, 1, 1);
           let p = ray.Point(0, 0, 0);
           let light = new rLightPoint(p, c);
           if (light.position.equals(p) == false) return false;
@@ -228,6 +243,15 @@
       this.specular = 0.9;
       this.shininess = 200.0;
       this.colour = makeColour(1, 1, 1);
+    }
+
+    fromJSON(def)
+    {
+      if (null != def.shininess) this.shininess = def.shininess;
+      if (null != def.ambient)   this.ambient   = def.ambient;
+      if (null != def.diffuse)   this.diffuse   = def.diffuse;
+      if (null != def.specular)  this.specular  = def.specular;
+      if (null != def.colour)    this.colour    = makeColour(def.colour[0], def.colour[1], def.colour[2]);
     }
 
     equals(m)
@@ -252,7 +276,7 @@
           if (ray.isEqual(m.diffuse, 0.9) == false) return false;
           if (ray.isEqual(m.specular, 0.9) == false) return false;
           if (ray.isEqual(m.shininess, 200.0) == false) return false;
-          if (m.colour.equals(new ray.Colour(1,1,1)) == false) return false;
+          if (m.colour.equals(ray.RGBColour(1,1,1)) == false) return false;
           return true;
         }
       };
@@ -291,6 +315,7 @@
   ray.classlist.push(rMaterial);
   ray.Material = rMaterial;
   ray.LightPoint = rLightPoint;
+  ray.RGBColour = function (r, g, b) { return makeColour(r, g, b); }
   ray.Colour = rColour;
 
   ray.White = new rColour(1, 1, 1);

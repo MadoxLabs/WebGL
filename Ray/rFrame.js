@@ -7,20 +7,21 @@ function reportLoading(name, value) { }
 (function ()
 {
   // source files to load, some optionally
-  var baseSrc = ["rMath.js",
-                 "rColour.js",
-                 "rCanvas.js",
-                 "rMatrix.js",
-                 "rWorld.js",
-                 "rRay.js"
+  var baseSrc = ["engine/rMath.js",
+                 "engine/rColour.js",
+                 "engine/rCanvas.js",
+                 "engine/rMatrix.js",
+                 "engine/rWorld.js",
+                 "engine/rRay.js"
                 ];
   var appSrc = ["rUnittest.js",
-                "Stage1.js",
-                "Stage2.js",
-                "Stage3.js",
-                "Stage4.js",
-                "Stage5.js",
-                "Stage6.js",
+                "stages/Stage1.js",
+                "stages/Stage2.js",
+                "stages/Stage3.js",
+                "stages/Stage4.js",
+                "stages/Stage5.js",
+                "stages/Stage6.js",
+                "stages/Stage7.js",
                 "rApp.js"
                ];
 

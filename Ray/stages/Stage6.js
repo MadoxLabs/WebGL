@@ -129,7 +129,7 @@ Color B: <input type="range" min="0" max="1" value="0" onInput="obj.transform()"
       for (let i = 0; i < this.load; ++i)
       {
         this.buffers[i] = new Uint8ClampedArray(400 * 4);
-        this.workers[i] = new Worker('worker.js');
+        this.workers[i] = new Worker('stages/worker1.js');
         this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
       }
 

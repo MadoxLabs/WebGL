@@ -23,7 +23,7 @@
       document.getElementById("fire").obj = this;
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
-      this.dot = new ray.Colour(1, 1, 1);
+      this.dot = ray.RGBColour(1, 1, 1);
     }
 
     fire()

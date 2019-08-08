@@ -24,7 +24,7 @@
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
-      this.dot = new ray.Colour(1, 1, 1);
+      this.dot = ray.RGBColour(1, 1, 1);
 
       this.points = [];
       let step = (360.0/12.0) * 2.0 * Math.PI / 360.0;

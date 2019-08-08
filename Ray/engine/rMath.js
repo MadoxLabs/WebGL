@@ -618,6 +618,8 @@
   ray.usePool = false;
 
   ray.epsilon = 0.00001;
+  ray.lowrez = function () { ray.epsilon = 0.002; }
+  ray.hirez = function () { ray.epsilon = 0.00001; }
   ray.isEqual = function (a, b)
   {
 //    let diff = a - b;
