@@ -381,7 +381,9 @@
         this.halfHeight = halfView;
         this.halfWidth = halfView * ratio;
       }
+
       this.pixelSize = this.halfWidth * 2.0 / this.width;
+      this.focalLength = 1.0;
     }
 
     fromJSON(def)
@@ -418,7 +420,7 @@
                                      this.up.x,       this.up.y,       this.up.z,   0,
                                     -this.forward.x, -this.forward.y, -this.forward.z, 0,
                                      0, 0, 0, 1]);
-      this.transform.times(this.translate);
+      this.transform.times(this.translate);    
       this.inverse = ray.Matrix.inverse(this.transform);
       return this.transform;
     }
@@ -429,7 +431,7 @@
       let yoffset = (y + 0.5) * this.pixelSize;
       let xworld = this.halfWidth - xoffset;
       let yworld = this.halfHeight - yoffset;
-      let pixel = this.inverse.times(ray.Point(xworld, yworld, -1));
+      let pixel = this.inverse.times(ray.Point(xworld, yworld, -this.focalLength));
       let origin = this.inverse.times(ray.Origin);
       let direction = pixel.minus(origin).normalize();
       return new ray.Ray(origin, direction);

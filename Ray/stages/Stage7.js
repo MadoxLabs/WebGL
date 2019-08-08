@@ -11,6 +11,8 @@
 <div><canvas id='surface' width="400" height="400"></div>
 </td><td><p>
 X:  <input type="range" min="-20" max="20" value="-3" onInput="obj.transform()" step="0.1" class="slider" id="xTrans"> <br>
+FOV:  <input type="range" min="0.1" max="1.0" value="0.5" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
+Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
 </p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
@@ -38,6 +40,8 @@ X:  <input type="range" min="-20" max="20" value="-3" onInput="obj.transform()" 
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
       document.getElementById("xTrans").obj = this;
+      document.getElementById("zCamera").obj = this;
+      document.getElementById("fov").obj = this;
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
@@ -57,8 +61,8 @@ X:  <input type="range" min="-20" max="20" value="-3" onInput="obj.transform()" 
             name: "main",
             width: 400,
             height: 400,
-            fov: 1.74,
-            from: [0, 3, -3],
+            fov: Math.PI * 0.5,
+            from: [0, 2, -5],
             to: [0, 1, 0],
             up: [0, 1, 0]
           }
@@ -182,6 +186,8 @@ X:  <input type="range" min="-20" max="20" value="-3" onInput="obj.transform()" 
     transform()
     {
       this.setupDef.transforms[5].series[0].value[0] = parseFloat(document.getElementById("xTrans").value);
+      this.setupDef.cameras[0].fov = Math.PI * parseFloat(document.getElementById("fov").value);
+      this.setupDef.cameras[0].from[2] = -parseFloat(document.getElementById("zCamera").value);
 
       this.restart = true;
       if (this.renderY >= 400) this.begin();
