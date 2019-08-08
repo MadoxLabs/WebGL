@@ -15,7 +15,9 @@
       this.lights = [];
       this.cameras = {};
       this.options = {
-        lighting: true
+        lighting: true,
+        shadowing: true,
+        jigglePoints: false
       }
     }
 
@@ -148,6 +150,8 @@
     parseRenderOptions(data)
     {
       if (data.lighting != null) this.options.lighting = data.lighting;
+      if (data.shadowing != null) this.options.shadowing = data.shadowing;
+      if (data.jigglePoints != null) this.options.jigglePoints = data.jigglePoints;
     }
 
     parseTransforms(data)
@@ -427,8 +431,15 @@
 
     getRayAt(x, y)
     {
-      let xoffset = (x + 0.5) * this.pixelSize;
-      let yoffset = (y + 0.5) * this.pixelSize;
+      let subX = 0.5;
+      let subY = 0.5;
+      if (ray.World.options.jigglePoints)
+      {
+        subX = Math.random();
+        suby = Math.random();
+      }
+      let xoffset = (x + subX) * this.pixelSize;
+      let yoffset = (y + subY) * this.pixelSize;
       let xworld = this.halfWidth - xoffset;
       let yworld = this.halfHeight - yoffset;
       let pixel = this.inverse.times(ray.Point(xworld, yworld, -this.focalLength));

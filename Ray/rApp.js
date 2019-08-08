@@ -78,10 +78,10 @@
 
       let buf = "<div class='mxText'>Test Results: " + this.tester.total + " Total, " + this.tester.success + " Success, " + (this.tester.total - this.tester.success) + " Fail";
       buf += " <button onclick='ray.App.runTest("+test+")'>Run Again</button></div > ";
-      buf += "<div style='width: 80%; height: 80%; overflow-x: hidden; overflow-y: scroll;'><table class=\"blueTable\"><tbody><tr>";
+      buf += "<table class=\"blueTable\"><tbody><tr>";
       for (let i in output)
         buf += "<tr><td>"+output[i]+"</td></tr>";
-      buf += "</tbody></table></div>";
+      buf += "</tbody></table>";
       document.getElementById("tests").innerHTML = buf;
     }
 

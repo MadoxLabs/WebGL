@@ -9,7 +9,6 @@ body, html {
   -ms-user-select: none;
   user-select: none;
   background-color: black;
-  overflow: hidden;
 }
 
 p {
