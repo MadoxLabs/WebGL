@@ -57,9 +57,9 @@
             name: "main",
             width: 400,
             height: 400,
-            fov: Math.PI / 2.0,
-            from: [0, 0, -5],
-            to: [0, 0, 0],
+            fov: 1.74,
+            from: [0, 3, -3],
+            to: [0, 1, 0],
             up: [0, 1, 0]
           }
         ],
@@ -68,7 +68,44 @@
             name: "ball",
             shininess: 50,
             colour: [1, 0.2, 0.2]
+          },
+          {
+            name: "ball2",
+            shininess: 50,
+            colour: [0.2, 1, 0.2]
+          },
+          {
+            name: "floor",
+            shininess: 200,
+            colour: [1,1,1]
           }
+        ],
+        transforms: [
+          {
+            name: "floor",
+            series: [{ type: "T", value: [0, -1.1, 0] }, {type:"S", value: [20,0.1,20]}]
+          },
+          {
+            name: "wall1",
+            series: [{ type: "T", value: [5, 0, 9] }, {type:"Ry", value: Math.PI/4.0 }, { type: "S", value: [20, 20, 0.1] }]
+          },
+          {
+            name: "wall2",
+            series: [{ type: "T", value: [-5, 0, 9] }, { type: "Ry", value: -Math.PI / 4.0 }, { type: "S", value: [20, 20, 0.1] }]
+          },
+          {
+            name: "ball",
+            series: [{ type: "T", value: [2, 0, 0] }]
+          },
+          {
+            name: "ball2",
+            series: [{ type: "T", value: [0, 1, 2] },{ type: "S", value: [2,2,2] }]
+          },
+          {
+            name: "ball3",
+            series: [{ type: "T", value: [-3, 0.5, 0] }, { type: "S", value: [1.5, 1.5, 1.5] }]
+          }
+
         ],
         lights: [
           {
@@ -85,7 +122,32 @@
         objects: [
           {
             type: "sphere",
+            transform: "floor",
+            material: "floor"
+          },
+          {
+            type: "sphere",
+            transform: "wall1",
+            material: "floor"
+          },
+          {
+            type: "sphere",
+            transform: "wall2",
+            material: "floor"
+          },
+          {
+            type: "sphere",
+            transform: "ball",
             material: "ball"
+          },
+          {
+            type: "sphere",
+            transform: "ball3",
+          },
+          {
+            type: "sphere",
+            material: "ball2",
+            transform: "ball2",
           }
         ]
       };
