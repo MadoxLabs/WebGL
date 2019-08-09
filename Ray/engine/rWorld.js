@@ -100,10 +100,12 @@
       let colour = null;
       if (this.options.lighting)
       {
-        colour = ray.Render.lighting(comp.object.material, this.lights[0], comp.point, comp.eye, comp.normal);
+        let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, 0) : false;
+        colour = ray.Render.lighting(comp.object.material, this.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
         for (let l = 1; l < this.lights.length; ++l)
         {
-          colour.plus(ray.Render.lighting(comp.object.material, this.lights[1], comp.point, comp.eye, comp.normal));
+          let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l) : false;
+          colour.plus(ray.Render.lighting(comp.object.material, this.lights[1], comp.overPoint, comp.eye, comp.normal, shadow));
         }
       }
       else
@@ -120,6 +122,19 @@
       if (!hit) return ray.Black;
       let comp = hit.precompute(r);
       return this.getColourFor(comp);
+    }
+
+    isShadowed(p, lightIndex)
+    {
+      let light = this.lights[lightIndex];
+      let direction = ray.Touple.subtract(light.position, p);
+      let distance = direction.magnitude();
+      direction.normalize();
+      let points = this.intersect(ray.Ray(p, direction));
+      let hit = points.hit();
+      if (hit && hit.length < distance)
+        return true;
+      return false;
     }
 
     loadFromJSON(json)
@@ -258,7 +273,7 @@
         {
           let w = new rWorld();
           w.setToDefalt();
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let points = w.intersect(r);
           if (points.num != 4) return false;
           if (points.list[0].length != 4) return false;
@@ -278,7 +293,7 @@
         {
           let w = new rWorld();
           w.setToDefalt();
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let s = w.objects[0];
           let i = new ray.Intersection(4, s);
           let comp = i.precompute(r);
@@ -298,7 +313,7 @@
           let w = new rWorld();
           w.setToDefalt();
           w.lights[0] = new ray.LightPoint(ray.Point(0, 0.25, 0), ray.White);
-          let r = new ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
           let s = w.objects[1];
           let i = new ray.Intersection(0.5, s);
           let comp = i.precompute(r);
@@ -317,7 +332,7 @@
         {
           let w = new rWorld();
           w.setToDefalt();
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 1, 0));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 1, 0));
           let c = w.cast(r);
           if (c.equals(ray.Black) == false) return false;
           return true;
@@ -333,7 +348,7 @@
         {
           let w = new rWorld();
           w.setToDefalt();
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let c = w.cast(r);
           if (c.equals(ray.RGBColour(0.38066, 0.47583, 0.2855)) == false) return false;
           return true;
@@ -351,7 +366,7 @@
           w.setToDefalt();
           w.objects[0].material.ambient = 1;
           w.objects[1].material.ambient = 1;
-          let r = new ray.Ray(ray.Point(0, 0, 0.75), ray.Vector(0, 0, -1));
+          let r = ray.Ray(ray.Point(0, 0, 0.75), ray.Vector(0, 0, -1));
           let c = w.cast(r);
           if (c.equals(w.objects[1].material.colour) == false) return false;
           return true;
@@ -359,6 +374,104 @@
       };
     }
 
+    static test9()
+    {
+      return {
+        name: "Check there is no shadow when nothing is colinear",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefalt();
+          let p = ray.Point(0, 10, 0);
+          if (w.isShadowed(p,0) == true) return false;
+          return true;
+        }
+      };
+    }
+
+    static test10()
+    {
+      return {
+        name: "Check there is shadow when object between point and light",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefalt();
+          let p = ray.Point(10, -10, 10);
+          if (w.isShadowed(p,0) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test11()
+    {
+      return {
+        name: "Check there is no shadow when object behind light",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefalt();
+          let p = ray.Point(-20, -20, -20);
+          if (w.isShadowed(p,0) == true) return false;
+          return true;
+        }
+      };
+    }
+
+    static test12()
+    {
+      return {
+        name: "Check there is no shadow when object behind point",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefalt();
+          let p = ray.Point(-2, 2, -2);
+          if (w.isShadowed(p,0) == true) return false;
+          return true;
+        }
+      };
+    }
+
+    static test13()
+    {
+      return {
+        name: "Check colouring a point in shadow",
+        test: function ()
+        {
+          let w = new rWorld();
+          let def = {
+            transforms: [
+              {
+                name: "ball",
+                series: [{ type: "T", value: [0, 0, 10] }]
+              }
+            ],
+            lights: [
+              {
+                type: "pointlight",
+                position: [0, 0, -10],
+                colour: [1, 1, 1],
+              }
+            ],
+            objects: [
+              {
+                type: "sphere",
+                transform: "ball"
+              }
+            ]
+          };
+          w.loadFromJSON(def);
+          let r = ray.Ray(ray.Point(0, 0, 5), ray.Vector(0, 0, 1));
+          let i = new ray.Intersection(4, w.objects[0]);
+          let comp = i.precompute(r);
+          let c = w.getColourFor(comp);
+          if (c.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
+          return true;
+        }
+      };
+    }
   }
 
   class rCamera
@@ -436,7 +549,7 @@
       if (ray.World.options.jigglePoints)
       {
         subX = Math.random();
-        suby = Math.random();
+        subY = Math.random();
       }
       let xoffset = (x + subX) * this.pixelSize;
       let yoffset = (y + subY) * this.pixelSize;
@@ -445,7 +558,7 @@
       let pixel = this.inverse.times(ray.Point(xworld, yworld, -this.focalLength));
       let origin = this.inverse.times(ray.Origin);
       let direction = pixel.minus(origin).normalize();
-      return new ray.Ray(origin, direction);
+      return ray.Ray(origin, direction);
     }
 
     static test1()

@@ -10,7 +10,8 @@
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
 </td><td><p>
-Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="1" class="slider" id="jiggle"> <br>
+Single Thread:  <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="1" class="slider" id="thread"> <br>
+Jiggle points:  <input type="range" min="0" max="1" value="1" onInput="obj.transform()" step="1" class="slider" id="jiggle"> <br>
 </p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
@@ -26,7 +27,7 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
       this.restart = false;
       this.kill = true;
 
-      if (this.renderY >= 400)
+      if (this.renderY >= 400 && this.thread)
       {
         for (let i = 0; i < this.load; ++i)
           this.workers[i].terminate();
@@ -38,11 +39,13 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
       document.getElementById("jiggle").obj = this;
+      document.getElementById("thread").obj = this;
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
       this.canvas.tvstatic();
       this.canvas.draw();
+      this.thread = 1;
 
       // scramble rows
       this.rows = new Array(400);
@@ -52,7 +55,7 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
 
       // world data
       this.setupDef = {
-        options: {
+        renderOptions: {
           jigglePoints: 0
         },
         cameras: [
@@ -155,15 +158,23 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
         ]
       };
 
-      // workers setup
-      let obj = this;
-      this.workers = new Array(4);
-      this.buffers = new Array(4);
-      for (let i = 0; i < this.load; ++i)
+      if (this.thread)
       {
-        this.buffers[i] = new Uint8ClampedArray(400 * 4);
-        this.workers[i] = new Worker('stages/worker2.js');
-        this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
+        // workers setup
+        let obj = this;
+        this.workers = new Array(4);
+        this.buffers = new Array(4);
+        for (let i = 0; i < this.load; ++i)
+        {
+          this.buffers[i] = new Uint8ClampedArray(400 * 4);
+          this.workers[i] = new Worker('stages/worker2.js');
+          this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
+        }
+      }
+      else
+      {
+        this.buffer = new Uint8ClampedArray(400 * 4);
+        ray.World.loadFromJSON(this.setupDef);
       }
 
       this.begin();
@@ -171,9 +182,11 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
 
     begin()
     {
-      for (let i = 0; i < this.load; ++i)
-        this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': this.setupDef });
-
+      if (this.thread)
+      {
+        for (let i = 0; i < this.load; ++i)
+          this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': this.setupDef });
+      }
       // begin!
       this.kill = false;
       this.restart = false;
@@ -184,7 +197,8 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
 
     transform()
     {
-      this.setupDef.options.jigglePoints = parseFloat(document.getElementById("jiggle").value);
+      this.setupDef.renderOptions.jigglePoints = parseFloat(document.getElementById("jiggle").value);
+      this.thread = parseFloat(document.getElementById("thread").value);
 
       this.restart = true;
       if (this.renderY >= 400) this.begin();
@@ -202,7 +216,7 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
 
         if (this.restart) this.begin();
 
-        if (this.kill)
+        if (this.kill && this.thread)
         {
           for (let i = 0; i < this.load; ++i)
             this.workers[i].terminate();
@@ -212,10 +226,22 @@ Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.trans
       }
 
       ray.App.setMessage("Rendering row " + this.renderY);
-      this.workers[id].postMessage({ cmd: 'render', y: this.rows[this.renderY], buffer: this.buffers[id] }, [this.buffers[id].buffer]);
+      if (this.thread)
+        this.workers[id].postMessage({ cmd: 'render', y: this.rows[this.renderY], buffer: this.buffers[id] }, [this.buffers[id].buffer]);
+      else
+      {
+        ray.usePool = true;
+        ray.World.renderRowToBuffer("main", this.renderY, this.buffer);
+        ray.usePool = false;
+        this.canvas.bltData(this.buffer, 0, this.renderY);
+        this.canvas.draw();
+        let obj = this;
+        setTimeout(function () { obj.renderRow(0); }, 0);
+      }
+
       this.renderY += 1;
 
-      if (this.kill)
+      if (this.kill && this.thread)
       {
         for (let i = 0; i < this.load; ++i)
           this.workers[i].terminate();

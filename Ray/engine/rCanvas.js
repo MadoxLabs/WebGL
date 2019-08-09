@@ -1,6 +1,5 @@
 (function ()
 {
-
   class rCanvas
   {
     constructor()
@@ -146,37 +145,45 @@
     {
     }
 
-    lighting(material, light, point, eye, normal)
+    lighting(material, light, point, eye, normal, shadowed)
     {
       let effectiveColour = ray.Colour.multiply(material.colour, light.colour);
       let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
-      let diffuse = null;
-      let specular = null;
-
       let toLight = ray.Touple.subtract(light.position, point);
       let distance = toLight.magnitude();
-      toLight.normalize();
-      let lightDotNormal = toLight.dot(normal);
-      if (lightDotNormal < 0)
+      let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
+
+      if (shadowed)
       {
-        diffuse = ray.Black;
-        specular = ray.Black;
+        return ambient.times(1.0 / attenuation);
       }
       else
       {
-        diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal);
-        let reflect = ray.Touple.reflect(toLight.negate(), normal);
-        let reflectDotEye = reflect.dot(eye);
-        if (reflectDotEye <= 0)
+        let diffuse = null;
+        let specular = null;
+
+        toLight.normalize();
+        let lightDotNormal = toLight.dot(normal);
+        if (lightDotNormal < 0)
+        {
+          diffuse = ray.Black;
           specular = ray.Black;
+        }
         else
         {
-          let factor = Math.pow(reflectDotEye, material.shininess);
-          specular = ray.Colour.multiply(light.colour, material.specular).times(factor);
+          diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal);
+          let reflect = ray.Touple.reflect(toLight.negate(), normal);
+          let reflectDotEye = reflect.dot(eye);
+          if (reflectDotEye <= 0)
+            specular = ray.Black;
+          else
+          {
+            let factor = Math.pow(reflectDotEye, material.shininess);
+            specular = ray.Colour.multiply(light.colour, material.specular).times(factor);
+          }
         }
+        return ambient.plus(diffuse).plus(specular).times(1.0 / attenuation);
       }
-      let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
-      return ambient.plus(diffuse).plus(specular).times(1.0/attenuation);
     }
 
     static test1()
@@ -265,6 +272,24 @@
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, 10), ray.RGBColour(1, 1, 1));
           let result = ray.Render.lighting(m, light, p, eye, normal);
+          if (result.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test6()
+    {
+      return {
+        name: "Lighting with the surface in shadow",
+        test: function ()
+        {
+          let m = new ray.Material();
+          let p = ray.Origin;
+          let eye = ray.Vector(0, 0, -1);
+          let normal = ray.Vector(0, 0, -1);
+          let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
+          let result = ray.Render.lighting(m, light, p, eye, normal, true);
           if (result.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
           return true;
         }

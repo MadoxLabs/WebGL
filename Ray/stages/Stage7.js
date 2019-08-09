@@ -56,6 +56,9 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
 
       // world data
       this.setupDef = {
+        renderOptions: {
+          shadowing: false
+        },
         cameras: [
           {
             name: "main",

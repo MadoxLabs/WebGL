@@ -7,7 +7,8 @@ function reportLoading(name, value) { }
 (function ()
 {
   // source files to load, some optionally
-  var baseSrc = ["engine/rMath.js",
+  var baseSrc = ["engine/sort.js",
+                 "engine/rMath.js",
                  "engine/rColour.js",
                  "engine/rCanvas.js",
                  "engine/rMatrix.js",

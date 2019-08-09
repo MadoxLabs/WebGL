@@ -19,7 +19,7 @@
 
     transform(m)
     {
-      return new rRay(m.times(this.origin), m.times(this.direction));      
+      return ray.Ray(m.times(this.origin), m.times(this.direction));      
     }
 
     // tests
@@ -239,6 +239,7 @@
       ret.object = this.object;
       ret.point = r.position(ret.length);
       ret.normal = this.object.normalAt(ret.point);
+      ret.overPoint = ret.normal.copy().times(ray.epsilon).plus(ret.point);
       ret.eye = r.direction.copy().negate();
       if (ret.normal.dot(ret.eye) < 0)
       {
@@ -272,7 +273,7 @@
         name: "Check that intersection values are precomputed",
         test: function ()
         {
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
           let i = new rIntersection(4, s);
           let comp = i.precompute(r);
@@ -292,7 +293,7 @@
         name: "Check that intersection can be on the outside",
         test: function ()
         {
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
           let i = new rIntersection(4, s);
           let comp = i.precompute(r);
@@ -308,7 +309,7 @@
         name: "Check that intersection can be on the inside",
         test: function ()
         {
-          let r = new ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
           let i = new rIntersection(1, s);
           let comp = i.precompute(r);
@@ -365,7 +366,13 @@
     sort()
     {
       if (this.sorted) return;
-      this.list.sort(function (a, b) { return a.length - b.length; });
+      if (this.num > 1)
+      {
+        ray.timsort(this.list, function (a, b)
+        {
+          return a.length - b.length;
+        }, 0, this.num);
+      }
       this.sorted = true;
     }
 
@@ -554,7 +561,7 @@
         test: function ()
         {
           let s = new rSphere();
-          let r = new ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let points = s.intersect(r);
           if (points.num != 2) return false;
           if (points.list[0].object.id != s.id) return false;
@@ -727,6 +734,33 @@
 
   }
 
+  class RayPool
+  {
+    constructor()
+    {
+      this.num = 50;
+      this.pool = new Array(50);
+      this.next = 0;
+      for (let i = 0; i < 50; ++i) this.pool[i] = new rRay(null, null);
+    }
+
+    getRay(o, d)
+    {
+      let ret = this.pool[this.next++];
+      if (this.next >= this.num) this.next = 0;
+      ret.origin = o;
+      ret.direction = d;
+      return ret;
+    }
+  }
+
+  var pool = new RayPool();
+  function makeRay(o, d)
+  {
+    if (ray.usePool) return pool.getRay(o, d);
+    return new rRay(o, d);
+  }
+
   function generateUUID()
   { 
     var d = new Date().getTime();
@@ -743,7 +777,8 @@
   ray.classlist.push(rSphere);
   ray.classlist.push(rIntersection);
   ray.classlist.push(rIntersections);
-  ray.Ray = rRay;
+//  ray.Ray = rRay;
+  ray.Ray = function (o, d) { return makeRay(o, d); }
   ray.Sphere = rSphere;
   ray.Intersection = rIntersection;
   ray.Intersections = rIntersections;

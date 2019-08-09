@@ -1,6 +1,7 @@
 var ray = { classlist: [], stages: {} };
 
-importScripts("../engine/rMath.js",
+importScripts("../engine/sort.js",
+              "../engine/rMath.js",
               "../engine/rColour.js",
               "../engine/rCanvas.js",
               "../engine/rMatrix.js",
@@ -25,7 +26,7 @@ class Renderer
     this.wallSize = def.wallSize;
     this.pixelSize = this.wallSize / 400.0;
     this.half = this.wallSize / 2.0;
-    this.ray = new ray.Ray(this.eye, ray.Vector(0, 0, 1));
+    this.ray = ray.Ray(this.eye, ray.Vector(0, 0, 1));
 
     let T = ray.Matrix.translation(def.translate[0], def.translate[1], def.translate[2]);
     let S = ray.Matrix.scale(def.scale[0], def.scale[1], def.scale[2]);
