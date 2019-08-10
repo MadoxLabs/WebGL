@@ -1,17 +1,19 @@
 (function (){
 
-  class Stage8
+  class Stage9
   {
     constructor()
     {
       this.template = `
-<p>Stage 8 - Shadows</p>
-<p>Adding hard edged shadows for point lights</p>
+<p>Stage 9 - Planes</p>
+<p>Adding infinite and finite plane primitives</p>
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
 </td><td><p>
-Jiggle points:  <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="1" class="slider" id="jiggle"> <br>
 Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
+Camera:<br>
+FOV:  <input type="range" min="0.1" max="1.0" value="0.5" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
+Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
 </p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
@@ -38,8 +40,9 @@ Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform
     {
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
-      document.getElementById("jiggle").obj = this;
       document.getElementById("aa").obj = this;
+      document.getElementById("fov").obj = this;
+      document.getElementById("zCamera").obj = this;
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
@@ -65,7 +68,7 @@ Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform
             width: 400,
             height: 400,
             fov: Math.PI * 0.4,
-            from: [0, 2, -5],
+            from: [0, 3, -5],
             to: [0, 1, 0],
             up: [0, 1, 0]
           }
@@ -85,64 +88,98 @@ Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform
             name: "floor",
             shininess: 200,
             colour: [1,1,1]
+          },
+          {
+            name: "room",
+            shininess: 200,
+            colour: [1, 0.55, 0]
           }
         ],
         transforms: [
           {
-            name: "floor",
-            series: [{ type: "T", value: [0, -1.1, 0] }, {type:"S", value: [20,0.1,20]}]
-          },
-          {
-            name: "wall1",
-            series: [{ type: "T", value: [5, 0, 9] }, {type:"Ry", value: Math.PI/4.0 }, { type: "S", value: [20, 20, 0.1] }]
-          },
-          {
-            name: "wall2",
-            series: [{ type: "T", value: [-5, 0, 9] }, { type: "Ry", value: -Math.PI / 4.0 }, { type: "S", value: [20, 20, 0.1] }]
-          },
-          {
             name: "ball",
-            series: [{ type: "T", value: [2, 0, 0] }]
+            series: [{ type: "T", value: [3, 0.8, 0.5] }, { type: "S", value: [0.8, 0.8, 0.8] }]
+          },
+          {
+            name: "roomtop",
+            series: [{ type: "T", value: [2, 2, 0] }]
+          },
+          {
+            name: "roomback",
+            series: [{ type: "T", value: [2, 0, 1] }, { type: "Rx", value: Math.PI / -2.0 }]
+          },
+          {
+            name: "roomleft",
+            series: [{ type: "T", value: [2, 0, 0] }, { type: "Rz", value: Math.PI / 2.0 }]
+          },
+          {
+            name: "roomright",
+            series: [{ type: "T", value: [4, 0, 0] }, { type: "Rz", value: Math.PI / 2.0 }]
           },
           {
             name: "ball2",
-            series: [{ type: "T", value: [0, 1, 2] },{ type: "S", value: [2,2,2] }]
+            series: [{ type: "T", value: [0, 2, 2] },{ type: "S", value: [2,2,2] }]
           },
           {
             name: "ball3",
-            series: [{ type: "T", value: [-3, 0.5, 0] }, { type: "S", value: [1.5, 1.5, 1.5] }]
+            series: [{ type: "T", value: [-3, 1.5, 0] }, { type: "S", value: [1.5, 1.5, 1.5] }]
           }
 
         ],
         lights: [
           {
             type: "pointlight",
-            position: [10, 10, -10],
-            colour: [0, 0, 1],
-          },
-          {
-            type: "pointlight",
             position: [-10, 10, -10],
             intensityDiffuse: 0.9,
             intensityAmbient: 0.4,
             colour: [1, 1, 1],
-          }
+          },
+          {
+            type: "pointlight",
+            position: [10, 10, -10],
+            colour: [0, 0, 1],
+          },
         ],
         objects: [
           {
-            type: "sphere",
-            transform: "floor",
-            material: "floor"
+            type: "plane",
+            material: "floor",
           },
           {
-            type: "sphere",
-            transform: "wall1",
-            material: "floor"
+            type: "plane",
+            transform: "roomleft",
+            material: "room",
+            xMin: 0,
+            yMin: 0,
+            xMax: 2,
+            yMax: 1
           },
           {
-            type: "sphere",
-            transform: "wall2",
-            material: "floor"
+            type: "plane",
+            transform: "roomright",
+            material: "room",
+            xMin: 0,
+            yMin: 0,
+            xMax: 2,
+            yMax: 1
+          },
+          {
+            type: "plane",
+            transform: "roomback",
+            material: "room",
+            xMin: 0,
+            yMin: 0,
+            xMax: 2,
+            yMax: 2
+          },
+          {
+            type: "plane",
+            transform: "roomtop",
+            material: "room",
+            xMin: 0,
+            yMin: 0,
+            xMax: 2,
+            yMax: 1
           },
           {
             type: "sphere",
@@ -200,8 +237,9 @@ Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform
 
     transform()
     {
-      this.setupDef.renderOptions.jigglePoints = parseFloat(document.getElementById("jiggle").value);
       this.setupDef.renderOptions.antialias = parseFloat(document.getElementById("aa").value);
+      this.setupDef.cameras[0].fov = Math.PI * parseFloat(document.getElementById("fov").value);
+      this.setupDef.cameras[0].from[2] = -parseFloat(document.getElementById("zCamera").value);
 
       this.restart = true;
       if (this.renderY >= 400) this.begin();
@@ -260,5 +298,5 @@ Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform
     }
   }
 
-  ray.stages[8] = new Stage8();
+  ray.stages[9] = new Stage9();
 })();

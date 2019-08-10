@@ -9,6 +9,7 @@ function reportLoading(name, value) { }
   // source files to load, some optionally
   var baseSrc = ["engine/sort.js",
                  "engine/rMath.js",
+                 "engine/rShape.js",
                  "engine/rColour.js",
                  "engine/rCanvas.js",
                  "engine/rMatrix.js",
@@ -24,6 +25,7 @@ function reportLoading(name, value) { }
                 "stages/Stage6.js",
                 "stages/Stage7.js",
                 "stages/Stage8.js",
+                "stages/Stage9.js",
                 "rApp.js"
                ];
 

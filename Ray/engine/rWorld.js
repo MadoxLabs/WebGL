@@ -49,10 +49,26 @@
       if (!c) return;
 
       let index = 0;
+      let colour = ray.Black;
       for (let x = 0; x < c.width; ++x)
       {
-        let ray = c.getRayAt(x, y);
-        let colour = this.cast(ray);
+        if (this.options.antialias)
+        {
+          let ray1 = c.getRayAt(x, y, 0.25, 0.25);
+          let ray2 = c.getRayAt(x, y, 0.25, 0.75);
+          let ray3 = c.getRayAt(x, y, 0.75, 0.25);
+          let ray4 = c.getRayAt(x, y, 0.75, 0.75);
+          let colour1 = this.cast(ray1);
+          let colour2 = this.cast(ray2);
+          let colour3 = this.cast(ray3);
+          let colour4 = this.cast(ray4);
+          colour = colour4.copy().plus(colour1).plus(colour2).plus(colour3).times(0.333);
+        }
+        else
+        {
+          let ray = c.getRayAt(x, y);
+          colour = this.cast(ray);
+        }
         buffer[index++] = colour.redByte;
         buffer[index++] = colour.greenByte;
         buffer[index++] = colour.blueByte;
@@ -165,6 +181,7 @@
     parseRenderOptions(data)
     {
       if (data.lighting != null) this.options.lighting = data.lighting;
+      if (data.antialias != null) this.options.antialias = data.antialias;
       if (data.shadowing != null) this.options.shadowing = data.shadowing;
       if (data.jigglePoints != null) this.options.jigglePoints = data.jigglePoints;
     }
@@ -224,9 +241,16 @@
     {
       for (let i in data)
       {
+        if (data[i].skip) continue;
         if (data[i].type == "sphere")
         {
           let obj = new ray.Sphere();
+          obj.fromJSON(data[i]);
+          this.objects.push(obj);
+        }
+        else if (data[i].type == "plane")
+        {
+          let obj = new ray.Plane();
           obj.fromJSON(data[i]);
           this.objects.push(obj);
         }
@@ -316,6 +340,7 @@
           let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
           let s = w.objects[1];
           let i = new ray.Intersection(0.5, s);
+          w.options.shadowing = false;
           let comp = i.precompute(r);
           let c = w.getColourFor(comp);
           if (c.equals(ray.RGBColour(0.90498, 0.90498, 0.90498)) == false) return false;
@@ -542,10 +567,10 @@
       return this.transform;
     }
 
-    getRayAt(x, y)
+    getRayAt(x, y, ox, oy)
     {
-      let subX = 0.5;
-      let subY = 0.5;
+      let subX = ox ? ox : 0.5;
+      let subY = oy ? oy : 0.5;
       if (ray.World.options.jigglePoints)
       {
         subX = Math.random();

@@ -13,7 +13,9 @@
 
     copy()
     {
-      return makeColour(this.r, this.g, this.b);
+      let ret = makeColour(this.red, this.green, this.blue);
+      ret.makeByte();
+      return ret;
     }
 
 

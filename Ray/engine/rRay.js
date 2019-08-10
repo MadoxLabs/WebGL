@@ -62,7 +62,7 @@
         test: function ()
         {
           let r = new rRay(new ray.Point(0, 0, -5), new ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let points = s.intersect(r);
           if (points.num != 2) return false;
           if (points.list[0].length != 4.0) return false;
@@ -79,7 +79,7 @@
         test: function ()
         {
           let r = new rRay(new ray.Point(0, 1, -5), new ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let points = s.intersect(r);
           if (points.num != 2) return false;
           if (points.list[0].length != 5.0) return false;
@@ -96,7 +96,7 @@
         test: function ()
         {
           let r = new rRay(new ray.Point(0, 2, -5), new ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let points = s.intersect(r);
           if (points.num != 0) return false;
           return true;
@@ -111,7 +111,7 @@
         test: function ()
         {
           let r = new rRay(new ray.Point(0, 0, 0), new ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let points = s.intersect(r);
           if (points.num != 2) return false;
           if (points.list[0].length != -1.0) return false;
@@ -128,7 +128,7 @@
         test: function ()
         {
           let r = new rRay(new ray.Point(0, 0, 5), new ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let points = s.intersect(r);
           if (points.num != 2) return false;
           if (points.list[0].length != -6.0) return false;
@@ -189,16 +189,15 @@
     static test11()
     {
       return {
-        name: "Check that a ray can intersect a scaled sphere",
+        name: "Check that a ray can intersect a scaled shape",
         test: function ()
         {
           let r = new rRay(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.TestShape();
           s.setTransform(ray.Matrix.scale(2, 2, 2));
           let points = s.intersect(r);
-          if (points.num != 2) return false;
-          if (points.list[0].length != 3) return false;
-          if (points.list[1].length != 7) return false;
+          if (s.savedRay.origin.equals(ray.Point(0, 0, -2.5)) == false) return false;
+          if (s.savedRay.direction.equals(ray.Vector(0, 0, 0.5)) == false) return false;
           return true;
         }
       };
@@ -207,14 +206,15 @@
     static test12()
     {
       return {
-        name: "Check that a ray can intersect a translated sphere",
+        name: "Check that a ray can intersect a translated shape",
         test: function ()
         {
           let r = new rRay(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
-          let s = new rSphere();
+          let s = new ray.TestShape();
           s.setTransform(ray.Matrix.translation(5, 0, 0));
           let points = s.intersect(r);
-          if (points.num != 0) return false;
+          if (s.savedRay.origin.equals(ray.Point(-5, 0, -5)) == false) return false;
+          if (s.savedRay.direction.equals(ray.Vector(0, 0, 1)) == false) return false;
           return true;
         }
       };
@@ -258,7 +258,7 @@
         name: "Check that intersection ctor works",
         test: function ()
         {
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let i = new rIntersection(3.5, s);
           if (i.length != 3.5) return false;
           if (i.object.id != s.id) return false;
@@ -317,6 +317,24 @@
           if (comp.point.equals(ray.Point(0, 0, 1)) == false) return false;
           if (comp.eye.equals(ray.Vector(0, 0, -1)) == false) return false;
           if (comp.normal.equals(ray.Vector(0, 0, -1)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test5()
+    {
+      return {
+        name: "Check that the hit point is offset",
+        test: function ()
+        {
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let s = new ray.Sphere();
+          s.transform = ray.Matrix.translation(0, 0, 1);
+          let i = new rIntersection(5, s);
+          let comp = i.precompute(r);
+          if (comp.overPoint.z >= ray.epsilon / 2) return false;
+          if (comp.point.z <= comp.overPoint.z) return false;
           return true;
         }
       };
@@ -393,7 +411,7 @@
         name: "Check that intersections aggregate intersection objects",
         test: function ()
         {
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let i1 = new rIntersection(1, s);
           let i2 = new rIntersection(2, s);
           let points = new rIntersections();
@@ -413,7 +431,7 @@
         name: "Check for the hit, when all intersections are positive",
         test: function ()
         {
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let i1 = new rIntersection(1, s);
           let i2 = new rIntersection(2, s);
           let points = new rIntersections();
@@ -431,7 +449,7 @@
         name: "Check for the hit, when some intersections are negative",
         test: function ()
         {
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let i1 = new rIntersection(-1, s);
           let i2 = new rIntersection(1, s);
           let points = new rIntersections();
@@ -448,7 +466,7 @@
         name: "Check for the hit, when all intersections are negative",
         test: function ()
         {
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let i1 = new rIntersection(-2, s);
           let i2 = new rIntersection(-1, s);
           let points = new rIntersections();
@@ -466,7 +484,7 @@
         name: "Check for the hit being the lowest non negative intersection",
         test: function ()
         {
-          let s = new rSphere();
+          let s = new ray.Sphere();
           let i1 = new rIntersection(5, s);
           let i2 = new rIntersection(7, s);
           let i3 = new rIntersection(-3, s);
@@ -484,264 +502,14 @@
 
   }
 
-  class rSphere
+    class RayPool
   {
     constructor()
     {
-      this.id = ray.getUUID();
-      this.isObject = true;
-      this.radius = 1;
-      this.origin = new ray.Point(0, 0, 0);
-      this.transform = ray.Identity4x4;
-      this.material = new ray.Material();
-
-      this.inverse = null;
-      this.transpose = null
-
-      this.dirty = true;
-    }
-
-    fromJSON(def)
-    {
-      if (def.material && ray.World.materials[def.material]) this.material = ray.World.materials[def.material];
-      if (def.transform && ray.World.transforms[def.transform]) this.transform = ray.World.transforms[def.transform];
-    }
-
-    setTransform(t)
-    {
-      this.transform = t;
-      this.transpose = null
-      this.inverse = null;
-      this.dirty = true;
-    }
-
-    normalAt(p)
-    {
-      if (this.dirty) this.clean();
-
-      let normal = this.inverse.times(p).minus(ray.Origin);
-      let wNormal = this.transpose.times(normal);
-      wNormal.w = 0;
-      return wNormal.normalize();
-    }
-
-    clean()
-    {
-      this.dirty = false;
-      this.inverse = ray.Matrix.inverse(this.transform);
-      this.transpose = ray.Matrix.transpose(this.inverse);
-    }
-
-    intersect(r)
-    {
-      if (this.dirty) this.clean();
-
-      let ret = new rIntersections();
-      let r2 = r.transform(this.inverse);
-
-      let sphereToRay = ray.Touple.subtract(r2.origin, this.origin);
-      let a = r2.direction.dot(r2.direction);
-      let b = 2.0 * r2.direction.dot(sphereToRay);
-      let c = sphereToRay.dot(sphereToRay) - this.radius;
-      let aa = a + a;
-      let discr = b * b - 2.0 * aa * c;
-      if (discr < 0) return ret;
-
-      let rootDiscr = Math.sqrt(discr);
-      ret.add(new rIntersection((-b - rootDiscr) / aa, this));;
-      ret.add(new rIntersection((-b + rootDiscr) / aa, this));;
-      return ret;
-    }
-
-    // tests
-    static test1()
-    {
-      return {
-        name: "Check that intersect sets the object",
-        test: function ()
-        {
-          let s = new rSphere();
-          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
-          let points = s.intersect(r);
-          if (points.num != 2) return false;
-          if (points.list[0].object.id != s.id) return false;
-          if (points.list[1].object.id != s.id) return false;
-          return true;
-        }
-      };
-    }
-
-    static test2()
-    {
-      return {
-        name: "Check that spheres have a transform",
-        test: function ()
-        {
-          let s = new rSphere();
-          if (s.transform.equals(ray.Identity4x4) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test3()
-    {
-      return {
-        name: "Check that transform can be set on sphere",
-        test: function ()
-        {
-          let s = new rSphere();
-          let t = ray.Matrix.translation(2, 3, 4);
-          s.setTransform(t);
-          if (s.transform.equals(t) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test4()
-    {
-      return {
-        name: "Check normals on a sphere on X",
-        test: function ()
-        {
-          let s = new rSphere();
-          let n = s.normalAt(ray.Point(1, 0, 0));
-          if (n.equals(ray.Vector(1, 0, 0)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test5()
-    {
-      return {
-        name: "Check normals on a sphere on Y",
-        test: function ()
-        {
-          let s = new rSphere();
-          let n = s.normalAt(ray.Point(0, 1, 0));
-          if (n.equals(ray.Vector(0, 1, 0)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test6()
-    {
-      return {
-        name: "Check normals on a sphere on Z",
-        test: function ()
-        {
-          let s = new rSphere();
-          let n = s.normalAt(ray.Point(0, 0, 1));
-          if (n.equals(ray.Vector(0, 0, 1)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test7()
-    {
-      return {
-        name: "Check normals on a sphere",
-        test: function ()
-        {
-          let num = Math.sqrt(3.0) / 3.0;
-          let s = new rSphere();
-          let n = s.normalAt(ray.Point(num,num,num));
-          if (n.equals(ray.Vector(num, num, num)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test8()
-    {
-      return {
-        name: "Check normals on a sphere are normal",
-        test: function ()
-        {
-          let num = Math.sqrt(3.0) / 3.0;
-          let s = new rSphere();
-          let n = s.normalAt(ray.Point(num, num, num));
-          if (n.equals(ray.Touple.normalize(n)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test9()
-    {
-      return {
-        name: "Check normals on a translated sphere",
-        test: function ()
-        {
-          let s = new rSphere();
-          s.setTransform(ray.Matrix.translation(0, 1, 0));
-          let n = s.normalAt(ray.Point(0, 1.70711, -0.70711));
-          if (n.equals(ray.Vector(0, 0.70711, -0.70711)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test10()
-    {
-      return {
-        name: "Check normals on a transformed sphere",
-        test: function ()
-        {
-          let num = Math.sqrt(2.0) / 2.0;
-          let s = new rSphere();
-          s.setTransform(ray.Matrix.multiply(ray.Matrix.scale(1, 0.5, 1), ray.Matrix.zRotation(Math.PI / 5.0)));
-          let n = s.normalAt(ray.Point(0, num, -num));
-          if (n.equals(ray.Vector(0, 0.97014, -0.24254)) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test11()
-    {
-      return {
-        name: "Check sphere has a material",
-        test: function ()
-        {
-          let s = new rSphere();
-          let m = s.material;
-          if (m.equals(new ray.Material()) == false) return false;
-          return true;
-        }
-      };
-    }
-
-    static test12()
-    {
-      return {
-        name: "Check sphere can be assigned a material",
-        test: function ()
-        {
-          let s = new rSphere();
-          let m = new ray.Material();
-          m.ambient = 1.0;
-          s.material = m;
-          if (s.material.ambient != 1.0) return false;
-          return true;
-        }
-      };
-    }
-
-  }
-
-  class RayPool
-  {
-    constructor()
-    {
-      this.num = 50;
-      this.pool = new Array(50);
+      this.num = 100;
+      this.pool = new Array(100);
       this.next = 0;
-      for (let i = 0; i < 50; ++i) this.pool[i] = new rRay(null, null);
+      for (let i = 0; i < this.num; ++i) this.pool[i] = new rRay(null, null);
     }
 
     getRay(o, d)
@@ -761,25 +529,10 @@
     return new rRay(o, d);
   }
 
-  function generateUUID()
-  { 
-    var d = new Date().getTime();
-    if (typeof performance !== 'undefined' && typeof performance.now === 'function')
-    {
-      d += performance.now(); //use high-precision timer if available
-    }
-    return d;
-  }
-
-  ray.getUUID = generateUUID;
-
   ray.classlist.push(rRay);
-  ray.classlist.push(rSphere);
   ray.classlist.push(rIntersection);
   ray.classlist.push(rIntersections);
-//  ray.Ray = rRay;
   ray.Ray = function (o, d) { return makeRay(o, d); }
-  ray.Sphere = rSphere;
   ray.Intersection = rIntersection;
   ray.Intersections = rIntersections;
 

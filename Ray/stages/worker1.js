@@ -2,6 +2,7 @@ var ray = { classlist: [], stages: {} };
 
 importScripts("../engine/sort.js",
               "../engine/rMath.js",
+              "../engine/rShape.js",
               "../engine/rColour.js",
               "../engine/rCanvas.js",
               "../engine/rMatrix.js",
