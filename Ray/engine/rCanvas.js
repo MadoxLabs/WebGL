@@ -147,7 +147,7 @@
 
     lighting(material, light, point, eye, normal, shadowed)
     {
-      let effectiveColour = ray.Colour.multiply(material.colour, light.colour);
+      let effectiveColour = ray.Colour.multiply(material.colourAt(point), light.colour);
       let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
       let toLight = ray.Touple.subtract(light.position, point);
       let distance = toLight.magnitude();

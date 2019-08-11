@@ -9,6 +9,7 @@
 
     reset()
     {
+      this.patterns = {}; // just a cache
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
       this.objects = [];
@@ -36,11 +37,41 @@
       {
         for (let x = 0; x < c.width; ++x)
         {
-          let ray = c.getRayAt(x, y);
-          let colour = this.cast(ray);
+          let colour = this.renderPixel(x,y, c);
           c.canvas.set(colour, x, y);
         }
       }
+    }
+
+    renderPixel(x, y, c)
+    {
+      let colour = ray.Black;
+      let factor = 1.0;
+      if (this.options.antialias > 1)
+      {
+        let ray1 = c.getRayAt(x, y, 0.25, 0.25);
+        let ray4 = c.getRayAt(x, y, 0.75, 0.75);
+        let colour1 = this.cast(ray1);
+        let colour4 = this.cast(ray4);
+        colour = colour4.copy().plus(colour1);
+        factor = 0.5;
+        if (this.options.antialias > 2)
+        {
+          let ray2 = c.getRayAt(x, y, 0.25, 0.75);
+          let ray3 = c.getRayAt(x, y, 0.75, 0.25);
+          let colour2 = this.cast(ray2);
+          let colour3 = this.cast(ray3);
+          colour.plus(colour2).plus(colour3);
+          factor = 0.25;
+        }
+        colour.times(factor);
+      }
+      else
+      {
+        let ray = c.getRayAt(x, y);
+        colour = this.cast(ray);
+      }
+      return colour;
     }
 
     renderRowToBuffer(name, y, buffer)
@@ -49,26 +80,9 @@
       if (!c) return;
 
       let index = 0;
-      let colour = ray.Black;
       for (let x = 0; x < c.width; ++x)
       {
-        if (this.options.antialias)
-        {
-          let ray1 = c.getRayAt(x, y, 0.25, 0.25);
-          let ray2 = c.getRayAt(x, y, 0.25, 0.75);
-          let ray3 = c.getRayAt(x, y, 0.75, 0.25);
-          let ray4 = c.getRayAt(x, y, 0.75, 0.75);
-          let colour1 = this.cast(ray1);
-          let colour2 = this.cast(ray2);
-          let colour3 = this.cast(ray3);
-          let colour4 = this.cast(ray4);
-          colour = colour4.copy().plus(colour1).plus(colour2).plus(colour3).times(0.333);
-        }
-        else
-        {
-          let ray = c.getRayAt(x, y);
-          colour = this.cast(ray);
-        }
+        let colour = this.renderPixel(x, y, c);
         buffer[index++] = colour.redByte;
         buffer[index++] = colour.greenByte;
         buffer[index++] = colour.blueByte;
@@ -157,6 +171,7 @@
     {
       this.reset();
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
+      if (json.patterns) this.parsePatterns(json.patterns);
       if (json.materials) this.parseMaterials(json.materials);
       if (json.transforms) this.parseTransforms(json.transforms);
       if (json.lights) this.parseLights(json.lights);
@@ -217,6 +232,17 @@
         let mat = new ray.Material();
         mat.fromJSON(data[i]);
         this.materials[data[i].name] = mat;
+      }
+    }
+
+    parsePatterns(data)
+    {
+      for (let i in data)
+      {
+        if (!data[i].name) continue;
+        let p = new ray.PatternStripe();
+        p.fromJSON(data[i]);
+        this.patterns[data[i].name] = p;
       }
     }
 

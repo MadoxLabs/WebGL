@@ -245,6 +245,13 @@
       this.specular = 0.9;
       this.shininess = 200.0;
       this.colour = makeColour(1, 1, 1);
+      this.pattern = null;
+    }
+
+    colourAt(p)
+    {
+      if (this.pattern) return this.pattern.colourAt(p);
+      return this.colour;
     }
 
     fromJSON(def)
@@ -254,6 +261,7 @@
       if (null != def.diffuse)   this.diffuse   = def.diffuse;
       if (null != def.specular)  this.specular  = def.specular;
       if (null != def.colour)    this.colour    = makeColour(def.colour[0], def.colour[1], def.colour[2]);
+      if (def.pattern && ray.World.patterns[def.pattern]) this.pattern = ray.World.patterns[def.pattern];
     }
 
     equals(m)
@@ -305,6 +313,117 @@
     }
   }
 
+  class rPatternStripe
+  {
+    constructor()
+    {
+      this.colours = [];
+      for (let i = 0; i < arguments.length; ++i)
+        this.colours.push(arguments[i]);
+    }
+
+    colourAt(p)
+    {
+      return this.colours[ Math.abs(Math.floor(p.x)) % this.colours.length ];
+    }
+
+    fromJSON(def)
+    {
+      if (def.colours && def.colours.length) 
+      {
+        for (let i = 0; i < def.colours.length; ++i)
+          this.colours.push(makeColour(def.colours[i][0], def.colours[i][1], def.colours[i][2]));
+      }
+    }
+
+    static test1()
+    {
+      return {
+        name: "Check that pattern ctor works",
+        test: function ()
+        {
+          let p = new ray.PatternStripe(ray.Black, ray.White);
+          if (p.colours[0].equals(ray.Black) == false) return false;
+          if (p.colours[1].equals(ray.White) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test2()
+    {
+      return {
+        name: "Check that pattern is constant in y",
+        test: function ()
+        {
+          let p = new ray.PatternStripe(ray.Black, ray.White);
+          if (p.colourAt(ray.Point(0, 0, 0)).equals(ray.Black) == false) return false;
+          if (p.colourAt(ray.Point(0, 1, 0)).equals(ray.Black) == false) return false;
+          if (p.colourAt(ray.Point(0, 2, 0)).equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test3()
+    {
+      return {
+        name: "Check that pattern is constant in z",
+        test: function ()
+        {
+          let p = new ray.PatternStripe(ray.Black, ray.White);
+          if (p.colourAt(ray.Point(0, 0, 0)).equals(ray.Black) == false) return false;
+          if (p.colourAt(ray.Point(0, 0, 1)).equals(ray.Black) == false) return false;
+          if (p.colourAt(ray.Point(0, 0, 2)).equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test4()
+    {
+      return {
+        name: "Check that pattern is changes in x",
+        test: function ()
+        {
+          let p = new ray.PatternStripe(ray.Black, ray.White);
+          if (p.colourAt(ray.Point(0, 0, 0)).equals(ray.Black) == false) return false;
+          if (p.colourAt(ray.Point(0.9, 0, 0)).equals(ray.Black) == false) return false;
+          if (p.colourAt(ray.Point(1, 0, 0)).equals(ray.White) == false) return false;
+          if (p.colourAt(ray.Point(-0.1, 0, 0)).equals(ray.White) == false) return false;
+          if (p.colourAt(ray.Point(-1, 0, 0)).equals(ray.White) == false) return false;
+          if (p.colourAt(ray.Point(-1.1, 0, 0)).equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test5()
+    {
+      return {
+        name: "Check that lighting uses patterns",
+        test: function ()
+        {
+          let p = new ray.PatternStripe(ray.White, ray.Black);
+          let m = new ray.Material();
+          m.ambient = 1;
+          m.pattern = p;
+          m.diffuse = 0;
+          m.specular = 0;
+          let eye = ray.Vector(0, 0, -1);
+          let normal = ray.Vector(0, 0, -1);
+          let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.White);
+          let c1 = ray.Render.lighting(m, light, ray.Point(0.9, 0, 0), eye, normal, false);
+          let c2 = ray.Render.lighting(m, light, ray.Point(1.1, 0, 0), eye, normal, false);
+          if (c1.equals(ray.White) == false) return false;
+          if (c2.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+  }
+
   var pool = new ColourPool();
   function makeColour(r,g,b)
   {
@@ -315,10 +434,12 @@
   ray.classlist.push(rColour);
   ray.classlist.push(rLightPoint);
   ray.classlist.push(rMaterial);
+  ray.classlist.push(rPatternStripe);
   ray.Material = rMaterial;
   ray.LightPoint = rLightPoint;
   ray.RGBColour = function (r, g, b) { return makeColour(r, g, b); }
   ray.Colour = rColour;
+  ray.PatternStripe = rPatternStripe;
 
   ray.White = new rColour(1, 1, 1);
   ray.White.plus = null;
