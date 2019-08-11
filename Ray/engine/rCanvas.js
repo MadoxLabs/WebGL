@@ -145,9 +145,9 @@
     {
     }
 
-    lighting(material, light, point, eye, normal, shadowed)
+    lighting(material, object, light, point, eye, normal, shadowed)
     {
-      let effectiveColour = ray.Colour.multiply(material.colourAt(point), light.colour);
+      let effectiveColour = ray.Colour.multiply(material.colourAt(point, object), light.colour);
       let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
       let toLight = ray.Touple.subtract(light.position, point);
       let distance = toLight.magnitude();
@@ -192,12 +192,13 @@
         name: "Lighting with the eye between light and surface",
         test: function ()
         {
+          let s = new ray.Sphere();
           let m = new ray.Material();
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, light, p, eye, normal);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal);
           if (result.equals(ray.RGBColour(1.9, 1.9, 1.9)) == false) return false;
           return true;
         }
@@ -210,13 +211,14 @@
         name: "Lighting with the eye offset 45 degrees between light and surface",
         test: function ()
         {
+          let s = new ray.Sphere();
           let m = new ray.Material();
           let p = ray.Origin;
           let num = Math.sqrt(2) / 2;
           let eye = ray.Vector(0, num, -num);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, light, p, eye, normal);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal);
           if (result.equals(ray.RGBColour(1.0, 1.0, 1.0)) == false) return false;
           return true;
         }
@@ -229,12 +231,13 @@
         name: "Lighting with the light offset 45 degrees between eye and surface",
         test: function ()
         {
+          let s = new ray.Sphere();
           let m = new ray.Material();
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 10, -10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, light, p, eye, normal);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal);
           if (result.equals(ray.RGBColour(0.7364, 0.7364, 0.7364)) == false) return false;
           return true;
         }
@@ -247,13 +250,14 @@
         name: "Lighting with the eye in the path of the reflection",
         test: function ()
         {
+          let s = new ray.Sphere();
           let num = Math.sqrt(2) / 2;
           let m = new ray.Material();
           let p = ray.Origin;
           let eye = ray.Vector(0, -num, -num);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 10, -10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, light, p, eye, normal);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal);
           if (result.equals(ray.RGBColour(1.6364, 1.6364, 1.6364)) == false) return false;
           return true;
         }
@@ -266,12 +270,13 @@
         name: "Lighting with the light behind the surface",
         test: function ()
         {
+          let s = new ray.Sphere();
           let m = new ray.Material();
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, 10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, light, p, eye, normal);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal);
           if (result.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
           return true;
         }
@@ -284,12 +289,13 @@
         name: "Lighting with the surface in shadow",
         test: function ()
         {
+          let s = new ray.Sphere();
           let m = new ray.Material();
           let p = ray.Origin;
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, light, p, eye, normal, true);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal, true);
           if (result.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
           return true;
         }

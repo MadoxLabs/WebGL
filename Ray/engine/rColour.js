@@ -313,22 +313,64 @@
     }
   }
 
-  class rPatternStripe
+  class rPattern 
   {
     constructor()
     {
+      this.transform = null;
+      this.dirty = false;
+    }
+
+    setTransform(t)
+    {
+      this.transform = t;
+      this.inverse = null;
+      this.dirty = true;
+    }
+
+    clean()
+    {
+      this.dirty = false;
+      this.inverse = ray.Matrix.inverse(this.transform);
+    }
+
+    colourAt(p, obj)
+    {
+      let point = p;
+      if (obj && obj.isObject)
+      {
+        if (obj.dirty) obj.clean();
+        point = obj.inverse.times(p);
+      }
+      if (this.dirty) this.clean();
+      if (this.inverse) point = this.inverse.times(point);
+      return this.resolve(point);
+    }
+
+    fromJSON(def)
+    {
+      if (def.transform && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform]; this.dirty = true; }
+    }
+  }
+
+  class rPatternStripe extends rPattern
+  {
+    constructor()
+    {
+      super();
       this.colours = [];
       for (let i = 0; i < arguments.length; ++i)
         this.colours.push(arguments[i]);
     }
 
-    colourAt(p)
+    resolve(p)
     {
-      return this.colours[ Math.abs(Math.floor(p.x)) % this.colours.length ];
+      return this.colours[Math.abs(Math.floor(p.x)) % this.colours.length];
     }
 
     fromJSON(def)
     {
+      super.fromJSON(def);
       if (def.colours && def.colours.length) 
       {
         for (let i = 0; i < def.colours.length; ++i)
@@ -404,6 +446,7 @@
         name: "Check that lighting uses patterns",
         test: function ()
         {
+          let s = new ray.Sphere();
           let p = new ray.PatternStripe(ray.White, ray.Black);
           let m = new ray.Material();
           m.ambient = 1;
@@ -413,8 +456,8 @@
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.White);
-          let c1 = ray.Render.lighting(m, light, ray.Point(0.9, 0, 0), eye, normal, false);
-          let c2 = ray.Render.lighting(m, light, ray.Point(1.1, 0, 0), eye, normal, false);
+          let c1 = ray.Render.lighting(m, s, light, ray.Point(0.9, 0, 0), eye, normal, false);
+          let c2 = ray.Render.lighting(m, s, light, ray.Point(1.1, 0, 0), eye, normal, false);
           if (c1.equals(ray.White) == false) return false;
           if (c2.equals(ray.Black) == false) return false;
           return true;
@@ -422,6 +465,96 @@
       };
     }
 
+    static test6()
+    {
+      return {
+        name: "Check that patterns use object transforms",
+        test: function ()
+        {
+          let obj = new ray.Sphere();
+          obj.setTransform(ray.Matrix.scale(2, 2, 2));
+          let p = new ray.PatternStripe(ray.White, ray.Black);
+          let c = p.colourAt(ray.Point(1.5, 0, 0), obj);
+          if (c.equals(ray.White) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test7()
+    {
+      return {
+        name: "Check that patterns use pattern transforms",
+        test: function ()
+        {
+          let obj = new ray.Sphere();
+          let p = new ray.PatternStripe(ray.White, ray.Black);
+          p.setTransform(ray.Matrix.scale(2, 2, 2));
+          let c = p.colourAt(ray.Point(1.5, 0, 0), obj);
+          if (c.equals(ray.White) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test8()
+    {
+      return {
+        name: "Check that patterns use object and pattern transforms",
+        test: function ()
+        {
+          let obj = new ray.Sphere();
+          obj.setTransform(ray.Matrix.scale(2, 2, 2));
+          let p = new ray.PatternStripe(ray.White, ray.Black);
+          p.setTransform(ray.Matrix.translation(0.5, 0, 0));
+          let c = p.colourAt(ray.Point(2.5, 0, 0), obj);
+          if (c.equals(ray.White) == false) return false;
+          return true;
+        }
+      };
+    }
+
+  }
+  
+  class rPatternGradient extends rPattern
+  {
+    constructor(c1, c2)
+    {
+      super();
+      this.colour1 = c1 ? c1 : ray.White;
+      this.colour2 = c2 ? c2.copy() : ray.Black.copy();
+      this.diff = this.colour2.copy().minus(this.colour1);
+    }
+
+    resolve(p)
+    {
+      // c1 + (c2 - c1) * (px-floor(px))
+      return this.diff.copy().times(p.x - Math.floor(p.x)).plus(this.colour1);
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.colour1) this.colour1 = makeColour(def.colour1[0], def.colour1[1], def.colour1[2]);
+      if (def.colour2) this.colour2 = makeColour(def.colour2[0], def.colour2[1], def.colour2[2]);
+      this.diff = this.colour2.copy().minus(this.colour1);
+    }
+
+    static test1()
+    {
+      return {
+        name: "Check that gradient pattern works",
+        test: function ()
+        {
+          let p = new ray.PatternGradient(ray.White, ray.Black);
+          if (p.colourAt(ray.Point(0, 0, 0)).equals(ray.White) == false) return false;
+          if (p.colourAt(ray.Point(0.25, 0, 0)).equals(ray.RGBColour(0.75,0.75,0.75)) == false) return false;
+          if (p.colourAt(ray.Point(0.5, 0, 0)).equals(ray.RGBColour(0.5,0.5,0.5)) == false) return false;
+          if (p.colourAt(ray.Point(0.75, 0, 0)).equals(ray.RGBColour(0.25,0.25,0.25)) == false) return false;
+          return true;
+        }
+      };
+    }
   }
 
   var pool = new ColourPool();
@@ -435,11 +568,13 @@
   ray.classlist.push(rLightPoint);
   ray.classlist.push(rMaterial);
   ray.classlist.push(rPatternStripe);
+  ray.classlist.push(rPatternGradient);
   ray.Material = rMaterial;
   ray.LightPoint = rLightPoint;
   ray.RGBColour = function (r, g, b) { return makeColour(r, g, b); }
   ray.Colour = rColour;
   ray.PatternStripe = rPatternStripe;
+  ray.PatternGradient = rPatternGradient;
 
   ray.White = new rColour(1, 1, 1);
   ray.White.plus = null;

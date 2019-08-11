@@ -131,11 +131,11 @@
       if (this.options.lighting)
       {
         let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, 0) : false;
-        colour = ray.Render.lighting(comp.object.material, this.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
+        colour = ray.Render.lighting(comp.object.material, comp.object, this.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
         for (let l = 1; l < this.lights.length; ++l)
         {
           let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l) : false;
-          colour.plus(ray.Render.lighting(comp.object.material, this.lights[1], comp.overPoint, comp.eye, comp.normal, shadow));
+          colour.plus(ray.Render.lighting(comp.object.material, comp.object, this.lights[1], comp.overPoint, comp.eye, comp.normal, shadow));
         }
       }
       else
@@ -171,9 +171,9 @@
     {
       this.reset();
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
+      if (json.transforms) this.parseTransforms(json.transforms);
       if (json.patterns) this.parsePatterns(json.patterns);
       if (json.materials) this.parseMaterials(json.materials);
-      if (json.transforms) this.parseTransforms(json.transforms);
       if (json.lights) this.parseLights(json.lights);
       if (json.objects) this.parseObjects(json.objects);
       if (json.cameras) this.parseCameras(json.cameras);
@@ -240,9 +240,18 @@
       for (let i in data)
       {
         if (!data[i].name) continue;
-        let p = new ray.PatternStripe();
-        p.fromJSON(data[i]);
-        this.patterns[data[i].name] = p;
+        if (data[i].type == "stripe")
+        {
+          let p = new ray.PatternStripe();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
+        if (data[i].type == "gradient")
+        {
+          let p = new ray.PatternGradient();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
       }
     }
 
@@ -507,6 +516,9 @@
               }
             ],
             objects: [
+              {
+                type: "sphere",
+              },
               {
                 type: "sphere",
                 transform: "ball"

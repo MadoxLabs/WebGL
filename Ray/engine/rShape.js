@@ -50,7 +50,7 @@
     fromJSON(def)
     {
       if (def.material && ray.World.materials[def.material]) this.material = ray.World.materials[def.material];
-      if (def.transform && ray.World.transforms[def.transform]) this.transform = ray.World.transforms[def.transform];
+      if (def.transform && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform]; this.dirty = true; }
     }
   }
 

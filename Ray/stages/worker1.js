@@ -95,10 +95,10 @@ class Renderer
           let point = this.ray.position(hit.length);
           let normal = hit.object.normalAt(point);
           let toEye = this.ray.direction.negate();
-          let colour = ray.Render.lighting(hit.object.material, this.lights[0], point, toEye, normal);
+          let colour = ray.Render.lighting(hit.object.material, object, this.lights[0], point, toEye, normal);
           for (let l = 1; l < this.lights.length; ++l)
           {
-            colour.plus(ray.Render.lighting(hit.object.material, this.lights[l], point, toEye, normal));
+            colour.plus(ray.Render.lighting(hit.object.material, object, this.lights[l], point, toEye, normal));
           }
           buffer[index++] = colour.redByte;
           buffer[index++] = colour.greenByte;

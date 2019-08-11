@@ -96,19 +96,27 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
         patterns: [
           {
             name: "floor",
+            type: "stripe",
             colours: [[0.8,0.8,0.8], [0.8, 0, 0]]
           },
           {
             name: "balls",
+            type: "stripe",
             colours: [[0, 0.8, 0], [0.8, 0, 0], [0.8, 0.8, 0.8]]
+          },
+          {
+            name: "balls2",
+            type: "gradient",
+            transform: "grad",
+            colour1: [1.0, 0.0, 0.0],
+            colour2: [0.0, 1.0, 0.0]
           }
-
         ],
         materials: [
           {
             name: "ball",
             shininess: 50,
-            pattern: "balls"
+            pattern: "balls2"
           },
           {
             name: "ball2",
@@ -122,6 +130,10 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
           }
         ],
         transforms: [
+          {
+            name: "grad",
+            series: [{ type: "S", value: [1.8,1.8,1.8] }, {type: "Rz", value: Math.PI/4}]
+          },
           {
             name: "ball",
             series: [{ type: "T", value: [3, 0.8, 0.5] }, { type: "S", value: [0.8, 0.8, 0.8] }]
