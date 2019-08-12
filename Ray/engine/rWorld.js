@@ -18,7 +18,8 @@
       this.options = {
         lighting: true,
         shadowing: true,
-        jigglePoints: false
+        jigglePoints: false,
+        maxReflections: 5
       }
     }
 
@@ -90,7 +91,7 @@
       }
     }
 
-    setToDefalt()
+    setToDefault()
     {
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
@@ -125,7 +126,16 @@
       return ret;
     }
 
-    getColourFor(comp)
+    getReflectionFor(comp, depth)
+    {
+      if (depth <= 0) return ray.Black.copy();
+      if (comp.object.material.reflective == 0) return ray.Black.copy();
+      let r = ray.Ray(comp.overPoint, comp.reflect);
+      let c = this.cast(r, depth-1);
+      return c.times(comp.object.material.reflective);
+    }
+
+    getColourFor(comp, depth)
     {
       let colour = null;
       if (this.options.lighting)
@@ -137,6 +147,9 @@
           let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l) : false;
           colour.plus(ray.Render.lighting(comp.object.material, comp.object, this.lights[1], comp.overPoint, comp.eye, comp.normal, shadow));
         }
+
+        let reflect = this.getReflectionFor(comp, depth);
+        colour.plus(reflect);
       }
       else
       {
@@ -145,13 +158,15 @@
       return colour;
     }
 
-    cast(r)
+    cast(r, depth)
     {
+      if (depth == null) depth = this.options.maxReflections;
+
       let points = this.intersect(r);
       let hit = points.hit();
-      if (!hit) return ray.Black;
+      if (!hit) return ray.Black.copy();
       let comp = hit.precompute(r);
-      return this.getColourFor(comp);
+      return this.getColourFor(comp, depth);
     }
 
     isShadowed(p, lightIndex)
@@ -199,6 +214,7 @@
       if (data.antialias != null) this.options.antialias = data.antialias;
       if (data.shadowing != null) this.options.shadowing = data.shadowing;
       if (data.jigglePoints != null) this.options.jigglePoints = data.jigglePoints;
+      if (data.maxReflections != null) this.options.maxReflections = data.maxReflections;      
     }
 
     parseTransforms(data)
@@ -240,6 +256,12 @@
       for (let i in data)
       {
         if (!data[i].name) continue;
+        if (data[i].type == "solid")
+        {
+          let p = new ray.PatternSolid();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
         if (data[i].type == "stripe")
         {
           let p = new ray.PatternStripe();
@@ -252,6 +274,31 @@
           p.fromJSON(data[i]);
           this.patterns[data[i].name] = p;
         }
+        if (data[i].type == "ring")
+        {
+          let p = new ray.PatternRing();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
+        if (data[i].type == "checker")
+        {
+          let p = new ray.PatternChecker();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
+        if (data[i].type == "blend")
+        {
+          let p = new ray.PatternBlend();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
+        if (data[i].type == "perlin")
+        {
+          let p = new ray.PatternPerlin();
+          p.fromJSON(data[i]);
+          this.patterns[data[i].name] = p;
+        }
+      
       }
     }
 
@@ -313,7 +360,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           if (w.objects.length != 2) return false;
           if (w.lights.length != 1) return false;
           if (w.lights[0].position.x != -10) return false;
@@ -331,7 +378,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let points = w.intersect(r);
           if (points.num != 4) return false;
@@ -351,7 +398,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let s = w.objects[0];
           let i = new ray.Intersection(4, s);
@@ -370,7 +417,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           w.lights[0] = new ray.LightPoint(ray.Point(0, 0.25, 0), ray.White);
           let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
           let s = w.objects[1];
@@ -391,7 +438,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 1, 0));
           let c = w.cast(r);
           if (c.equals(ray.Black) == false) return false;
@@ -407,7 +454,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
           let c = w.cast(r);
           if (c.equals(ray.RGBColour(0.38066, 0.47583, 0.2855)) == false) return false;
@@ -423,7 +470,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           w.objects[0].material.ambient = 1;
           w.objects[1].material.ambient = 1;
           let r = ray.Ray(ray.Point(0, 0, 0.75), ray.Vector(0, 0, -1));
@@ -441,7 +488,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let p = ray.Point(0, 10, 0);
           if (w.isShadowed(p,0) == true) return false;
           return true;
@@ -456,7 +503,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let p = ray.Point(10, -10, 10);
           if (w.isShadowed(p,0) == false) return false;
           return true;
@@ -471,7 +518,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let p = ray.Point(-20, -20, -20);
           if (w.isShadowed(p,0) == true) return false;
           return true;
@@ -486,7 +533,7 @@
         test: function ()
         {
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           let p = ray.Point(-2, 2, -2);
           if (w.isShadowed(p,0) == true) return false;
           return true;
@@ -531,6 +578,154 @@
           let comp = i.precompute(r);
           let c = w.getColourFor(comp);
           if (c.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test13()
+    {
+      return {
+        name: "Check reflected colour for reflective material",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefault();
+          let s = new ray.Plane();
+          s.material = new ray.Material();
+          s.material.reflective = 0.5;
+          s.transform = ray.Matrix.translation(0, -1, 0);
+          w.objects.push(s);
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = w.getReflectionFor(comp);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0.19032, 0.2379, 0.14274)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
+
+    static test14()
+    {
+      return {
+        name: "Check reflected colour for nonreflective material",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefault();
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
+          let s = w.objects[1];
+          s.material.ambient = 1;
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = w.getReflectionFor(comp);
+          if (c.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test15()
+    {
+      return {
+        name: "Check getColourAt() with a reflective material",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefault();
+          let s = new ray.Plane();
+          s.material = new ray.Material();
+          s.material.reflective = 0.5;
+          s.transform = ray.Matrix.translation(0, -1, 0);
+          w.objects.push(s);
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = w.getColourFor(comp);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0.87677, 0.92436, 0.82918)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
+
+    static test16()
+    {
+      return {
+        name: "Check getColourAt() with a mutually reflective surfaces",
+        test: function ()
+        {
+          let w = new rWorld();
+          let oldW = ray.World;
+          ray.World = w;
+          let def = {
+            transforms: [
+              {
+                name: "lower",
+                series: [{ type: "T", value: [0, -1, 0] }]
+              },
+              {
+                name: "upper",
+                series: [{ type: "T", value: [0, 1, 0] }, { type: "Rx", value: Math.PI }]
+              }
+            ],
+            materials: [
+              {
+                name: "mirror",
+                reflective: 1
+              }
+            ],
+            lights: [
+              {
+                type: "pointlight",
+                position: [0, 0, 0],
+                colour: [1, 1, 1],
+              }
+            ],
+            objects: [
+              {
+                type: "plane",
+                material: "mirror",
+                transform: "lower"
+              },
+              {
+                type: "plane",
+                material: "mirror",
+                transform: "upper"
+              }
+            ]
+          };
+          w.loadFromJSON(def);
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 1, 0));
+          let c = w.cast(r);
+          ray.World = oldW;
+          return true;
+        }
+      };
+    }
+
+    static test16()
+    {
+      return {
+        name: "Check getColourAt() with a reflective material has a call depth limit",
+        test: function ()
+        {
+          let w = new rWorld();
+          w.setToDefault();
+          let s = new ray.Plane();
+          s.material = new ray.Material();
+          s.material.reflective = 0.5;
+          s.transform = ray.Matrix.translation(0, -1, 0);
+          w.objects.push(s);
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = w.getReflectionFor(comp, 0);
+          if (c.equals(ray.Black) == false) return false;
           return true;
         }
       };
@@ -780,7 +975,7 @@
           c.initCanvas();
 
           let w = new rWorld();
-          w.setToDefalt();
+          w.setToDefault();
           w.setCamera(c, "main");
           w.render("main");
 

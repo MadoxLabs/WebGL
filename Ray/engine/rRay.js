@@ -239,6 +239,7 @@
       ret.object = this.object;
       ret.point = r.position(ret.length);
       ret.normal = this.object.normalAt(ret.point);
+      ret.reflect = ray.Touple.reflect(r.direction, ret.normal);
       ret.overPoint = ret.normal.copy().times(ray.epsilon).plus(ret.point);
       ret.eye = r.direction.copy().negate();
       if (ret.normal.dot(ret.eye) < 0)
@@ -335,6 +336,22 @@
           let comp = i.precompute(r);
           if (comp.overPoint.z >= ray.epsilon / 2) return false;
           if (comp.point.z <= comp.overPoint.z) return false;
+          return true;
+        }
+      };
+    }
+
+    static test6()
+    {
+      return {
+        name: "Check that we precompute the reflect vector",
+        test: function ()
+        {
+          let s = new ray.Plane();
+          let r = ray.Ray(ray.Point(0, 1, -1), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new rIntersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          if (comp.reflect.equals(ray.Vector(0, Math.sqrt(2) / 2, Math.sqrt(2) / 2)) == false) return false;
           return true;
         }
       };

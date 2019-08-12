@@ -1,6 +1,12 @@
 var ray = { classlist: [], stages: {} };
+var LibNoise = {};
 
-importScripts("../engine/sort.js",
+importScripts("../NoiseLib/math.js",
+              "../NoiseLib/mxrandom.js",
+              "../NoiseLib/noise.js",
+              "../NoiseLib/FastMath.js",
+              "../NoiseLib/FastPerlin.js",
+              "../engine/sort.js",
               "../engine/rMath.js",
               "../engine/rShape.js",
               "../engine/rColour.js",

@@ -1,12 +1,12 @@
 (function (){
 
-  class Stage10
+  class Stage11
   {
     constructor()
     {
       this.template = `
-<p>Stage 10 - Patterns</p>
-<p>Adding patterns to things</p>
+<p>Stage 11 - Reflection and Refraction</p>
+<p>The good stuff!</p>
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
 </td><td><p>
@@ -80,7 +80,8 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
       // world data
       this.setupDef = {
         renderOptions: {
-          antialias: 1
+          antialias: 1,
+          maxReflections: 20
         },
         cameras: [
           {
@@ -93,171 +94,66 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
             up: [0, 1, 0]
           }
         ],
-        patterns: [
+        transforms: [
           {
-            name: "green",
-            type: "solid",
-            colours: [34 / 255, 139 / 255, 34 / 255]
-          },
-          {
-            name: "red",
-            type: "solid",
-            colours: [1, 0, 0]
-          },
-          {
-            name: "white",
-            type: "solid",
-            colours: [1, 1, 1]
-          },
-          {
-            name: "backGradient1",
-            type: "stripe",
-            transform: "back1",
-            colours: ["green","red"]
-          },
-          {
-            name: "backGradient2",
-            type: "stripe",
-            transform: "back2",
-            colours: ["red", "green"]
-          },
-          {
-            name: "back",
-            type: "checker",
-            colours: ["backGradient1", "backGradient2"]
-          },
-
-          {
-            name: "floor",
-            type: "stripe",
-            colours: [[0.8,0.8,0.8], [0.8, 0, 0]]
-          },
-          {
-            name: "disk",
-            type: "ring",
-            transform: "shrink",
-            colours: [[0.8, 0.8, 0.8], [0.8, 0, 0]]
+            name: "ball1",
+            series: [{ type: "T", value: [-1.25, 1, 0] }]
           },
           {
             name: "ball2",
-            type: "stripe",
-            transform: "shrink2",
-            colours: [[0, 0.8, 0], [0.8, 0, 0], [0.8, 0.8, 0.8]]
+            series: [{ type: "T", value: [1.25, 1, 0] }]
           },
           {
-            name: "ball2p",
-            type: "perlin",
-            colour: "ball2",
-            seed: Math.random()
+            name: "back",
+            series: [{ type: "T", value: [0, 0, 4] }, { type: "Rx", value: Math.PI / -2 }]
           },
           {
-            name: "blend1",
-            type: "stripe",
-            transform: "blend1",
-            colours: [[1,1,0], "white"]
+            name: "back2",
+            series: [{ type: "T", value: [0, 0, -6] }, { type: "Ry", value: Math.PI },{ type: "Rx", value: Math.PI / -2 }]
+          }
+        ],
+        patterns: [
+          {
+            name: "brown",
+            type: "solid",
+            colours: [111 / 255, 78 / 255, 12 / 255]
           },
           {
-            name: "blend2",
-            type: "stripe",
-            transform: "blend2",
-            colours: [[1, 1, 0], "white"]
+            name: "black",
+            type: "solid",
+            colours: [0,0,0]
           },
           {
-            name: "ball3",
-            type: "blend",
-            colour1: "blend1",
-            colour2: "blend2"
-          },
-          {
-            name: "ball",
-            type: "gradient",
-            transform: "grad",
-            colour1: [1.0, 0.0, 0.0],
-            colour2: [0.0, 1.0, 0.0]
+            name: "floor",
+            type: "checker",
+            colours: ["brown","black"]
           }
         ],
         materials: [
           {
-            name: "ball3",
-            shininess: 50,
-            pattern: "ball3"
-          },
-          {
-            name: "ball",
-            shininess: 50,
-            pattern: "ball"
-          },
-          {
-            name: "ball2",
-            shininess: 50,
-            pattern: "ball2"
-          },
-          {
-            name: "disk",
-            shininess: 50,
-            pattern: "disk"
-          },
-          {
             name: "floor",
-            specular: 0,
-            pattern: "floor"
+            shininess: 300,
+            pattern: "floor",
+            reflective: 0.3
           },
           {
-            name: "back",
-            specular: 0,
-            pattern: "back"
-          }
-        ],
-        transforms: [
-          {
-            name: "blend1",
-            series: [{ type: "S", value: [0.2, 0.2, 0.2] }]
-          },
-          {
-            name: "blend2",
-            series: [{ type: "Ry", value: Math.PI / -2.0 }, { type: "S", value: [0.2, 0.2, 0.2] }]
-          },
-          {
-            name: "back1",
-            series: [{ type: "Ry", value: Math.PI / -4.0 }, { type: "S", value: [0.2, 1, 1] }]
-          },
-          {
-            name: "back2",
-            series: [{ type: "Ry", value: Math.PI / 4.0 }, { type: "S", value: [0.2, 1, 1] }]
-          },
-          {
-            name: "back",
-            series: [{ type: "T", value: [0, 0, 10] }, { type: "Rx", value: Math.PI / -2.0 }]
-          },
-          {
-            name: "disk",
-            series: [{ type: "T", value: [0, 0.1, 0] }, { type: "S", value: [2,0.1,2] }]
-          },
-          {
-            name: "shrink",
-            series: [{ type: "S", value: [0.1,0.1,0.1] } ]
-          },
-          {
-            name: "shrink2",
-            series: [{ type: "S", value: [0.67, 0.67, 0.67] }, { type: "T", value: [0.5, 0, 0] }]
-          },
-          {
-            name: "grad",
-            series: [{ type: "Rz", value: Math.PI / 4 }, { type: "S", value: [2, 1, 1] }, { type: "T", value: [0.5, 0, 0] }]
-          },
-          {
-            name: "ball",
-            series: [{ type: "T", value: [3, 0.8, 0.5] }, { type: "S", value: [0.8, 0.8, 0.8] }]
+            name: "ball1",
+            shininess: 5,
+            specular: 0.3,
+            colour: [1,0,0]
           },
           {
             name: "ball2",
-            series: [{ type: "T", value: [0, 2, 2] },{ type: "S", value: [2,2,2] }]
+            shininess: 300,
+            colour: [0.2, 0.2, 0.2],
+            reflective: 0.9
           },
           {
-            name: "ball3",
-            series: [{ type: "T", value: [-3, 1.5, 0] }, { type: "S", value: [1.5, 1.5, 1.5] }]
+            name: "back",
+            shininess: 300,
+            colour: [0.1, 0.1, 0.1],
+            reflective: 0.99
           }
-
         ],
         lights: [
           {
@@ -266,32 +162,13 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
             intensityDiffuse: 1.1,
             intensityAmbient: 0.4,
             colour: [1, 1, 1],
-          },
-          {
-            type: "pointlight",
-            position: [10, 10, -10],
-            colour: [0, 0, 1],
-          },
+          }
         ],
         objects: [
           {
-            type: "plane",
-            material: "floor"
-          },
-          {
-            type: "plane",
-            transform: "back",
-            material: "back"
-          },
-          {
             type: "sphere",
-            transform: "ball",
-            material: "ball"
-          },
-          {
-            type: "sphere",
-            material: "ball3",
-            transform: "ball3"
+            material: "ball1",
+            transform: "ball1"
           },
           {
             type: "sphere",
@@ -299,9 +176,26 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
             transform: "ball2"
           },
           {
-            type: "sphere",
-            transform: "disk",
-            material: "disk"
+            type: "plane",
+            transform: "back",
+            material: "back",
+            xMin: -4,
+            xMax: 4,
+            yMin: 0,
+            yMax: 4
+          },
+          {
+            type: "plane",
+            transform: "back2",
+            material: "back",
+            xMin: -4,
+            xMax: 4,
+            yMin: 0,
+            yMax: 4
+          },
+          {
+            type: "plane",
+            material: "floor"
           }
         ]
       };
@@ -407,5 +301,5 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
     }
   }
 
-  ray.stages[10] = new Stage10();
+  ray.stages[11] = new Stage11();
 })();

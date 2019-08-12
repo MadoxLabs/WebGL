@@ -1,4 +1,5 @@
 // predefined namespaces so loading things have a place to go
+var LibNoise = {};
 var ray = { classlist: [], stages: {} };
 function reportBootup(file) { }
 function reportLoaded(name, value) { }
@@ -7,7 +8,12 @@ function reportLoading(name, value) { }
 (function ()
 {
   // source files to load, some optionally
-  var baseSrc = ["engine/sort.js",
+  var baseSrc = ["NoiseLib/math.js",
+                 "NoiseLib/mxrandom.js",
+                 "NoiseLib/noise.js",
+                 "NoiseLib/FastMath.js",
+                 "NoiseLib/FastPerlin.js",
+                 "engine/sort.js",
                  "engine/rMath.js",
                  "engine/rShape.js",
                  "engine/rColour.js",
@@ -27,6 +33,7 @@ function reportLoading(name, value) { }
                 "stages/Stage8.js",
                 "stages/Stage9.js",
                 "stages/Stage10.js",
+                "stages/Stage11.js",
                 "rApp.js"
                ];
 
