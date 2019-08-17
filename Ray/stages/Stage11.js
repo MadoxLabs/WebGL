@@ -10,7 +10,7 @@
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
 </td><td><p>
-Antialias:  <input type="range" min="0" max="2" value="0" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
+Antialias:  <input type="range" min="0" max="2" value="2" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
 Camera:<br>
 FOV:  <input type="range" min="0.1" max="1.0" value="0.4" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
 Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
@@ -80,7 +80,7 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
       // world data
       this.setupDef = {
         renderOptions: {
-          antialias: 4,
+          antialias: 2,
           maxReflections: 10
         },
         cameras: [
