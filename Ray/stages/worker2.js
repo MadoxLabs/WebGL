@@ -32,7 +32,7 @@ class Renderer
   // perform a render of row Y
   render(y, buffer)
   {
-    ray.usePool = true;
+    ray.usePool = false;
     ray.World.renderRowToBuffer("main", y, buffer);
     ray.usePool = false;
   }

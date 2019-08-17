@@ -220,20 +220,60 @@
       };
     }
 
+    static test13()
+    {
+      return {
+        name: "Check that we can compute refraction angles",
+        test: function ()
+        {
+          let A = new ray.GlassSphere();
+          A.material.refraction = 1.5;
+          A.transform = ray.Matrix.scale(2, 2, 2);
+          let B = new ray.GlassSphere();
+          B.transform = ray.Matrix.translation(0,0,-0.25);
+          B.material.refraction = 2.0;
+          let C = new ray.GlassSphere();
+          C.transform = ray.Matrix.translation(0, 0, 0.25);
+          C.material.refraction = 2.5;
+          let r = ray.Ray(ray.Point(0, 0, -4), ray.Vector(0, 0, 1));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(2, A));
+          points.add(new ray.Intersection(2.75, B));
+          points.add(new ray.Intersection(3.25, C));
+          points.add(new ray.Intersection(4.75, B));
+          points.add(new ray.Intersection(5.25, C));
+          points.add(new ray.Intersection(6, A));
+
+          let n1s = [1.0, 1.5, 2.0, 2.5, 2.5, 1.5];
+          let n2s = [1.5, 2.0, 2.5, 2.5, 1.5, 1.0];
+          for (let i = 0; i < 6; ++i)
+          {
+            let comp = points.list[i].precompute(r, points);
+            if (comp.n1 != n1s[i]) return false;
+            if (comp.n2 != n2s[i]) return false;
+          }
+          return true;
+        }
+      };
+    }
+
   }
 
   class rIntersection
   {
     constructor(len, obj)
     {
+      this.id = ray.getUUID();
       this.length = len;
       this.object = obj;
 //      if (obj.isObject == false) throw "obj is not an object";
       this.isIntersection = true;
     }
 
-    precompute(r)
+    precompute(r, points)
     {
+      if (!points) points = { list: [this] };
+
       let ret = {};
       ret.length = this.length;
       ret.object = this.object;
@@ -241,6 +281,7 @@
       ret.normal = this.object.normalAt(ret.point);
       ret.reflect = ray.Touple.reflect(r.direction, ret.normal);
       ret.overPoint = ret.normal.copy().times(ray.epsilon).plus(ret.point);
+      ret.underPoint = ret.normal.copy().times(-ray.epsilon).plus(ret.point);
       ret.eye = r.direction.copy().negate();
       if (ret.normal.dot(ret.eye) < 0)
       {
@@ -249,6 +290,41 @@
       }
       else
         ret.inside = false;
+
+      let containers = [];
+      let included = {};
+      for (let i = 0; i < points.num; ++i)
+      {
+        let p = points.list[i];
+        if (p.id == this.id)
+        {
+          if (containers.length == 0) ret.n1 = 1.0;
+          else ret.n1 = containers[containers.length - 1].material.refraction;
+        }
+        if (included[p.object.id])
+        {
+          for (let j = 0; j < containers.length; ++j)
+          {
+            if (containers[j].id == p.object.id) 
+            {
+              containers.splice(j, 1);
+              break;
+            }
+          }
+          included[p.object.id] = false;
+        }
+        else
+        {
+          containers.push(p.object);
+          included[p.object.id] = true;
+        }
+        if (p.id == this.id)
+        {
+          if (containers.length == 0) ret.n2 = 1.0;
+          else ret.n2 = containers[containers.length - 1].material.refraction;
+        }
+      }
+
       return ret;
     }
 
@@ -352,6 +428,26 @@
           let i = new rIntersection(Math.sqrt(2), s);
           let comp = i.precompute(r);
           if (comp.reflect.equals(ray.Vector(0, Math.sqrt(2) / 2, Math.sqrt(2) / 2)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test7()
+    {
+      return {
+        name: "Check that we precompute the underpoint",
+        test: function ()
+        {
+          let s = new ray.GlassSphere();
+          s.transform = ray.Matrix.translation(0, 0, 1);
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let i = new rIntersection(5, s);
+          let points = new rIntersections();
+          points.add(i);
+          let comp = i.precompute(r, points);
+          if (comp.underPoint.z < ray.epsilon / 2) return false;
+          if (comp.point.z >= comp.underPoint.z) return false;
           return true;
         }
       };
@@ -519,7 +615,7 @@
 
   }
 
-    class RayPool
+  class RayPool
   {
     constructor()
     {

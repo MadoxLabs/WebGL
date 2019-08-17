@@ -247,6 +247,8 @@
       this.colour = makeColour(1, 1, 1);
       this.pattern = null;
       this.reflective = 0.0;
+      this.transparency = 0.0;
+      this.refraction = 1.0;
     }
 
     colourAt(p, obj)
@@ -261,6 +263,8 @@
       if (null != def.ambient)   this.ambient   = def.ambient;
       if (null != def.diffuse) this.diffuse = def.diffuse;
       if (null != def.reflective) this.reflective = def.reflective;
+      if (null != def.transparency) this.transparency = def.transparency;
+      if (null != def.refraction) this.refraction = def.refraction;
       if (null != def.specular)  this.specular  = def.specular;
       if (null != def.colour)    this.colour    = makeColour(def.colour[0], def.colour[1], def.colour[2]);
       if (def.pattern && ray.World.patterns[def.pattern]) this.pattern = ray.World.patterns[def.pattern];
@@ -306,6 +310,21 @@
         }
       };
     }
+
+    static test3()
+    {
+      return {
+        name: "Check that material has transparent, refraction values",
+        test: function ()
+        {
+          let m = new ray.Material();
+          if (m.transparency == null || m.transparency != 0) return false;
+          if (m.refraction == null || m.refraction != 1) return false;
+          return true;
+        }
+      };
+    }
+
   }
 
   class ColourPool

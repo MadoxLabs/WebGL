@@ -413,20 +413,51 @@
 
   }
 
+  class rGlassSphere extends rSphere
+  {
+    constructor()
+    {
+      super();
+      this.material = new ray.Material();
+      this.material.transparency = 1.0;
+      this.material.refraction = 1.52;
+    }
+
+    // tests
+    static test1()
+    {
+      return {
+        name: "Check that glass sphere are glassy",
+        test: function ()
+        {
+          let s = new rGlassSphere();
+          if (s.transform.equals(ray.Identity4x4) == false) return false;
+          if (s.material.transparency == null || s.material.transparency != 1.0) return false;
+          if (s.material.refraction == null || s.material.refraction != 1.52) return false;
+          return true;
+        }
+      };
+    }
+  }
+
+  var startingID = 12345;
   function generateUUID()
   { 
-    var d = new Date().getTime();
-    if (typeof performance !== 'undefined' && typeof performance.now === 'function')
-    {
-      d += performance.now(); //use high-precision timer if available
-    }
-    return d;
+    return startingID++;
+//    var d = new Date().getTime();
+//    if (typeof performance !== 'undefined' && typeof performance.now === 'function')
+//    {
+//      d += performance.now(); //use high-precision timer if available
+//    }
+//    return d;
   }
 
   ray.getUUID = generateUUID;
 
   ray.classlist.push(rSphere);
   ray.classlist.push(rPlane);
+  ray.classlist.push(rGlassSphere);
+  ray.GlassSphere = rGlassSphere;
   ray.Plane = rPlane;
   ray.Sphere = rSphere;
   ray.TestShape = rTestShape;

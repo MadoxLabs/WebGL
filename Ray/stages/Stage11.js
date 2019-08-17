@@ -80,8 +80,8 @@ Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.
       // world data
       this.setupDef = {
         renderOptions: {
-          antialias: 1,
-          maxReflections: 20
+          antialias: 4,
+          maxReflections: 10
         },
         cameras: [
           {

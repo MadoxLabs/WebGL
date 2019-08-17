@@ -47,7 +47,8 @@
 
     minus(t)
     {
-      if (t.isPoint() && this.isVector()) return null;//throw "subtracting point from a vector";
+      if (t.isPoint() && this.isVector())
+        return null;//throw "subtracting point from a vector";
       this.x -= t.x;
       this.y -= t.y;
       this.z -= t.z;
@@ -97,6 +98,8 @@
 
     dot(t)
     {
+      if (!t)
+        return 0;
       let ret = this.x * t.x;
       ret += this.y * t.y;
       ret += this.z * t.z;
@@ -125,6 +128,10 @@
     static subtract(t1, t2)
     {
       let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
+      if (ret == undefined)
+      {
+        let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
+      }
       return ret.minus(t2);
     }
 
@@ -577,15 +584,18 @@
   {
     constructor()
     {
-      this.pool = new Array(100);
+      this.size = 200;
+      this.pool = new Array(this.size);
       this.next = 0;
-      for (let i = 0; i < 100; ++i) this.pool[i] = new rTouple(0, 0, 0, 0);
+      for (let i = 0; i < this.size; ++i) this.pool[i] = new rTouple(0, 0, 0, 0);
     }
 
     getTouple(x, y, z, w)
     {
       let ret = this.pool[this.next++];
-      if (this.next >= 100) this.next = 0;
+      if (!ret)
+        return null;
+      if (this.next >= this.size) this.next = 0;
       ret.x = x;
       ret.y = y;
       ret.z = z;
@@ -605,6 +615,7 @@
   ray.classlist.push(rTouple);
 
   ray.Touple = rTouple;
+  ray.rawTouple = function (x, y, z, w) { return makeTouple(x, y, z, w); }
   ray.Point = function (x, y, z) { return makeTouple(x,y,z,1.0); }
   ray.Vector = function (x, y, z) { return makeTouple(x,y,z,0.0); }
 

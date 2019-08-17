@@ -38,7 +38,7 @@
 
     _times(m)
     {
-      let data = new Array(this.size);
+      let tmpMatrix = tmps[this.width];
       let index = 0;
 
       let rstride = 0;
@@ -50,11 +50,13 @@
                 + this.data[rstride + 1] * m.data[this.width+c]
                 + this.data[rstride + 2] * m.data[this.width+this.width+c]
                 + this.data[rstride + 3] * m.data[this.width+this.width+this.width+c];
-          data[index++] = v;
+          tmpMatrix.data[index++] = v;
         }
         rstride += this.width;
       }
-      this.data = data;
+      let tmp = this.data;
+      this.data = tmpMatrix.data;
+      tmpMatrix.data = tmp;
       return this;
     }
 
@@ -66,19 +68,25 @@
       }
       else if (m.isTouple && 4 == this.width)
       {
-        let data = new Array(4);
         let index = 0;
         let rstride = 0;
-        for (let i = 0; i < 4; ++i)
-        {
-          let v = this.data[rstride]   * m.x
-                + this.data[rstride+1] * m.y
-                + this.data[rstride+2] * m.z
-                + this.data[rstride+3] * m.w;
-          data[index++] = v;
-          rstride += 4;
-        }
-        return new ray.Touple(data[0], data[1], data[2], data[3]);
+        tmpTouple[index++] = this.data[rstride++] * m.x
+                           + this.data[rstride++] * m.y
+                           + this.data[rstride++] * m.z
+                           + this.data[rstride++] * m.w;
+        tmpTouple[index++] = this.data[rstride++] * m.x
+                           + this.data[rstride++] * m.y
+                           + this.data[rstride++] * m.z
+                           + this.data[rstride++] * m.w;
+        tmpTouple[index++] = this.data[rstride++] * m.x
+                           + this.data[rstride++] * m.y
+                           + this.data[rstride++] * m.z
+                           + this.data[rstride++] * m.w;
+        tmpTouple[index++] = this.data[rstride++] * m.x
+                           + this.data[rstride++] * m.y
+                           + this.data[rstride++] * m.z
+                           + this.data[rstride++] * m.w;
+        return new ray.Touple(tmpTouple[0], tmpTouple[1], tmpTouple[2], tmpTouple[3]);
       }
     }
 
@@ -956,6 +964,15 @@
       };
     }
   }
+
+  var tmpTouple = new Array(4);
+  var tmp2x2 = new rMatrix(2, 2, [0, 0, 0, 0]);
+  var tmp3x3 = new rMatrix(3, 3, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  var tmp4x4 = new rMatrix(4, 4, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  var tmps = [];
+  tmps[2] = tmp2x2;
+  tmps[3] = tmp3x3;
+  tmps[4] = tmp4x4;
 
   ray.classlist.push(rMatrix);
 
