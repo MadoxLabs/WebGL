@@ -411,17 +411,21 @@ function gallopRight(value, array, start, length, hint, compare) {
 }
 
 class TimSort {
-  array = null;
-  compare = null;
-  minGallop = DEFAULT_MIN_GALLOPING;
-  length = 0;
-  tmpStorageLength = DEFAULT_TMP_STORAGE_LENGTH;
-  stackLength = 0;
-  runStart = null;
-  runLength = null;
-  stackSize = 0;
+//  array = null;
+//  compare = null;
+//  minGallop = DEFAULT_MIN_GALLOPING;
+//  length = 0;
+//  tmpStorageLength = DEFAULT_TMP_STORAGE_LENGTH;
+//  stackLength = 0;
+//  runStart = null;
+//  runLength = null;
+//  stackSize = 0;
 
   constructor(array, compare) {
+    this.minGallop = DEFAULT_MIN_GALLOPING;
+    this.tmpStorageLength = DEFAULT_TMP_STORAGE_LENGTH;
+    this.stackSize = 0;
+
     this.array = array;
     this.compare = compare;
 

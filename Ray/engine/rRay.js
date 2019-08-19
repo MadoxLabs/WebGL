@@ -272,16 +272,13 @@
 
     precompute(r, points)
     {
-      if (!points) points = { list: [this] };
+      if (!points) points = { num: 1, list: [this] };
 
       let ret = {};
       ret.length = this.length;
       ret.object = this.object;
       ret.point = r.position(ret.length);
       ret.normal = this.object.normalAt(ret.point);
-      ret.reflect = ray.Touple.reflect(r.direction, ret.normal);
-      ret.overPoint = ret.normal.copy().times(ray.epsilon).plus(ret.point);
-      ret.underPoint = ret.normal.copy().times(-ray.epsilon).plus(ret.point);
       ret.eye = r.direction.copy().negate();
       if (ret.normal.dot(ret.eye) < 0)
       {
@@ -290,6 +287,10 @@
       }
       else
         ret.inside = false;
+      let scaleNormal = ret.normal.copy().times(ray.epsilon);
+      ret.reflect = ray.Touple.reflect(r.direction, ret.normal);
+      ret.overPoint = ret.point.copy().plus(scaleNormal);
+      ret.underPoint = ret.point.copy().minus(scaleNormal);
 
       let containers = [];
       let included = {};
@@ -322,6 +323,7 @@
         {
           if (containers.length == 0) ret.n2 = 1.0;
           else ret.n2 = containers[containers.length - 1].material.refraction;
+          break;
         }
       }
 

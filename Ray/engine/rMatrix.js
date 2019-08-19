@@ -69,23 +69,22 @@
       else if (m.isTouple && 4 == this.width)
       {
         let index = 0;
-        let rstride = 0;
-        tmpTouple[index++] = this.data[rstride++] * m.x
-                           + this.data[rstride++] * m.y
-                           + this.data[rstride++] * m.z
-                           + this.data[rstride++] * m.w;
-        tmpTouple[index++] = this.data[rstride++] * m.x
-                           + this.data[rstride++] * m.y
-                           + this.data[rstride++] * m.z
-                           + this.data[rstride++] * m.w;
-        tmpTouple[index++] = this.data[rstride++] * m.x
-                           + this.data[rstride++] * m.y
-                           + this.data[rstride++] * m.z
-                           + this.data[rstride++] * m.w;
-        tmpTouple[index++] = this.data[rstride++] * m.x
-                           + this.data[rstride++] * m.y
-                           + this.data[rstride++] * m.z
-                           + this.data[rstride++] * m.w;
+        tmpTouple[0] = this.data[0] * m.x
+                           + this.data[1] * m.y
+                           + this.data[2] * m.z
+                           + this.data[3] * m.w;
+        tmpTouple[1] = this.data[4] * m.x
+                           + this.data[5] * m.y
+                           + this.data[6] * m.z
+                           + this.data[7] * m.w;
+        tmpTouple[2] = this.data[8] * m.x
+                           + this.data[9] * m.y
+                           + this.data[10] * m.z
+                           + this.data[11] * m.w;
+        tmpTouple[3] = this.data[12] * m.x
+                           + this.data[13] * m.y
+                           + this.data[14] * m.z
+                           + this.data[15] * m.w;
         return new ray.Touple(tmpTouple[0], tmpTouple[1], tmpTouple[2], tmpTouple[3]);
       }
     }
@@ -180,19 +179,19 @@
     {
       if (m2.isTouple) return m1.times(m2);
 
-      let ret = new rMatrix(m1.width, m1.height, m1.data);
+      let ret = new rMatrix(m1.width, m1.height, m1.data.slice());
       return ret.times(m2);
     }
 
     static transpose(m1)
     {
-      let ret = new rMatrix(m1.width, m1.height, m1.data);
+      let ret = new rMatrix(m1.width, m1.height, m1.data.slice());
       return ret.transpose();
     }
 
     static inverse(m)
     {
-      let ret = new rMatrix(m.width, m.height, m.data);
+      let ret = new rMatrix(m.width, m.height, m.data.slice());
       return ret.invert();
     }
 

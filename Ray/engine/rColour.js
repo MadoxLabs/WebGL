@@ -388,6 +388,19 @@
     }
   }
 
+  class rPatternTest extends rPattern
+  {
+    constructor(c)
+    {
+      super();
+    }
+
+    resolve(p)
+    {
+      return ray.RGBColour(p.x, p.y, p.z);
+    }
+  }
+
   class rPatternSolid extends rPattern
   {
     constructor(c)
@@ -396,7 +409,7 @@
       this.colour = c ? c : ray.White;
     }
 
-    resolve(p, o)
+    resolve(p)
     {
       return this.colour.copy();
     }
@@ -855,6 +868,7 @@
   ray.PatternChecker = rPatternChecker;
   ray.PatternBlend = rPatternBlend;
   ray.PatternPerlin = rPatternPerlin;
+  ray.PatternTest = rPatternTest;
 
   ray.White = new rColour(1, 1, 1);
   ray.White.plus = null;
