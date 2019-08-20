@@ -162,11 +162,11 @@
         let reflect = this.getReflectionFor(comp, depth);
         let refract = this.getRefractionFor(comp, depth);
 
-        let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, 0) : false;
+        let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, 0) : 0;
         let colour = ray.Render.lighting(comp.object.material, comp.object, this.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
         for (let l = 1; l < this.lights.length; ++l)
         {
-          let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l) : false;
+          let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l) : 0;
           colour.plus(ray.Render.lighting(comp.object.material, comp.object, this.lights[l], comp.overPoint, comp.eye, comp.normal, shadow));
         }
 
@@ -226,8 +226,8 @@
       let points = this.intersect(ray.Ray(p, direction));
       let hit = points.hit();
       if (hit && hit.length < distance)
-        return (hit.object.material.transparent == 0);
-      return false;
+        return hit.object.material.transparency ? (1-hit.object.material.transmit) : 1; 
+      return 0;
     }
 
     loadFromJSON(json)

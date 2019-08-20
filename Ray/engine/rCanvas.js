@@ -153,7 +153,7 @@
       let distance = toLight.magnitude();
       let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
 
-      if (shadowed)
+      if (shadowed == 1)
       {
         return ambient.times(1.0 / attenuation);
       }
@@ -171,7 +171,7 @@
         }
         else
         {
-          diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal);
+          diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal).times(1-shadowed);
           let reflect = ray.Touple.reflect(toLight.negate(), normal);
           let reflectDotEye = reflect.dot(eye);
           if (reflectDotEye <= 0)
@@ -179,7 +179,7 @@
           else
           {
             let factor = Math.pow(reflectDotEye, material.shininess);
-            specular = ray.Colour.multiply(light.colour, material.specular).times(factor);
+            specular = ray.Colour.multiply(light.colour, material.specular).times(factor).times(1-shadowed);
           }
         }
         return ambient.plus(diffuse).plus(specular).times(1.0 / attenuation);

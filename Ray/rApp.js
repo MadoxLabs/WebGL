@@ -54,7 +54,7 @@
         {
           if (ray.stages[i])
           {
-            ret += this.renderStageButton("Stage " + i, id, i, false);
+            ret += this.renderStageButton(ray.stages[i].name ? ray.stages[i].name : "Stage " + i, id, i, false);
             id++;
           }
         }

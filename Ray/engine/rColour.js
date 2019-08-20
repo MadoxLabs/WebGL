@@ -248,6 +248,7 @@
       this.pattern = null;
       this.reflective = 0.0;
       this.transparency = 0.0;
+      this.transmit = 0.0;
       this.refraction = 1.0;
     }
 
@@ -264,6 +265,7 @@
       if (null != def.diffuse) this.diffuse = def.diffuse;
       if (null != def.reflective) this.reflective = def.reflective;
       if (null != def.transparency) this.transparency = def.transparency;
+      if (null != def.transmit) this.transmit = def.transmit;
       if (null != def.refraction) this.refraction = def.refraction;
       if (null != def.specular)  this.specular  = def.specular;
       if (null != def.colour)    this.colour    = makeColour(def.colour[0], def.colour[1], def.colour[2]);
