@@ -1,4 +1,86 @@
-(function (){
+function loadscene(n)
+{
+  document.getElementById("code").value = `
+
+        {
+          "renderOptions": {
+            "antialias": 0,
+            "maxReflections": 10
+          },
+          "cameras": [
+            {
+              "name": "main",
+              "width": 400,
+              "height": 400,
+              "fov": 1.2566,
+              "from": [0, 3, -3],
+              "to": [0, 1, 0],
+              "up": [0, 1, 0]
+            }
+          ],
+          "lights": [
+            {
+              "type": "pointlight",
+              "position": [0, 5, -1],
+              "intensityDiffuse": 0.5,
+              "intensityAmbient": 0.2,
+              "colour": [1, 1, 1]
+            },
+            {
+              "type": "pointlight",
+              "position": [0, 2, -15],
+              "intensityDiffuse": 1,
+              "intensityAmbient": 0.7,
+              "colour": [1, 1, 1]
+            }
+          ],
+"materials" :[
+            {
+              "name": "glass",
+              "ambient": 0,
+              "diffuse": 0.4,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 0.9,
+              "transparency": 0.9,
+              "transmit": 0.7,
+              "refraction": 1.5,
+              "colour": [0.2, 0.2, 0.2]
+            },
+           {
+              "name": "air",
+              "ambient": 0,
+              "diffuse": 0.4,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 0.9,
+              "transparency": 0.9,
+              "transmit": 1,
+              "refraction": 1.0,
+              "colour": [0.2, 0.2, 0.2]
+            }
+],
+"transforms": [
+{ "name": "air", "series" : [{"type": "S", "value" : [0.98,0.98,0.98]}] }, 
+{ "name": "floor", "series" : [{"type": "T", "value" : [0,-1,0]}] }, 
+{ "name": "left", "series" : [{"type": "T", "value" : [-2.2,0,0]}] }, 
+{ "name": "back", "series" : [{"type": "T", "value" : [0,0,2]}] }, 
+{ "name": "right", "series" : [{"type": "T", "value" : [2.2,0,0]}] }
+],
+          "objects": [
+{ "type": "plane", "transform": "floor"},
+{ "type": "sphere", "transform": "right" },
+{ "type": "sphere", "transform": "left" },
+{ "skip": true, "type": "sphere", "transform": "back" },
+{ "type": "sphere", "material": "glass" },
+{ "type": "sphere", "transform": "air" , "material": "air" }
+          ]
+        }
+`;
+}
+
+(function ()
+{
 
   class Testbed
   {
@@ -15,6 +97,7 @@
 <textarea id="code"></textarea>
 <br>
 <button id="render" onClick="obj.transform()">Render</button>
+<input type="button" id="scene1" onClick="loadscene(1)" value="Load Scene 1"></input>
 </td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
@@ -42,7 +125,6 @@
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
       document.getElementById("render").obj = this;
-
       document.getElementById("code").value = `
         {
           "renderOptions": {
