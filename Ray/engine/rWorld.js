@@ -234,6 +234,7 @@
 
     isShadowed(p, lightIndex, depth)
     {
+      if (depth == null) depth = 5;
       if (!depth) return 0;
 
       let light = this.lights[lightIndex];
@@ -589,7 +590,7 @@
           let w = new rWorld();
           w.setToDefault();
           let p = ray.Point(10, -10, 10);
-          if (w.isShadowed(p,0) == false) return false;
+          if (w.isShadowed(p,0) == 0) return false;
           return true;
         }
       };
@@ -604,7 +605,7 @@
           let w = new rWorld();
           w.setToDefault();
           let p = ray.Point(-20, -20, -20);
-          if (w.isShadowed(p,0) == true) return false;
+          if (w.isShadowed(p,0) == 1) return false;
           return true;
         }
       };
@@ -619,7 +620,7 @@
           let w = new rWorld();
           w.setToDefault();
           let p = ray.Point(-2, 2, -2);
-          if (w.isShadowed(p,0) == true) return false;
+          if (w.isShadowed(p,0) == 1) return false;
           return true;
         }
       };

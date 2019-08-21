@@ -147,6 +147,7 @@
 
     lighting(material, object, light, point, eye, normal, shadowed)
     {
+      if (shadowed == null) shadowed = 0;
       let effectiveColour = ray.Colour.multiply(material.colourAt(point, object), light.colour);
       let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
       let toLight = ray.Touple.subtract(light.position, point);
