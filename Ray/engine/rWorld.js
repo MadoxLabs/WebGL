@@ -155,6 +155,21 @@
       return c.times(comp.object.material.transparency);
     }
 
+    getRefractedRay(comp)
+    {
+      let nRatio = comp.n1 / comp.n2;
+      let cosThetaI = comp.eye.dot(comp.normal);
+      let sin2ThetaT = nRatio * nRatio * (1.0 - (cosThetaI * cosThetaI));
+      if (sin2ThetaT > 1)
+      {
+        // total internal refraction case
+        return null;
+      }
+      let cosThetaT = Math.sqrt(1.0 - sin2ThetaT);
+      let dir = comp.normal.copy().times(nRatio * cosThetaI - cosThetaT).minus(comp.eye.copy().times(nRatio));
+      return ray.Ray(comp.underPoint.copy(), dir);
+    }
+
     getColourFor(comp, depth)
     {
       if (this.options.lighting)
@@ -162,11 +177,11 @@
         let reflect = this.getReflectionFor(comp, depth);
         let refract = this.getRefractionFor(comp, depth);
 
-        let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, 0) : 0;
+        let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, 0, 5) : 0;
         let colour = ray.Render.lighting(comp.object.material, comp.object, this.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
         for (let l = 1; l < this.lights.length; ++l)
         {
-          let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l) : 0;
+          let shadow = this.options.shadowing ? this.isShadowed(comp.overPoint, l, 5) : 0;
           colour.plus(ray.Render.lighting(comp.object.material, comp.object, this.lights[l], comp.overPoint, comp.eye, comp.normal, shadow));
         }
 
@@ -217,16 +232,37 @@
       return this.getColourFor(comp, depth);
     }
 
-    isShadowed(p, lightIndex)
+    isShadowed(p, lightIndex, depth)
     {
+      if (!depth) return 0;
+
       let light = this.lights[lightIndex];
       let direction = ray.Touple.subtract(light.position, p);
       let distance = direction.magnitude();
       direction.normalize();
-      let points = this.intersect(ray.Ray(p, direction));
-      let hit = points.hit();
+      let r = ray.Ray(p, direction);
+      let points = this.intersect(r);
+      let hit = points.hitSkipNoShadow();
       if (hit && hit.length < distance)
-        return hit.object.material.transparency ? (1-hit.object.material.transmit) : 1; 
+      {
+        if (hit.object.material.transmit)
+        {
+          let comp = hit.precompute(r, points);
+          let r2 = this.getRefractedRay(comp);
+          if (r2)
+          {
+            let points2 = this.intersect(r2);
+            let hit2 = points2.hitSkipNoShadow();
+            if (hit2)
+            {
+              let comp2 = hit2.precompute(r2, points2);
+              return this.isShadowed(comp2.overPoint, lightIndex, depth-1) * (1 - hit.object.material.transmit); 
+            }
+          }
+        }
+        return 1;
+      }
+
       return 0;
     }
 

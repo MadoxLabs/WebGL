@@ -519,6 +519,16 @@
       return null;
     }
 
+    hitSkipNoShadow()
+    {
+      this.sort();
+      for (let i = 0; i < this.num; ++i)
+      {
+        if (this.list[i].length >= 0 && this.list[i].object.shadow) return this.list[i];
+      }
+      return null;
+    }
+
     // tests
     static test1()
     {

@@ -10,9 +10,9 @@
 <table><tr><td>
 <div><canvas id='surface' width="800" height="800"></div>
 </td><td><p>
-Scene:  <input type="range" min="0" max="2" value="2" onInput="obj.transform()" step="1" class="slider" id="scene"> <br>
+Scene:  <input type="range" min="0" max="2" value="1" onInput="obj.transform()" step="1" class="slider" id="scene"> <br>
 <br>
-Antialias:  <input type="range" min="0" max="2" value="2" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
+Antialias:  <input type="range" min="0" max="2" value="0" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
 <br>
 Camera:<br>
 FOV:  <input type="range" min="0.1" max="1.0" value="0.4" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
@@ -350,6 +350,7 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
               specular: 0.9,
               reflective: 0.9,
               transparency: 0.9,
+              transmit: 0.8,
               refraction: 1.5,
               colour: [0, 0, 0.2]
             },
@@ -361,6 +362,7 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
               specular: 0.9,
               reflective: 0.9,
               transparency: 0.9,
+              transmit: 0.8,
               refraction: 1.5,
               colour: [0, 0.2, 0]
             }
@@ -493,7 +495,8 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
               specular: 0.9,
               reflective: 1,
               transparency: 1,
-              refraction: 1.52
+              refraction: 1.52,
+              transmit: 0.8
             },
             {
               name: "ball2",
@@ -502,7 +505,8 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
               specular: 0.9,
               reflective: 1,
               transparency: 1,
-              refraction: 1
+              refraction: 1,
+              transmit: 1
             }
           ],
           lights: [
