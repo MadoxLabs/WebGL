@@ -848,6 +848,7 @@
   var pool = new ColourPool();
   function makeColour(r,g,b)
   {
+    ray.counts.colour += 1;
     if (ray.usePool) return pool.getColour(r,g,b);
     return new rColour(r,g,b);
   }

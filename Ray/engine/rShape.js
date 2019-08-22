@@ -79,7 +79,7 @@
     constructor()
     {
       super();
-      this.normal = new ray.Vector(0, 1, 0);
+      this.normal = ray.Vector(0, 1, 0);
     }
 
     fromJSON(def)
@@ -98,7 +98,7 @@
 
     local_intersect(r)
     {
-      let ret = new ray.Intersections();
+      let ret = ray.Intersections();
       if (Math.abs(r.direction.y) < ray.epsilon) return ret;
 
       let d = (-r.origin.y / r.direction.y);
@@ -110,7 +110,7 @@
         if (this.yMax != null && p.z > this.yMax) return ret;
         if (this.yMin != null && p.z < this.yMin) return ret;
       }
-      ret.add(new ray.Intersection(d, this));;
+      ret.add(ray.Intersection(d, this));
       return ret;
     }
 
@@ -218,7 +218,7 @@
 
     local_intersect(r)
     {
-      let ret = new ray.Intersections();
+      let ret = ray.Intersections();
 
       let sphereToRay = ray.Touple.subtract(r.origin, ray.Origin);
       let a = r.direction.dot(r.direction);
@@ -229,8 +229,8 @@
       if (discr < 0) return ret;
 
       let rootDiscr = Math.sqrt(discr);
-      ret.add(new ray.Intersection((-b - rootDiscr) / aa, this));;
-      ret.add(new ray.Intersection((-b + rootDiscr) / aa, this));;
+      ret.add(ray.Intersection((-b - rootDiscr) / aa, this));
+      ret.add(ray.Intersection((-b + rootDiscr) / aa, this));
       return ret;
     }
 

@@ -1,6 +1,15 @@
 // predefined namespaces so loading things have a place to go
 var LibNoise = {};
 var ray = { classlist: [], stages: {} };
+ray.counts = {
+  touple: 0,
+  matrix: 0,
+  colour: 0,
+  ray: 0,
+  intersection: 0,
+  intersections: 0
+};
+
 function reportBootup(file) { }
 function reportLoaded(name, value) { }
 function reportLoading(name, value) { }

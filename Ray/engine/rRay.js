@@ -650,15 +650,26 @@
   var pool = new RayPool();
   function makeRay(o, d)
   {
+    ray.counts.ray += 1;
     if (ray.usePool) return pool.getRay(o, d);
     return new rRay(o, d);
+  }
+  function makeIntersection(len, obj)
+  {
+    ray.counts.intersection += 1;
+    return new rIntersection(len, obj);
+  }
+  function makeIntersections()
+  {
+    ray.counts.intersections += 1;
+    return new rIntersections();
   }
 
   ray.classlist.push(rRay);
   ray.classlist.push(rIntersection);
   ray.classlist.push(rIntersections);
   ray.Ray = function (o, d) { return makeRay(o, d); }
-  ray.Intersection = rIntersection;
-  ray.Intersections = rIntersections;
+  ray.Intersection = function (l, o) { return makeIntersection(l, o); };
+  ray.Intersections = function () { return makeIntersections(); };
 
 })();

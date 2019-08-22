@@ -607,6 +607,7 @@
   var pool = new TouplePool();
   function makeTouple(x, y, z, w)
   {
+    ray.counts.touple += 1;
     if (ray.usePool) return pool.getTouple(x, y, z, w);
     return new rTouple(x, y, z, w);
   }

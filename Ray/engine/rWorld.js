@@ -46,6 +46,15 @@
 
     renderPixel(x, y, c)
     {
+      ray.counts = {
+        touple: 0,
+        matrix: 0,
+        colour: 0,
+        ray: 0,
+        intersection: 0,
+        intersections: 0
+      };
+
       let colour = ray.Black;
       let factor = 1.0;
       if (this.options.antialias > 1)
@@ -116,7 +125,7 @@
 
     intersect(r)
     {
-      let ret = new ray.Intersections();
+      let ret = ray.Intersections();
       for (let i = 0; i < this.objects.length; ++i)
       {
         // TODO intersect lights

@@ -13,7 +13,7 @@
 
     copy()
     {
-      return new rMatrix(this.width, this.height, this.data.slice(0));
+      return ray.rawMatrix(this.width, this.height, this.data.slice(0));
     }
 
     get(r, c)
@@ -85,13 +85,13 @@
                            + this.data[13] * m.y
                            + this.data[14] * m.z
                            + this.data[15] * m.w;
-        return new ray.Touple(tmpTouple[0], tmpTouple[1], tmpTouple[2], tmpTouple[3]);
+        return ray.rawTouple(tmpTouple[0], tmpTouple[1], tmpTouple[2], tmpTouple[3]);
       }
     }
 
     transpose()
     {
-      let d = new Array(this.size);
+      let tmpMatrix = tmps[this.width];
       let index = 0;
 
       for (let c = 0; c < this.width; ++c)
@@ -99,11 +99,13 @@
         let rstride = 0;
         for (let r = 0; r < this.height; ++r)
         {
-          d[index++] = this.data[rstride + c];
+          tmpMatrix.data[index++] = this.data[rstride + c];
           rstride += this.width;
         }
       }
-      this.data = d;
+      let tmp = this.data;
+      this.data = tmpMatrix.data;
+      tmpMatrix.data = tmp;
       return this;
     }
 
@@ -122,7 +124,7 @@
 
     submatrix(badr, badc)
     {
-      let data = new Array((this.width - 1) * (this.width - 1));
+      let tmpMatrix = tmps[this.width-1];
       let index = 0;
       let rstride = 0;
       for (let r = 0; r < this.height; ++r) 
@@ -131,11 +133,15 @@
         {
           if (r == badr) continue;
           if (c == badc) continue;
-          data[index++] = this.data[rstride + c];
+          tmpMatrix.data[index++] = this.data[rstride + c];
         }
         rstride += this.width;
       }
-      return new rMatrix(this.width - 1, this.height - 1, data);
+      let ret = tmpMatrix.copy();
+      let tmp = ret.data;
+      ret.data = tmpMatrix.data;
+      tmpMatrix.data = tmp;
+      return ret;
     }
 
     invertible()
@@ -160,7 +166,7 @@
     {
       if (!this.invertible()) return null; //throw "not invertible";
 
-      let d = new Array(this.size);
+      let tmpMatrix = tmps[this.width];
       let index = 0;
       let det = this.determinant();
 
@@ -168,10 +174,12 @@
         for (let r = 0; r < this.height; ++r)
         {
           let val = this.cofactor(r, c);
-          d[index++] = (val / det);
+          tmpMatrix.data[index++] = (val / det);
         }
 
-      this.data = d;
+      let tmp = this.data;
+      this.data = tmpMatrix.data;
+      tmpMatrix.data = tmp;
       return this;
     }
 
@@ -179,19 +187,19 @@
     {
       if (m2.isTouple) return m1.times(m2);
 
-      let ret = new rMatrix(m1.width, m1.height, m1.data.slice());
+      let ret = ray.rawMatrix(m1.width, m1.height, m1.data.slice());
       return ret.times(m2);
     }
 
     static transpose(m1)
     {
-      let ret = new rMatrix(m1.width, m1.height, m1.data.slice());
+      let ret = ray.rawMatrix(m1.width, m1.height, m1.data.slice());
       return ret.transpose();
     }
 
     static inverse(m)
     {
-      let ret = new rMatrix(m.width, m.height, m.data.slice());
+      let ret = ray.rawMatrix(m.width, m.height, m.data.slice());
       return ret.invert();
     }
 
@@ -976,9 +984,10 @@
   ray.classlist.push(rMatrix);
 
   ray.Matrix = rMatrix;
-  ray.Matrix4x4 = function (d) { return new rMatrix(4, 4, d); }
-  ray.Matrix3x3 = function (d) { return new rMatrix(3, 3, d); }
-  ray.Matrix2x2 = function (d) { return new rMatrix(2, 2, d); }
+  ray.rawMatrix = function (w, h, d) { ray.counts.matrix += 1; return new rMatrix(w, h, d); }
+  ray.Matrix4x4 = function (d) { ray.counts.matrix += 1; return new rMatrix(4, 4, d); }
+  ray.Matrix3x3 = function (d) { ray.counts.matrix += 1; return new rMatrix(3, 3, d); }
+  ray.Matrix2x2 = function (d) { ray.counts.matrix += 1; return new rMatrix(2, 2, d); }
 
   ray.Identity4x4 = new rMatrix(4, 4, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
   ray.Identity4x4.set = null;
