@@ -268,8 +268,13 @@
       if (null != def.transmit) this.transmit = def.transmit;
       if (null != def.refraction) this.refraction = def.refraction;
       if (null != def.specular)  this.specular  = def.specular;
-      if (null != def.colour)    this.colour    = makeColour(def.colour[0], def.colour[1], def.colour[2]);
-      if (def.pattern && ray.World.patterns[def.pattern]) this.pattern = ray.World.patterns[def.pattern];
+      if (null != def.colour) this.colour = makeColour(def.colour[0], def.colour[1], def.colour[2]);
+
+      if (def.pattern)
+      {
+        if (typeof def.pattern == "string" && ray.World.patterns[def.pattern]) this.pattern = ray.World.patterns[def.pattern];
+        if (typeof def.pattern == "object") this.pattern = ray.World.parsePattern(def.pattern);
+      }
     }
 
     equals(m)
@@ -386,7 +391,11 @@
 
     fromJSON(def)
     {
-      if (def.transform && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform]; this.dirty = true; }
+      if (def.transform)
+      {
+        if (typeof def.transform == "string" && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform]; this.dirty = true; }
+        if (typeof def.transform == "object") { this.transform = ray.World.parseTransform(def.transform); this.dirty = true; }
+      }
     }
   }
 

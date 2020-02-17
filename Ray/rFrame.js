@@ -43,6 +43,7 @@ function reportLoading(name, value) { }
                 "stages/Stage9.js",
                 "stages/Stage10.js",
                 "stages/Stage11.js",
+                "stages/Stage12.js",
                 "stages/Testbed.js",
                 "rApp.js"
                ];

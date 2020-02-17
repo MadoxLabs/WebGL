@@ -186,6 +186,132 @@
         return ambient.plus(diffuse).plus(specular).times(1.0 / attenuation);
       }
     }
+    
+    isShadowed(p, lightIndex, depth)
+    {
+      if (depth == null) depth = 5;
+      if (!depth) return 0;
+
+      let light = ray.World.lights[lightIndex];
+      let direction = ray.Touple.subtract(light.position, p);
+      let distance = direction.magnitude();
+      direction.normalize();
+      let r = ray.Ray(p, direction);
+      let points = ray.World.intersect(r);
+      let hit = points.hitSkipNoShadow();
+      if (hit && hit.length < distance)
+      {
+        if (hit.object.material.transmit)
+        {
+          let comp = hit.precompute(r, points);
+          let r2 = this.getRefractedRay(comp);
+          if (r2)
+          {
+            let points2 = ray.World.intersect(r2);
+            let hit2 = points2.hitSkipNoShadow();
+            if (hit2)
+            {
+              let comp2 = hit2.precompute(r2, points2);
+              return this.isShadowed(comp2.overPoint, lightIndex, depth - 1) * (1 - hit.object.material.transmit);
+            }
+          }
+        }
+        return 1;
+      }
+
+      return 0;
+    }
+
+    getReflectionFor(comp, depth)
+    {
+      if (depth <= 0) return ray.Black.copy();
+      if (comp.object.material.reflective == 0) return ray.Black.copy();
+      let r = ray.Ray(comp.overPoint.copy(), comp.reflect.copy());
+      let c = ray.World.cast(r, depth - 1);
+      return c.times(comp.object.material.reflective);
+    }
+
+    getRefractionFor(comp, depth)
+    {
+      if (depth <= 0) return ray.Black.copy();
+      if (comp.object.material.transparency == 0) return ray.Black.copy();
+
+      let nRatio = comp.n1 / comp.n2;
+      let cosThetaI = comp.eye.dot(comp.normal);
+      let sin2ThetaT = nRatio * nRatio * (1.0 - (cosThetaI * cosThetaI));
+      if (sin2ThetaT > 1)
+      {
+        // total internal refraction case
+        return ray.Black.copy();
+      }
+      let cosThetaT = Math.sqrt(1.0 - sin2ThetaT);
+      let dir = comp.normal.copy().times(nRatio * cosThetaI - cosThetaT).minus(comp.eye.copy().times(nRatio));
+      let r = ray.Ray(comp.underPoint.copy(), dir);
+      let c = ray.World.cast(r, depth - 1);
+      return c.times(comp.object.material.transparency);
+    }
+
+    getRefractedRay(comp)
+    {
+      let nRatio = comp.n1 / comp.n2;
+      let cosThetaI = comp.eye.dot(comp.normal);
+      let sin2ThetaT = nRatio * nRatio * (1.0 - (cosThetaI * cosThetaI));
+      if (sin2ThetaT > 1)
+      {
+        // total internal refraction case
+        return null;
+      }
+      let cosThetaT = Math.sqrt(1.0 - sin2ThetaT);
+      let dir = comp.normal.copy().times(nRatio * cosThetaI - cosThetaT).minus(comp.eye.copy().times(nRatio));
+      return ray.Ray(comp.underPoint.copy(), dir);
+    }
+
+    getColourFor(comp, depth)
+    {
+      if (ray.World.options.lighting)
+      {
+        let reflect = this.getReflectionFor(comp, depth);
+        let refract = this.getRefractionFor(comp, depth);
+
+        let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, 0, 5) : 0;
+        let colour = ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
+        for (let l = 1; l < ray.World.lights.length; ++l)
+        {
+          let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, l, 5) : 0;
+          colour.plus(ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[l], comp.overPoint, comp.eye, comp.normal, shadow));
+        }
+
+        if (comp.object.material.reflective > 0 && comp.object.material.transparency > 0)
+        {
+          let schlick = this.schlick(comp);
+          reflect.times(schlick);
+          refract.times(1 - schlick);
+        }
+
+        colour.plus(reflect).plus(refract);
+        return colour;
+      }
+      else
+      {
+        return comp.object.material.colour;
+      }
+    }
+
+    schlick(comp)
+    {
+      let cos = comp.eye.dot(comp.normal);
+      if (comp.n1 > comp.n2)
+      {
+        let n = comp.n1 / comp.n2;
+        let sin = n * n * (1.0 - cos * cos);
+        if (sin > 1.0)
+          return 1;
+        cos = Math.sqrt(1.0 - sin);
+      }
+      let r0 = ((comp.n1 - comp.n2) / (comp.n1 + comp.n2));
+      r0 = r0 * r0;
+      return r0 + (1 - r0) * Math.pow((1 - cos), 5);
+    }
 
     static test1()
     {
@@ -302,7 +428,520 @@
         }
       };
     }
+    
+    static test7()
+    {
+      return {
+        name: "Check shading an intersection",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let s = ray.World.objects[0];
+          let i = new ray.Intersection(4, s);
+          let comp = i.precompute(r);
+          let c = ray.Render.getColourFor(comp);
+          if (c.equals(ray.RGBColour(0.38066, 0.47583, 0.2855)) == false) return false;
+          return true;
+        }
+      };
+    }
 
+    static test8()
+    {
+      return {
+        name: "Check shading an intersection on the inside",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          ray.World.lights[0] = new ray.LightPoint(ray.Point(0, 0.25, 0), ray.White);
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
+          let s = ray.World.objects[1];
+          let i = new ray.Intersection(0.5, s);
+          ray.World.options.shadowing = false;
+          let comp = i.precompute(r);
+          let c = ray.Render.getColourFor(comp);
+          if (c.equals(ray.RGBColour(0.90498, 0.90498, 0.90498)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test9()
+    {
+      return {
+        name: "Check there is no shadow when nothing is colinear",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let p = ray.Point(0, 10, 0);
+          if (ray.Render.isShadowed(p, 0) == true) return false;
+          return true;
+        }
+      };
+    }
+
+    static test10()
+    {
+      return {
+        name: "Check there is shadow when object between point and light",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let p = ray.Point(10, -10, 10);
+          if (ray.Render.isShadowed(p, 0) == 0) return false;
+          return true;
+        }
+      };
+    }
+
+    static test11()
+    {
+      return {
+        name: "Check there is no shadow when object behind light",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let p = ray.Point(-20, -20, -20);
+          if (ray.Render.isShadowed(p, 0) == 1) return false;
+          return true;
+        }
+      };
+    }
+
+    static test12()
+    {
+      return {
+        name: "Check there is no shadow when object behind point",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let p = ray.Point(-2, 2, -2);
+          if (ray.Render.isShadowed(p, 0) == 1) return false;
+          return true;
+        }
+      };
+    }
+
+    static test13()
+    {
+      return {
+        name: "Check colouring a point in shadow",
+        test: function ()
+        {
+          ray.World.reset();
+          let def = {
+            transforms: [
+              {
+                name: "ball",
+                series: [{ type: "T", value: [0, 0, 10] }]
+              }
+            ],
+            lights: [
+              {
+                type: "pointlight",
+                position: [0, 0, -10],
+                colour: [1, 1, 1],
+              }
+            ],
+            objects: [
+              {
+                type: "sphere",
+              },
+              {
+                type: "sphere",
+                transform: "ball"
+              }
+            ]
+          };
+          ray.World.loadFromJSON(def);
+          let r = ray.Ray(ray.Point(0, 0, 5), ray.Vector(0, 0, 1));
+          let i = new ray.Intersection(4, ray.World.objects[0]);
+          let comp = i.precompute(r);
+          let c = ray.Render.getColourFor(comp);
+          if (c.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test14()
+    {
+      return {
+        name: "Check reflected colour for reflective material",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let s = new ray.Plane();
+          s.material = new ray.Material();
+          s.material.reflective = 0.5;
+          s.transform = ray.Matrix.translation(0, -1, 0);
+          ray.World.objects.push(s);
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = ray.Render.getReflectionFor(comp);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0.19032, 0.2379, 0.14274)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
+
+    static test15()
+    {
+      return {
+        name: "Check reflected colour for nonreflective material",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 0, 1));
+          let s = ray.World.objects[1];
+          s.material.ambient = 1;
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = ray.Render.getReflectionFor(comp);
+          if (c.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test16()
+    {
+      return {
+        name: "Check getColourAt() with a reflective material",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let s = new ray.Plane();
+          s.material = new ray.Material();
+          s.material.reflective = 0.5;
+          s.transform = ray.Matrix.translation(0, -1, 0);
+          ray.World.objects.push(s);
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = ray.Render.getColourFor(comp);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0.87677, 0.92436, 0.82918)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
+
+    static test17()
+    {
+      return {
+        name: "Check getColourAt() with a mutually reflective surfaces",
+        test: function ()
+        {
+          ray.World.reset();
+          let def = {
+            transforms: [
+              {
+                name: "lower",
+                series: [{ type: "T", value: [0, -1, 0] }]
+              },
+              {
+                name: "upper",
+                series: [{ type: "T", value: [0, 1, 0] }, { type: "Rx", value: Math.PI }]
+              }
+            ],
+            materials: [
+              {
+                name: "mirror",
+                reflective: 1
+              }
+            ],
+            lights: [
+              {
+                type: "pointlight",
+                position: [0, 0, 0],
+                colour: [1, 1, 1],
+              }
+            ],
+            objects: [
+              {
+                type: "plane",
+                material: "mirror",
+                transform: "lower"
+              },
+              {
+                type: "plane",
+                material: "mirror",
+                transform: "upper"
+              }
+            ]
+          };
+          ray.World.loadFromJSON(def);
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 1, 0));
+          let c = ray.World.cast(r);
+          return true;
+        }
+      };
+    }
+
+    static test18()
+    {
+      return {
+        name: "Check getColourAt() with a reflective material has a call depth limit",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let s = new ray.Plane();
+          s.material = new ray.Material();
+          s.material.reflective = 0.5;
+          s.transform = ray.Matrix.translation(0, -1, 0);
+          ray.World.objects.push(s);
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let i = new ray.Intersection(Math.sqrt(2), s);
+          let comp = i.precompute(r);
+          let c = ray.Render.getReflectionFor(comp, 0);
+          if (c.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test19()
+    {
+      return {
+        name: "Check refracted colour of opaque surface",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let s = ray.World.objects[0];
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(4, s));
+          points.add(new ray.Intersection(6, s));
+          let comp = points.list[0].precompute(r, points);
+          let c = ray.Render.getRefractionFor(comp, 5);
+          if (c.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test20()
+    {
+      return {
+        name: "Check refracted colour at maximum recursion is black",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let s = ray.World.objects[0];
+          s.material.transparency = 1.0;
+          s.material.refraction = 1.5;
+          let r = ray.Ray(ray.Point(0, 0, -5), ray.Vector(0, 0, 1));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(4, s));
+          points.add(new ray.Intersection(6, s));
+          let comp = points.list[0].precompute(r, points);
+          let c = ray.Render.getRefractionFor(comp, 0);
+          if (c.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test21()
+    {
+      return {
+        name: "Check refracted colour at total internal refraction is black",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let s = ray.World.objects[0];
+          s.material.transparency = 1.0;
+          s.material.refraction = 1.5;
+          let r = ray.Ray(ray.Point(0, 0, Math.sqrt(2) / 2), ray.Vector(0, 1, 0));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(-Math.sqrt(2) / 2, s));
+          points.add(new ray.Intersection(Math.sqrt(2) / 2, s));
+          let comp = points.list[1].precompute(r, points);
+          let c = ray.Render.getRefractionFor(comp, 5);
+          if (c.equals(ray.Black) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test22()
+    {
+      return {
+
+        name: "Check refracted colour is correct",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+          let A = ray.World.objects[0];
+          A.material = new ray.Material();
+          A.material.ambient = 1.0;
+          A.material.pattern = new ray.PatternTest();
+          let B = ray.World.objects[1];
+          B.material = new ray.Material();
+          B.material.transparency = 1.0;
+          B.material.refraction = 1.5;
+          let r = ray.Ray(ray.Point(0, 0, 0.1), ray.Vector(0, 1, 0));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(-0.9899, A));
+          points.add(new ray.Intersection(-0.4899, B));
+          points.add(new ray.Intersection(0.4899, B));
+          points.add(new ray.Intersection(0.9899, A));
+          let comp = points.list[2].precompute(r, points);
+          let c = ray.Render.getRefractionFor(comp, 5);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0, 0.99888, 0.04725)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
+
+    static test23()
+    {
+      return {
+
+        name: "Check casting computes refracted colour",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+
+          let floor = new ray.Plane();
+          floor.setTransform(ray.Matrix.translation(0, -1, 0));
+          floor.material = new ray.Material();
+          floor.material.transparency = 0.5;
+          floor.material.refraction = 1.5;
+          ray.World.objects.push(floor);
+          let ball = new ray.Sphere();
+          ball.setTransform(ray.Matrix.translation(0, -3.5, -0.5));
+          ball.material = new ray.Material();
+          ball.material.colour = ray.RGBColour(1, 0, 0);
+          ball.material.ambient = 0.5;
+          ray.World.objects.push(ball);
+
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(Math.sqrt(2), floor));
+          let comp = points.list[0].precompute(r, points);
+          let c = ray.Render.getColourFor(comp, 5);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0.93642, 0.68642, 0.68642)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
+
+    static test24()
+    {
+      return {
+
+        name: "Check schlick value under total internal refelction",
+        test: function ()
+        {
+          let s = new ray.GlassSphere();
+          let r = ray.Ray(ray.Point(0, 0, Math.sqrt(2) / 2), ray.Vector(0, 1, 0));
+          let points = ray.Intersections();
+          points.add(ray.Intersection(-Math.sqrt(2) / 2, s));
+          points.add(ray.Intersection(Math.sqrt(2) / 2, s));
+          let comp = points.list[1].precompute(r, points);
+          if (ray.Render.schlick(comp) != 1.0) return false;
+          return true;
+        }
+      };
+    }
+
+    static test25()
+    {
+      return {
+        name: "Check schlick value with a perpendicular view angle",
+        test: function ()
+        {
+          let s = new ray.GlassSphere();
+          let r = ray.Ray(ray.Point(0, 0, 0), ray.Vector(0, 1, 0));
+          let points = ray.Intersections();
+          points.add(ray.Intersection(-1, s));
+          points.add(ray.Intersection(1, s));
+          let comp = points.list[1].precompute(r, points);
+          if (ray.isEqual(ray.Render.schlick(comp), 0.04) != true) return false;
+          return true;
+        }
+      };
+    }
+
+    static test26()
+    {
+      return {
+        name: "Check schlick value with a small angle",
+        test: function ()
+        {
+          let s = new ray.GlassSphere();
+          let r = ray.Ray(ray.Point(0, 0.99, -2), ray.Vector(0, 0, 1));
+          let points = ray.Intersections();
+          points.add(ray.Intersection(1.8589, s));
+          let comp = points.list[0].precompute(r, points);
+          if (ray.isEqual(ray.Render.schlick(comp), 0.48873) != true) return false;
+          return true;
+        }
+      };
+    }
+
+    static test27()
+    {
+      return {
+
+        name: "Check rendering reflective, transparent material",
+        test: function ()
+        {
+          ray.World.reset();
+          ray.World.setToDefault();
+
+          let floor = new ray.Plane();
+          floor.setTransform(ray.Matrix.translation(0, -1, 0));
+          floor.material = new ray.Material();
+          floor.material.reflective = 0.5;
+          floor.material.transparency = 0.5;
+          floor.material.refraction = 1.5;
+          ray.World.objects.push(floor);
+          let ball = new ray.Sphere();
+          ball.setTransform(ray.Matrix.translation(0, -3.5, -0.5));
+          ball.material = new ray.Material();
+          ball.material.colour = ray.RGBColour(1, 0, 0);
+          ball.material.ambient = 0.5;
+          ray.World.objects.push(ball);
+
+          let r = ray.Ray(ray.Point(0, 0, -3), ray.Vector(0, -Math.sqrt(2) / 2, Math.sqrt(2) / 2));
+          let points = new ray.Intersections();
+          points.add(new ray.Intersection(Math.sqrt(2), floor));
+          let comp = points.list[0].precompute(r, points);
+          let c = ray.Render.getColourFor(comp, 5);
+          ray.lowrez();
+          if (c.equals(ray.RGBColour(0.93391, 0.69643, 0.69243)) == false) return false;
+          ray.hirez();
+          return true;
+        }
+      };
+    }
   }
 
   ray.classlist.push(rCanvas);

@@ -1,4 +1,12 @@
 var ray = { classlist: [], stages: {} };
+ray.counts = {
+  touple: 0,
+  matrix: 0,
+  colour: 0,
+  ray: 0,
+  intersection: 0,
+  intersections: 0
+};
 
 importScripts("../engine/sort.js",
               "../engine/rMath.js",
