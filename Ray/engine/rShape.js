@@ -1004,8 +1004,8 @@
         name: "Check intersecting a capped cone",
         test: function ()
         {
-          let p = [ray.Point(1, 2, 0), ray.Point(0, 0, -0.25), ray.Point(0, 0, -0.25)];
-          let d = [ray.Vector(0, -1, 0), ray.Vector(0, 1, 1), ray.Vector(0, 1, 0)];
+          let p = [ray.Point(0, 0, -5), ray.Point(0, 0, -0.25), ray.Point(0, 0, -0.25)];
+          let d = [ray.Vector(0, 1, 0), ray.Vector(0, 1, 1), ray.Vector(0, 1, 0)];
           let h = [0, 2, 4];
           let c = new rCone();
           c.min = -1.5;
