@@ -69,23 +69,23 @@
       else if (m.isTouple && 4 == this.width)
       {
         let index = 0;
-        tmpTouple[0] = this.data[0] * m.x
+        tmpTouple0 = this.data[0] * m.x
                            + this.data[1] * m.y
                            + this.data[2] * m.z
                            + this.data[3] * m.w;
-        tmpTouple[1] = this.data[4] * m.x
+        tmpTouple1 = this.data[4] * m.x
                            + this.data[5] * m.y
                            + this.data[6] * m.z
                            + this.data[7] * m.w;
-        tmpTouple[2] = this.data[8] * m.x
+        tmpTouple2 = this.data[8] * m.x
                            + this.data[9] * m.y
                            + this.data[10] * m.z
                            + this.data[11] * m.w;
-        tmpTouple[3] = this.data[12] * m.x
+        tmpTouple3 = this.data[12] * m.x
                            + this.data[13] * m.y
                            + this.data[14] * m.z
                            + this.data[15] * m.w;
-        return ray.rawTouple(tmpTouple[0], tmpTouple[1], tmpTouple[2], tmpTouple[3]);
+        return ray.rawTouple(tmpTouple0, tmpTouple1, tmpTouple2, tmpTouple3);
       }
     }
 
@@ -972,7 +972,11 @@
     }
   }
 
-  var tmpTouple = new Array(4);
+  var tmpTouple0 = 0;
+  var tmpTouple1 = 0;
+  var tmpTouple2 = 0;
+  var tmpTouple3 = 0;
+//  var tmpTouple = new Array(4);
   var tmp2x2 = new rMatrix(2, 2, [0, 0, 0, 0]);
   var tmp3x3 = new rMatrix(3, 3, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
   var tmp4x4 = new rMatrix(4, 4, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);

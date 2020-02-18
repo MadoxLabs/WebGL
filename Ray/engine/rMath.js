@@ -128,10 +128,6 @@
     static subtract(t1, t2)
     {
       let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
-      if (ret == undefined)
-      {
-        let ret = makeTouple(t1.x, t1.y, t1.z, t1.w);
-      }
       return ret.minus(t2);
     }
 
@@ -594,7 +590,7 @@
     {
       let ret = this.pool[this.next++];
       if (!ret)
-        return null;
+        return new rTouple(x, y, z, w);
       if (this.next >= this.size) this.next = 0;
       ret.x = x;
       ret.y = y;

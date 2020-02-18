@@ -143,6 +143,7 @@
   {
     constructor()
     {
+      this.shadowDepth = 5;
     }
 
     lighting(material, object, light, point, eye, normal, shadowed)
@@ -189,7 +190,7 @@
     
     isShadowed(p, lightIndex, depth)
     {
-      if (depth == null) depth = 5;
+      if (depth == null) depth = this.shadowDepth;
       if (!depth) return 0;
 
       let light = ray.World.lights[lightIndex];
@@ -273,11 +274,11 @@
         let reflect = this.getReflectionFor(comp, depth);
         let refract = this.getRefractionFor(comp, depth);
 
-        let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, 0, 5) : 0;
+        let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, 0, this.shadowDepth) : 0;
         let colour = ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
         for (let l = 1; l < ray.World.lights.length; ++l)
         {
-          let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, l, 5) : 0;
+          let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, l, this.shadowDepth) : 0;
           colour.plus(ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[l], comp.overPoint, comp.eye, comp.normal, shadow));
         }
 

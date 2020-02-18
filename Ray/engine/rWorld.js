@@ -174,6 +174,7 @@
 
     parseRenderOptions(data)
     {
+      if (data.shadowDepth != null) ray.Render.shadowDepth = ((data.shadowDepth < 1) ? 1 : data.shadowDepth);
       if (data.lighting != null) this.options.lighting = data.lighting;
       if (data.antialias != null) this.options.antialias = data.antialias;
       if (data.shadowing != null) this.options.shadowing = data.shadowing;

@@ -4,8 +4,8 @@
   {
     constructor(o, d)
     {
-      this.origin = o;
-      this.direction = d;
+      this.origin = o ? o.copy() : o;
+      this.direction = d ? d.copy() : d;
 //      if (o.isPoint == false) throw "origin not a point";
 //      if (d.isVector == false) throw "direction not a vector";
       this.isRay = true;
@@ -256,7 +256,40 @@
         }
       };
     }
+  }
 
+  class rLink
+  {
+    static last = null;
+
+    constructor(data)
+    {
+      this.data = data;
+      this.next = null;
+      if (!rLink.last) rLink.last = this;
+    }
+
+    contains(id)
+    {
+      if (!this.next) return null;
+      if (this.next.data.id == id) return this;
+      return this.next.contains(id);
+    }
+
+    add(data)
+    {
+      if (!this.next)
+      {
+        this.next = new rLink(data);
+        rLink.last = this.next;
+      }
+    }
+
+    removeNext()
+    {
+      if (this.next) this.next = this.next.next;
+      if (!this.next) rLink.last = this;
+    }
   }
 
   class rIntersection
@@ -292,37 +325,31 @@
       ret.overPoint = ret.point.copy().plus(scaleNormal);
       ret.underPoint = ret.point.copy().minus(scaleNormal);
 
-      let containers = [];
-      let included = {};
-      for (let i = 0; i < points.num; ++i)
+      // find refractive index of exiting material (n1) and entering material (n2)
+      rLink.last = null;
+      let containers = new rLink(null); // objects entered, not yet exited - start with nothing
+      for (let i = 0; i < points.num; ++i) // loop over all intersections
       {
         let p = points.list[i];
-        if (p.id == this.id)
+        if (p.id == this.id) // we reached the hit point, we are done
         {
-          if (containers.length == 0) ret.n1 = 1.0;
-          else ret.n1 = containers[containers.length - 1].material.refraction;
+          if (!rLink.last.data) ret.n1 = 1.0;  // exiting nothing, use 1 (air)
+          else ret.n1 = rLink.last.data.material.refraction; // get exit value from last material
         }
-        if (included[p.object.id])
+        let c = containers.contains(p.object.id);
+        if (c) // material already entered, we are exiting it
         {
-          for (let j = 0; j < containers.length; ++j)
-          {
-            if (containers[j].id == p.object.id) 
-            {
-              containers.splice(j, 1);
-              break;
-            }
-          }
-          included[p.object.id] = false;
+          c.removeNext();
         }
-        else
+        else // entering the material
         {
-          containers.push(p.object);
-          included[p.object.id] = true;
+          rLink.last.add(p.object)
         }
-        if (p.id == this.id)
+
+        if (p.id == this.id) // reached the hit point, list has been updated to account for enter/exit so... 
         {
-          if (containers.length == 0) ret.n2 = 1.0;
-          else ret.n2 = containers[containers.length - 1].material.refraction;
+          if (!rLink.last.data) ret.n2 = 1.0;// entering nothing, use 1
+          else ret.n2 = rLink.last.data.material.refraction; // entering the last material in list
           break;
         }
       }

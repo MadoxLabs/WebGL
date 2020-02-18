@@ -193,7 +193,7 @@
   {
     constructor(p, c)
     {
-      this.position = p;
+      this.position = p.copy();
       this.colour = c;
       this.intensityDiffuse = 1.0;
       this.intensityAmbient = 1.0;
