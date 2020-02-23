@@ -83,12 +83,14 @@ struct LightData
 
 layout(std140) uniform Lights  // materials
 {
-  LightData data[2];
+  float numLights;
+  LightData data[-NUM-LIGHTS-];
 } lights;
 
 layout(std140) uniform Materials  // materials
 {
-  Material data[1];
+  float numMaterials;
+  Material data[-NUM-MATERIALS-];
 } materials;
 
 layout(std140) uniform PerScene  // perscene
@@ -99,7 +101,7 @@ layout(std140) uniform PerScene  // perscene
 layout(std140) uniform Objects // objects
 {
   float numObjects;
-  ObjectData data[1];
+  ObjectData data[-NUM-OBJECTS-];
 } objects;
 
 struct Camera

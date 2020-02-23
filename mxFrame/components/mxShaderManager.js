@@ -396,10 +396,11 @@
 
     // make a shader
     var s = { VS: common + vertex, PS: common + pixel };
+    if (Game.fixShader) Game.fixShader(s);
     this.sources[name] = s;
 
-    var vertexShader = this.compileVertexShader(name, common + vertex);
-    var fragmentShader = this.compilePixelShader(name, common + pixel);
+    var vertexShader = this.compileVertexShader(name, s.VS);
+    var fragmentShader = this.compilePixelShader(name, s.PS);
 
     var shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
