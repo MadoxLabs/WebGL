@@ -83,7 +83,7 @@ struct LightData
 
 layout(std140) uniform Lights  // materials
 {
-  LightData data[1];
+  LightData data[2];
 } lights;
 
 layout(std140) uniform Materials  // materials
@@ -307,9 +307,10 @@ vec4 castRay(Ray ray)
   if (getHit() == false)
     return vec4(0.05, 0.05, 0.05, 1.0);
 
-  // one light
+  // two lights
   vec4 p = ray.origin + (ray.direction * hit.length);
-  return lighting(int(objects.data[hit.object].material), 0, p, -ray.direction, getNormal(hit.object, p));
+  vec4 ret = lighting(int(objects.data[hit.object].material), 0, p, -ray.direction, getNormal(hit.object, p));
+  return ret + lighting(int(objects.data[hit.object].material), 1, p, -ray.direction, getNormal(hit.object, p));
 }
 
 void main(void) 

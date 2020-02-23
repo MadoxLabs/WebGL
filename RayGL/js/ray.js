@@ -58,25 +58,30 @@ var camera = new Float32Array([
   800, // width
   Math.PI * 0.5, // fov
   1.0, // focal length
-  0.0, 0.0, -5.0, 0.0, // from 
+  0.0, 0.0, -2.5, 0.0, // from 
   0.0, 0.0, 0.0, 0.0, // to
   0.0, 1.0, 0.0, 0.0  // up
 ]);
 
 var materials = new Float32Array([
-  0.25, 0.9, 0.9, 200.0,
-  1.0, 0.0, 0.0, 1.0
+  0.2, 0.9, 0.9, 50.0,
+  1.0, 0.2, 0.2, 1.0
 ]);
 
 var lights = new Float32Array([
   -10.0, -10.0, -10.0, 1.0, // pos
   1.0, 1.0, 1.0, 1.0,      // colour 
   1.0, 0.0, 0.0, 0.0,      // attentuation
+  1.0, 1.0, 1.0, 0.0,       // intensities
+
+  10.0, -10.0, -10.0, 1.0, // pos
+  0.0000001, 0.0, 1.0, 1.0,      // colour 
+  1.0, 0.0, 0.0, 0.0,      // attentuation
   1.0, 1.0, 1.0, 0.0       // intensities
 ]);
 
 var objects = new Float32Array([
-  255.0, 0.0, 0.0, 0.0, // num p    p p
+  1.0, 0.0, 0.0, 0.0, // num p    p p
   255.0, 255.0, 0.0, 0.0, // id  type matieral p
   1.0, 0.0, 0.0, 0.0, // transform
   0.0, 1.0, 0.0, 0.0,
