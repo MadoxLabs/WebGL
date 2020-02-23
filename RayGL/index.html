@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>MadoxLabs Shader Ray Tracer </title>
+    <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
+    <script src="../mxFrame/mxFrame.js"></script>
+    <script>
+      let assets = {};
+      function reportBootup(value)
+      {
+        var out = document.getElementById("loading");
+        out.innerHTML = "MadoxLabs Shader Ray Tracer<br>Booting up: " + value;
+      }
+      function reportLoaded(name, value)
+      {
+        var out = document.getElementById("loading");
+        delete assets["<br>" +name];
+        out.innerHTML = "MadoxLabs Shader Ray Tracer<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
+      }
+      function reportLoading(name, value)
+      {
+        var out = document.getElementById("loading");
+        assets["<br>"+name] = 1;
+        out.innerHTML = "MadoxLabs Shader Ray Tracer<br>Loading: " + value + " assets to go...<br><br><font color=#555 size=2>" + Object.keys(assets).toString();
+      }
+      function doneLoading()
+      {
+        document.getElementById("loading").style.visibility = "hidden";
+      }
+    </script>
+  </head>
+  <body style="margin:0;padding:0;" onload="mx.loadApp(['js/ray.js'], '../mxFrame', mx.WITH_MXFRAME);">
+    <div><canvas id='surface'></canvas></div>
+    <div id="loading">MadoxLabs Shader Ray Tracer<br />Booting up:</div>
+  </body>
+</html>
