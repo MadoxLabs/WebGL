@@ -19,7 +19,7 @@ function Vector(x, y, z) { return new Touple(x, y, z, 0.0); }
 
 class Camera
 {
-  constructor(h,w,fov)
+  constructor(w,h,fov)
   {
     this.height = h;
     this.width = w;
