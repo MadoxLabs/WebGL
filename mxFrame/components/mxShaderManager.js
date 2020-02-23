@@ -395,12 +395,25 @@
     if (vertex.length == 0 && pixel.length == 0) return;
 
     // make a shader
-    var s = { VS: common + vertex, PS: common + pixel };
+    var s = { name: name, VS: common + vertex, PS: common + pixel, src: src, usestate: usestate };
     if (Game.fixShader) Game.fixShader(s);
     this.sources[name] = s;
 
-    var vertexShader = this.compileVertexShader(name, s.VS);
-    var fragmentShader = this.compilePixelShader(name, s.PS);
+    this.compile(s);
+  }
+
+  ShaderManager.prototype.recompile = function (name)
+  {
+    let s = this.sources[name];
+    if (!s) return;
+    if (Game.fixShader) Game.fixShader(s);
+    this.compile(s);
+  }
+
+  ShaderManager.prototype.compile = function (s)
+  {
+    var vertexShader = this.compileVertexShader(s.name, s.VS);
+    var fragmentShader = this.compilePixelShader(s.name, s.PS);
 
     var shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
@@ -414,7 +427,7 @@
     //
     // turn on all the attributes and create properties for each
 
-    if (usestate) shader.renderstate = this.renderstates[usestate];
+    if (s.usestate) shader.renderstate = this.renderstates[s.usestate];
     var numAttribs = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
     var numUniforms = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
 
@@ -428,7 +441,7 @@
       shader.attributes[i] = new mx.ShaderAttribute(uniformSizes[info.type - 0x8b50], uniformTypes[info.type - 0x8b50]);// convert uniform type to data type
       if (info.name.indexOf("Instance") == -1) shader.stride += uniformByteSizes[info.type - 0x8b50];
 
-      var code = this.findCode(src, info.name);
+      var code = this.findCode(s.src, info.name);
       if (!code) alert("missing code for " + info.name);
       shader.attributes[code] = shader.namesInt[info.name];
     }
@@ -451,10 +464,10 @@
         shader.textures[t] = new mx.ShaderTexture();
         shader.textures[t].name = info.name;
         shader.textures[t].loc = gl.getUniformLocation(shaderProgram, info.name);
-        shader.textures[t].mag = this.findTexParam(src, info.name, 'mag', gl.LINEAR);
-        shader.textures[t].min = this.findTexParam(src, info.name, 'min', gl.NEAREST_MIPMAP_LINEAR);
-        shader.textures[t].wraps = this.findTexParam(src, info.name, 'wrapu', gl.REPEAT);
-        shader.textures[t].wrapt = this.findTexParam(src, info.name, 'wrapv', gl.REPEAT);
+        shader.textures[t].mag = this.findTexParam(s.src, info.name, 'mag', gl.LINEAR);
+        shader.textures[t].min = this.findTexParam(s.src, info.name, 'min', gl.NEAREST_MIPMAP_LINEAR);
+        shader.textures[t].wraps = this.findTexParam(s.src, info.name, 'wrapu', gl.REPEAT);
+        shader.textures[t].wrapt = this.findTexParam(s.src, info.name, 'wrapv', gl.REPEAT);
         shader.namesInt[info.name] = t;
         t += 1;
       }
@@ -476,12 +489,12 @@
       else
       {
         shader.names[info.name] = new mx.ShaderUniformLocation(gl.getUniformLocation(shaderProgram, info.name), info.type);
-        shader.uniforms[u] = new mx.ShaderUniform(info.name, this.findParam(src, info.name, 'group', ''));
+        shader.uniforms[u] = new mx.ShaderUniform(info.name, this.findParam(s.src, info.name, 'group', ''));
         u += 1;
       }
     }
 
-    this.shaders[name] = shader;
+    this.shaders[s.name] = shader;
   }
 
   ShaderManager.prototype.enableUniformBuffer = function (buffer, location, obj)

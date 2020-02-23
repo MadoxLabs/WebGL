@@ -5,55 +5,57 @@ var Game = mx.Game;
 Game.appWebGL = function() { return 2; }
 
 Game.appInit = function ()
-{ 
-  let setup = {
-    cameras: [
+{
+  document.getElementById("code").value = `
+  {
+    "cameras": [
       {
-        name: "main",
-        width: 800,
-        height: 600,
-        fov: Math.PI * 0.5,
-        from: [0, 0, -2.5],
-        to: [0, 0, 0],
-        up: [0, 1, 0]
+        "name": "main",
+        "width": 800,
+        "height": 600,
+        "fov": 1.57,
+        "from": [0, 0, -2.5],
+        "to": [0, 0, 0],
+        "up": [0, 1, 0]
       }
     ],
-    materials: [
+    "materials": [
       {
-        name: "ball",
-        shininess: 50,
-        colour: [1, 0.2, 0.2]
+        "name": "ball",
+        "shininess": 50,
+        "colour": [1, 0.2, 0.2]
       }
     ],
-    transforms: [
+    "transforms": [
       {
-        name: "ball",
-        series: [{ type: "T", value: [0, 0, 0] }]
+        "name": "ball",
+        "series": [{ "type": "T", "value": [0, 0, 0] }]
       }
     ],
-    lights: [
+    "lights": [
       {
-        type: "pointlight",
-        position: [10, -10, -10],
-        colour: [0, 0, 1],
+        "type": "pointlight",
+        "position": [10, -10, -10],
+        "colour": [0, 0, 1]
       },
       {
-        type: "pointlight",
-        position: [-10, -10, -10],
-        colour: [1, 1, 1],
+        "type": "pointlight",
+        "position": [-10, -10, -10],
+        "colour": [1, 1, 1]
       }
     ],
-    objects: [
+    "objects": [
       {
-        type: "sphere",
-        transform: "ball",
-        material: "ball"
+        "type": "sphere",
+        "transform": "ball",
+        "material": "ball"
       }
     ]
-  };
+  }`;
 
+  Game.resetNeeded = false;
   Game.World = new World();
-  Game.World.loadFromJSON(setup);
+  Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
 
   Game.webgl2 = true;
   Game.textureLocation = "assets/"  // autoloaded textures live here
@@ -65,6 +67,12 @@ Game.appInit = function ()
   //Game.loadShaderFile("assets/partRenderstates.fx");
   // SHADERS that include the parts
   Game.loadShaderFile("assets/fsqtest.fx");
+}
+
+Game.loadJSON = function()
+{
+  Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
+  Game.resetNeeded = true;
 }
 
 Game.deviceReady = function ()
@@ -88,6 +96,10 @@ Game.loadingStop = function ()
 
 Game.fixShader = function(s)
 {
+  if (!s.VSorig) s.VSorig = s.VS;
+  else           s.VS = s.VSorig;
+  if (!s.PSorig) s.PSorig = s.PS;
+  else           s.PS = s.PSorig;
   s.VS = s.VS.replace(/-NUM-OBJECTS-/g, "" + Game.World.numObjects());
   s.VS = s.VS.replace(/-NUM-LIGHTS-/g, "" + Game.World.numLights());
   s.VS = s.VS.replace(/-NUM-MATERIALS-/g, "" + Game.World.numMaterials());
@@ -104,6 +116,12 @@ Game.appUpdate = function ()
 {
   if (Game.loading) return;
   if (!Game.camera) return;
+
+  if (Game.resetNeeded)
+  {
+    Game.shaderMan.recompile("fsqtest");
+    Game.resetNeeded = false;
+  }
 
   let p = Game.World.lights[1].position.x;
   p += diff;

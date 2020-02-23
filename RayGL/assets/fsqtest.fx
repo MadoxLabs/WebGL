@@ -306,13 +306,16 @@ vec4 lighting(int mIndex, int lIndex, vec4 p, vec4 eye, vec4 n)
 vec4 castRay(Ray ray)
 {
   intersect(ray);
-  if (getHit() == false)
-    return vec4(0.05, 0.05, 0.05, 1.0);
+  if (getHit() == false) return vec4(0.05, 0.05, 0.05, 1.0);
 
   // two lights
   vec4 p = ray.origin + (ray.direction * hit.length);
-  vec4 ret = lighting(int(objects.data[hit.object].material), 0, p, -ray.direction, getNormal(hit.object, p));
-  return ret + lighting(int(objects.data[hit.object].material), 1, p, -ray.direction, getNormal(hit.object, p));
+  vec4 ret = vec4(0.0);
+  for (int i = 0; float(i) < lights.numLights; ++i)
+  {
+    ret += lighting(int(objects.data[hit.object].material), i, p, -ray.direction, getNormal(hit.object, p));
+  }
+    return ret;
 }
 
 void main(void) 

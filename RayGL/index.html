@@ -29,7 +29,20 @@
     </script>
   </head>
   <body style="margin:0;padding:0;" onload="mx.loadApp(['js/matrix.js', 'js/parser.js', 'js/ray.js'], '../mxFrame', mx.WITH_MXFRAME);">
-    <div><canvas id='surface'></canvas></div>
-    <div id="loading">MadoxLabs Shader Ray Tracer<br />Booting up:</div>
+
+    <p>Madoxlabs GLSL Ray Tracer</p>
+    <div id="loading">Booting up:</div>
+    <table>
+      <tr>
+        <td>
+          <div><canvas id='surface'></div>
+        </td>
+        <td>
+          <textarea id="code"></textarea>
+          <br>
+          <button id="render" onClick="Game.loadJSON()">Render</button>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
