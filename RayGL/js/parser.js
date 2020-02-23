@@ -120,6 +120,78 @@ class Sphere extends Shape
   }
 }
 
+class Cube extends Shape
+{
+  constructor()
+  {
+    super();
+    this.type = 3;
+  }
+}
+
+class Cylinder extends Shape
+{
+  constructor()
+  {
+    super();
+    this.type = 4;
+    this.min = -Infinity;
+    this.max = Infinity;
+    this.closed = false;
+  }
+
+  fromJSON(def)
+  {
+    super.fromJSON(def);
+    if (def.min != null) { this.limits = true; this.min = def.min; }
+    if (def.max != null) { this.limits = true; this.max = def.max; }
+    if (def.closed != null) { this.closed = def.closed ? true : false; }
+  }
+}
+
+class Cone extends Shape
+{
+  constructor()
+  {
+    super();
+    this.type = 5;
+    this.min = -Infinity;
+    this.max = Infinity;
+    this.closed = false;
+  }
+
+  fromJSON(def)
+  {
+    super.fromJSON(def);
+    if (def.min != null) { this.limits = true; this.min = def.min; }
+    if (def.max != null) { this.limits = true; this.max = def.max; }
+    if (def.closed != null) { this.closed = def.closed ? true : false; }
+  }
+}
+
+class Plane extends Shape
+{
+  constructor()
+  {
+    super();
+    this.type = 2;
+    this.limits = false;
+    this.xMin = 0;
+    this.xMax = 0;
+    this.yMin = 0;
+    this.yMax = 0;
+  }
+
+  fromJSON(def)
+  {
+    super.fromJSON(def);
+    if (def.xMin != null) { this.limits = true; this.xMin = def.xMin; }
+    if (def.xMax != null) { this.limits = true; this.xMax = def.xMax; }
+    if (def.yMin != null) { this.limits = true; this.yMin = def.yMin; }
+    if (def.yMax != null) { this.limits = true; this.yMax = def.yMax; }
+  }
+}
+
 class World
 {
   constructor()
@@ -230,7 +302,7 @@ class World
   getObjectBuffer()
   {
     let header = 4;
-    let datasize = 20;
+    let datasize = 24;
     let num = this.objects.length;
     let data = new Float32Array(num * datasize + header);
 
@@ -246,7 +318,34 @@ class World
       data[index++] = obj.id;
       data[index++] = obj.type;
       data[index++] = this.getMaterialNumber(obj.material);
-      data[index++] = 0.0;
+      switch (obj.type)
+      {
+        case 0:
+        case 1:
+        case 3:
+          data[index++] = 0.0;
+          data[index++] = 0.0;
+          data[index++] = 0.0;
+          data[index++] = 0.0;
+          data[index++] = 0.0;
+          break;
+        case 2:
+          data[index++] = obj.limits ? 1.0 : 0.0;
+          data[index++] = obj.xMin;
+          data[index++] = obj.xMax;
+          data[index++] = obj.yMin;
+          data[index++] = obj.yMax;
+          break;
+        case 4:
+        case 5:
+          data[index++] = obj.closed ? 1.0 : 0.0;
+          data[index++] = obj.min;
+          data[index++] = obj.max;
+          data[index++] = 0.0;
+          data[index++] = 0.0;
+          break;
+      }
+
       data[index++] = obj.transform.data[0];
       data[index++] = obj.transform.data[4];
       data[index++] = obj.transform.data[8];
@@ -437,32 +536,30 @@ class World
         obj.fromJSON(data[i]);
         this.objects.push(obj);
       }
-      /*
       else if (data[i].type == "plane")
       {
-        let obj = new ray.Plane();
+        let obj = new Plane();
         obj.fromJSON(data[i]);
         this.objects.push(obj);
       }
       else if (data[i].type == "cube")
       {
-        let obj = new ray.Cube();
+        let obj = new Cube();
         obj.fromJSON(data[i]);
         this.objects.push(obj);
       }
       else if (data[i].type == "cylinder")
       {
-        let obj = new ray.Cylinder();
+        let obj = new Cylinder();
         obj.fromJSON(data[i]);
         this.objects.push(obj);
       }
       else if (data[i].type == "cone")
       {
-        let obj = new ray.Cone();
+        let obj = new Cone();
         obj.fromJSON(data[i]);
         this.objects.push(obj);
       }
-      */
     }
   }
 }

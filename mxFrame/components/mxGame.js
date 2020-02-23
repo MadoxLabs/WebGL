@@ -496,6 +496,7 @@ var gl; // leave this global for quick access
 
   function handleKeyDown(event)
   {
+    if (event.target.type) return;
     // space and arrow keys dont scroll
     if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1) event.preventDefault();
     if ([90].indexOf(event.keyCode) > -1) adjust += 1;
@@ -509,6 +510,7 @@ var gl; // leave this global for quick access
 
   function handleKeyUp(event)
   {
+    if (event.target.type) return;
     Game.appHandleKeyUp(event);
   }
 

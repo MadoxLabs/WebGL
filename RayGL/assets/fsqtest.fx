@@ -59,6 +59,8 @@ struct ObjectData
   float id;
   float type;
   float material;
+  float extra1;
+  vec4 extra2;
   mat4  transform;
 };
 

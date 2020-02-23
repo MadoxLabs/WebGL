@@ -59,14 +59,21 @@ Game.appInit = function ()
 
   Game.webgl2 = true;
   Game.textureLocation = "assets/"  // autoloaded textures live here
-  // MODELS
-  //Game.loadMeshPNG("light2", "assets/light2.model");
-  // TEXTURES
-  //Game.loadTextureFile("button2tex", "button2tex.png", true);
   // SHADER PARTS to be included
-  //Game.loadShaderFile("assets/partRenderstates.fx");
+  Game.loadShaderFile("assets/partCommon.fx");
+  Game.loadShaderFile("assets/partNoBlend.fx");
+  Game.loadShaderFile("assets/partFSQHandler.fx");
+  Game.loadShaderFile("assets/partDataDef.fx");
+  Game.loadShaderFile("assets/partCasting.fx");
+  Game.loadShaderFile("assets/partSphere.fx");
+  Game.loadShaderFile("assets/partPlane.fx");
+  Game.loadShaderFile("assets/partCube.fx");
+  Game.loadShaderFile("assets/partCylinder.fx");
+  Game.loadShaderFile("assets/partCone.fx");
+  Game.loadShaderFile("assets/partLighting.fx");
+  Game.loadShaderFile("assets/partCamera.fx");
   // SHADERS that include the parts
-  Game.loadShaderFile("assets/fsqtest.fx");
+  Game.loadShaderFile("assets/ray.fx");
 }
 
 Game.loadJSON = function()
@@ -119,7 +126,7 @@ Game.appUpdate = function ()
 
   if (Game.resetNeeded)
   {
-    Game.shaderMan.recompile("fsqtest");
+    Game.shaderMan.recompile("Ray");
     Game.resetNeeded = false;
   }
 
@@ -145,7 +152,7 @@ Game.appDraw = function (eye)
 {
   if (!Game.ready || Game.loading) return;
 
-  var effect = Game.shaderMan.shaders["fsqtest"];
+  var effect = Game.shaderMan.shaders["Ray"];
   effect.bind();
   effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
   effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
