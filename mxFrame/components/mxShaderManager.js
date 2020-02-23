@@ -192,25 +192,25 @@
   //                     gl.FLOAT, gl.FLOAT, gl.FLOAT, 
   //                     0,0];
 
-  ShaderManager.prototype.compileVertexShader = function (src)
+  ShaderManager.prototype.compileVertexShader = function (name, src)
   {
     var shader = gl.createShader(gl.VERTEX_SHADER);
 
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { alert(gl.getShaderInfoLog(shader)); return null; }
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { alert("Vertex shader: "+name + "\n" + gl.getShaderInfoLog(shader)); return null; }
     return shader;
   }
 
-  ShaderManager.prototype.compilePixelShader = function (src)
+  ShaderManager.prototype.compilePixelShader = function (name, src)
   {
     var shader = gl.createShader(gl.FRAGMENT_SHADER);
 
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { alert(gl.getShaderInfoLog(shader)); return null; }
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { alert("Pixel shader: " +name + "\n" +gl.getShaderInfoLog(shader)); return null; }
     return shader;
   }
 
@@ -240,7 +240,9 @@
     var start = 0;
     for (var i = 0; i < 100; ++i)
     {
-      var line = src.indexOf("attribute", start); if (line == -1) return code;
+      var line = src.indexOf("attribute", start);
+      if (line == -1) line = src.indexOf("in ", start);
+      if (line == -1) return code;
       var end = src.indexOf("\n", line); if (end == -1) return code;
       var loc = src.indexOf(name, line); if (loc == -1) return code;
       if (loc > end) { start = end; continue; }
@@ -362,7 +364,6 @@
         src = newsrc; // do it again
       }
 
-//      this.processEffect("[COMMON]\n#version 300 es\n// SHADER NAME: " + name + "\n[END]\n" + src);
       this.processEffect("[COMMON]\n// SHADER NAME: " + name + "\n[END]\n" + src);
       gl.flush();
     }
@@ -373,11 +374,16 @@
     var name = this.extractShaderPart(src, "[NAME]").trim();
     if (!name) return;
 
+    var type = this.extractShaderPart(src, "[TYPE]").trim();
+    if (!type || !Game.appWebGL || Game.appWebGL() != 2) type = "ES1.0";
+
     var vertex = this.extractShaderPart(src, "[VERTEX]");
     var pixel = this.extractShaderPart(src, "[PIXEL]");
     var common = this.extractShaderPart(src, "[COMMON]");
     var usestate = this.extractShaderPart(src, "[APPLY]").trim();
     var renderstates = this.processRenderStates(this.extractShaderPart(src, "[RENDERSTATE]"));
+
+    if (type == "ES3.0") common = "#version 300 es\n" + common;
 
     // save renderstates
     for (var n in renderstates)
@@ -392,15 +398,15 @@
     var s = { VS: common + vertex, PS: common + pixel };
     this.sources[name] = s;
 
-    var vertexShader = this.compileVertexShader(common + vertex);
-    var fragmentShader = this.compilePixelShader(common + pixel);
+    var vertexShader = this.compileVertexShader(name, common + vertex);
+    var fragmentShader = this.compilePixelShader(name, common + pixel);
 
     var shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
 
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) { alert("Could not initialise shaders"); }
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) { alert("Could not initialise shaders\n" + gl.getProgramInfoLog(shaderProgram)); }
 
     var shader = new mx.Shader(shaderProgram);
 
@@ -432,6 +438,8 @@
 
     var u = 0;
     var t = 0;
+    var ub = 0;
+
     for (var i = 0; i < numUniforms; ++i)
     {
       var info = gl.getActiveUniform(shaderProgram, i);
@@ -449,6 +457,21 @@
         shader.namesInt[info.name] = t;
         t += 1;
       }
+      else if (Game.appWebGL && Game.appWebGL() == 2 && info.name.indexOf(".") != -1)
+      {
+        let bufname = info.name.substr(0, info.name.indexOf("."));
+        if (!shader.names[bufname])
+        {
+          var uniformIndices = gl.getUniformIndices(shaderProgram, [bufname]);
+
+          let location = gl.getUniformBlockIndex(shaderProgram, bufname);
+          shader.names[bufname] = new mx.ShaderUniformLocation(location, gl.UNIFORM_BUFFER);
+          gl.uniformBlockBinding(shaderProgram, location, ub);
+          shader.uniformbuffers[bufname] = new mx.ShaderUniformBuffer(bufname, ub);
+          u += 1;
+          ub += 1;
+        }
+      }
       else
       {
         shader.names[info.name] = new mx.ShaderUniformLocation(gl.getUniformLocation(shaderProgram, info.name), info.type);
@@ -460,6 +483,14 @@
     this.shaders[name] = shader;
   }
 
+  ShaderManager.prototype.enableUniformBuffer = function (buffer, location, obj)
+  {
+    if (!buffer.buffer) buffer.buffer = gl.createBuffer();
+    gl.bindBuffer(gl.UNIFORM_BUFFER, buffer.buffer);
+    gl.bufferData(gl.UNIFORM_BUFFER, obj, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+  }
+  
   mx.RenderState = RenderState;
   mx.ShaderManager = ShaderManager;
 })();

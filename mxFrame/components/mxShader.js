@@ -18,6 +18,13 @@
     this.group = group;
   }
 
+  function ShaderUniformBuffer(name, binding)
+  {
+    this.binding = binding;
+    this.name = name;
+    this.buffer = null;
+  }
+
   function ShaderUniformLocation(loc, type)
   {
     this.loc = loc;
@@ -38,6 +45,7 @@
     this.namesInt = {};
     this.textures = [];
     this.uniforms = [];
+    this.uniformbuffers = [];
     this.renderstate = null;
     this.stride = 0;
   }
@@ -145,6 +153,11 @@
       mx.Game.shaderMan.enableUniform(name, this.names[name], vals[name]);
   }
 
+  Shader.prototype.setUniformBuffer = function (name, obj)
+  {
+    mx.Game.shaderMan.enableUniformBuffer(this.uniformbuffers[name], this.names[name], obj);
+  }
+
   Shader.prototype.createUniform = function (group)
   {
     var ret = {};
@@ -179,11 +192,13 @@
       for (var p = 0; p < group.parts.length; ++p)
       {
         var part = group.parts[p];
-        
-        if (anim)
+
+        if (anim && Object.keys(anim))
         {
           for (var a in anim)
           {
+            if (anim[a].playing == false) continue;
+
             // mat4.copy(part.uniforms.localTransform, part.uniforms.defaultTransform);
             for (var l in mesh.animations[anim[a].index].layers)
             {
@@ -199,6 +214,12 @@
         else
         {
           mat4.multiply(part.uniforms.localTransform, mesh.worldTransform, part.uniforms.defaultTransform);
+        }
+
+        for (let n in this.uniformbuffers)
+        {
+          let ub = this.uniformbuffers[n];
+          gl.bindBufferBase(gl.UNIFORM_BUFFER, ub.binding, ub.buffer);
         }
 
         this.setUniforms(part.uniforms);
@@ -223,6 +244,7 @@
 
   mx.ShaderTexture = ShaderTexture;
   mx.ShaderUniform = ShaderUniform;
+  mx.ShaderUniformBuffer = ShaderUniformBuffer;
   mx.ShaderUniformLocation = ShaderUniformLocation;
   mx.ShaderAttribute = ShaderAttribute;
   mx.Shader = Shader;
