@@ -10,9 +10,9 @@ struct CameraData
   float width;
   float fov;
   float focalLength;
-  vec3 from;
-  vec3 to;
-  vec3 up;
+  vec4 from;
+  vec4 to;
+  vec4 up;
 };
 
 struct ObjectData
@@ -38,7 +38,7 @@ struct LightData
 {
   vec4 position;
   vec4 colour;
-  vec3 attenuation;
+  vec4 attenuation;
   float intensityAmbient;
   float intensityDiffuse;
   float intensitySpecular;

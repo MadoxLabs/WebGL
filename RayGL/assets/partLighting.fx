@@ -23,7 +23,7 @@ vec4 getNormal(int oIndex, vec4 p)
 vec4 lighting(int mIndex, int lIndex, vec4 p, vec4 eye, vec4 n)
 {
   vec4 effectiveColour = materials.data[mIndex].colour * lights.data[lIndex].colour;
-  vec4 ambient = effectiveColour * lights.data[lIndex].intensityAmbient * materials.data[mIndex].ambient;
+  vec4 ambient = effectiveColour * lights.data[lIndex].intensityAmbient *materials.data[mIndex].ambient;
   vec4 toLight = lights.data[lIndex].position - p;
   float distance = length(toLight);
   float attenuation = lights.data[lIndex].attenuation[0] + lights.data[lIndex].attenuation[1] * distance + lights.data[lIndex].attenuation[2] * distance * distance;
@@ -44,7 +44,7 @@ vec4 lighting(int mIndex, int lIndex, vec4 p, vec4 eye, vec4 n)
       specular = lights.data[lIndex].colour * materials.data[mIndex].specular * factor;
     }
   }
-  return (ambient + diffuse + specular) * (1.0 / attenuation);
+  return (ambient + diffuse + specular) * (1.0 / attenuation );
 }
 
 [END]

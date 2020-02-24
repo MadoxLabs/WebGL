@@ -18,3 +18,8 @@ body {
   position: absolute;
   top: 0px;
 }
+
+#code {
+  height: 500;
+  width:400;
+}

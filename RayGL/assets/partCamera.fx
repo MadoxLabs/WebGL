@@ -19,7 +19,7 @@ struct Camera
 
 void initCamera(CameraData data)
 {
-  vec3 forward = normalize(data.to - data.from);
+  vec3 forward = vec3(normalize(data.to - data.from));
   vec3 left = cross(forward, vec3(normalize(data.up)));
   vec3 up = cross(left, forward);
   mat4 translate = mat4(1.0, 0.0, 0.0, 0.0,
