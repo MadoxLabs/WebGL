@@ -226,6 +226,7 @@ Game.fixShader = function(s)
 // GAME UPDATES
 
 var diff = 0.5;
+var set = false;
 
 Game.appUpdate = function ()
 {
@@ -236,6 +237,7 @@ Game.appUpdate = function ()
   {
     Game.shaderMan.recompile("Ray");
     Game.resetNeeded = false;
+    set = false;
   }
 
   let p = Game.World.lights[1].position.x;
@@ -262,9 +264,13 @@ Game.appDraw = function (eye)
 
   var effect = Game.shaderMan.shaders["Ray"];
   effect.bind();
-  effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
-  effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
-  effect.setUniformBuffer("Materials", Game.World.getMaterialBuffer());
+  if (!set)
+  {
+    effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
+    effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
+    effect.setUniformBuffer("Materials", Game.World.getMaterialBuffer());
+    set = true;
+  }
   effect.setUniformBuffer("Lights", Game.World.getLightBuffer());
   effect.draw(Game.assetMan.assets["fsq"]);
 }

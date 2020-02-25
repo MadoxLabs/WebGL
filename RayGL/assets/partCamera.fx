@@ -21,7 +21,8 @@ void initCamera(CameraData data)
 {
   vec3 forward = vec3(normalize(data.to - data.from));
   vec3 left = cross(forward, vec3(normalize(data.up)));
-  vec3 up = cross(left, forward);
+//  vec3 up = cross(left, forward);
+  vec3 up = cross(forward, left);
   mat4 translate = mat4(1.0, 0.0, 0.0, 0.0,
                         0.0, 1.0, 0.0, 0.0,
                         0.0, 0.0, 1.0, 0.0,
