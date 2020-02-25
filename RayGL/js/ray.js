@@ -15,12 +15,12 @@ Game.appInit = function ()
   "cameras": [
     {
       "name": "main",
-      "width": 400,
-      "height": 400,
+      "width": 800,
+      "height": 800,
       "fov": 1.25,
       "from": [0, 2, -5],
       "to": [0, 1, 0],
-      "up": [0, -1, 0]
+      "up": [0, 1, 0]
     }
   ],
   "materials": [
