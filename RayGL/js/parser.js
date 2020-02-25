@@ -245,7 +245,7 @@ class World
     data[index++] = this.options.shadowDepth;
     data[index++] = this.options.maxReflections;
     data[index++] = 0.0; // pad
-    data[index++] = 0.0;
+    data[index++] = 0.0; 
     return data;
   }
 
