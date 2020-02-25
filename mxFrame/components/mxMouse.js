@@ -121,6 +121,7 @@
 
   Mouse.prototype.mouseWheel = function (e)
   {
+    if (event.target.type) return;
     e.preventDefault();
     var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
     this.wheel = delta;
