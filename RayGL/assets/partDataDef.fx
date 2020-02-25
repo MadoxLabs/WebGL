@@ -17,7 +17,7 @@ struct CameraData
 
 struct ObjectData
 {
-  float id;
+  float shadow;
   float type;
   float material;
   float extra1;
@@ -59,6 +59,8 @@ layout(std140) uniform Materials  // materials
 layout(std140) uniform PerScene  // perscene
 {
   CameraData camera;
+  float shadowDepth;
+  float maxReflections;
 } perScene;
 
 layout(std140) uniform Objects // objects
@@ -83,7 +85,23 @@ struct Ray
   vec4 direction;
 };
 
-float epsilon = 0.00001;
+struct HitData
+{
+  float length;
+  int object;
+  vec4 position;
+  vec4 normal;
+  vec4 eye;
+  bool inside;
+  vec4 reflect;
+  vec4 overPoint;
+  vec4 underPoint;
+};
+
+float epsilon = 0.0005;
 float Infinity = 3.402823466e+38;
+
+void intersect(in Ray ray);
+bool getHitSkipNoShadow();
 
 [END]

@@ -24,7 +24,7 @@ void main(void)
 {
   initCamera(perScene.camera);
   Ray ray = getRayAt(vTextureCoord.x, vTextureCoord.y, 0.5, 0.5);
-  outColor = castRay(ray);
+  outColor = castRay(ray, int(perScene.maxReflections));
 }
 
 [END]

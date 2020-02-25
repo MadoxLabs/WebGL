@@ -58,8 +58,22 @@ bool getHit()
   return false;
 }
 
+bool getHitSkipNoShadow()
+{
+  for (int i = 0; i < hitsize; i += 1)
+  {
+    if (hitlist[i].length >= 0.0 && objects.data[hitlist[i].object].shadow >= 1.0)
+    {
+      hit = hitlist[i];
+      return true;
+    }
+  }
+  return false;
+}
+
 void intersect(in Ray ray)
 {
+  hitsize = 0;
   for (int i = 0; float(i) < objects.numObjects; ++i)
   {
     // transform to object space
@@ -76,19 +90,40 @@ void intersect(in Ray ray)
   sortIntersections();
 }
 
-vec4 castRay(Ray ray)
+HitData precompute(Ray ray)
+{
+  if (hitsize == 0) {
+    hitsize = 1;
+    hitlist[0] = hit;
+  }
+
+  HitData ret;
+  ret.length = hit.length;
+  ret.object = hit.object;
+  ret.position = ray.direction * hit.length + ray.origin;
+  ret.normal = getNormal(hit.object, ret.position);
+  ret.eye = -ray.direction;
+  if (dot(ret.normal, ret.eye) < 0.0)
+  {
+    ret.inside = true;
+    ret.normal *= -1.0;
+  }
+  else
+  {
+    ret.inside = false;
+  }
+  vec4 scaleNormal = ret.normal * epsilon;
+  ret.reflect = reflect(ray.direction, ret.normal);
+  ret.overPoint = ret.position + scaleNormal;
+  ret.underPoint = ret.position - scaleNormal;
+  return ret;
+}
+
+vec4 castRay(Ray ray, int depth)
 {
   intersect(ray);
-  if (getHit() == false) return vec4(0.05, 0.05, 0.05, 1.0);
-
-  // two lights
-  vec4 p = ray.origin + (ray.direction * hit.length);
-  vec4 ret = vec4(0.0);
-  for (int i = 0; float(i) < lights.numLights; ++i)
-  {
-    ret += lighting(int(objects.data[hit.object].material), i, p, -ray.direction, getNormal(hit.object, p));
-  }
-    return ret;
+  if (getHit() == false) return vec4(0.0, 0.0, 0.0, 1.0);
+  return getColourFor(precompute(ray), depth);
 }
 
 [END]

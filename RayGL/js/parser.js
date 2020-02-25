@@ -75,8 +75,8 @@ class LightPoint
 
   fromJSON(def)
   {
-    if (null != def.position) this.position = Point(def.position[0], def.position[1], def.position[2]);
-    if (null != def.colour) this.colour = [def.colour[0], def.colour[1], def.colour[2], 1.0];
+//    if (null != def.position) this.position = new Point(def.position[0], def.position[1], def.position[2]);
+//    if (null != def.colour) this.colour = [def.colour[0], def.colour[1], def.colour[2], 1.0];
     if (null != def.intensityDiffuse) this.intensityDiffuse = def.intensityDiffuse;
     if (null != def.intensityAmbient) this.intensityAmbient = def.intensityAmbient;
     if (null != def.intensitySpecular) this.intensitySpecular = def.intensitySpecular;
@@ -98,10 +98,12 @@ class Shape
     this.type = 0;
     this.transform = Identity4x4;
     this.material = "default";
+    this.shadow = true;
   }
 
   fromJSON(def)
   {
+    if (def.shadow != null) { this.shadow = def.shadow; }
     if (def.material && Game.World.materials[def.material]) this.material = def.material;
     if (def.transform)
     {
@@ -208,8 +210,6 @@ class World
     this.lights = [];
     this.cameras = {};
     this.options = {
-      lighting: true,
-      shadowing: true,
       antialias: 0,
       shadowDepth: 5,
       maxReflections: 5
@@ -220,7 +220,7 @@ class World
 
   getCameraBuffer(n)
   {
-    let datasize = 16;
+    let datasize = 18;
     let data = new Float32Array(datasize);
 
     let index = 0;
@@ -242,6 +242,8 @@ class World
     data[index++] = c.up.y;
     data[index++] = c.up.z;
     data[index++] = c.up.w;
+    data[index++] = this.options.shadowDepth;
+    data[index++] = this.options.maxReflections;
     return data;
   }
 
@@ -315,7 +317,7 @@ class World
     for (let i = 0; i < num; ++i)
     {
       let obj = this.objects[i];
-      data[index++] = obj.id;
+      data[index++] = obj.shadow;
       data[index++] = obj.type;
       data[index++] = this.getMaterialNumber(obj.material);
       switch (obj.type)

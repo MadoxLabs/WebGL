@@ -7,6 +7,114 @@ Game.appWebGL = function() { return 2; }
 Game.appInit = function ()
 {
   document.getElementById("code").value = `
+{
+  "renderOptions": {
+    "jigglePoints": 0,
+    "antialias": 0
+  },
+  "cameras": [
+    {
+      "name": "main",
+      "width": 400,
+      "height": 400,
+      "fov": 1.25,
+      "from": [0, 2, -5],
+      "to": [0, 1, 0],
+      "up": [0, -1, 0]
+    }
+  ],
+  "materials": [
+    {
+      "name": "ball",
+      "shininess": 50,
+      "colour": [1, 0.2, 0.2]
+    },
+    {
+      "name": "ball2",
+      "shininess": 50,
+      "colour": [0.2, 1, 0.2]
+    },
+    {
+      "name": "floor",
+      "shininess": 200,
+      "colour": [1,1,1]
+    }
+  ],
+  "transforms": [
+    {
+      "name": "floor",
+      "series": [{ "type": "T", "value": [0, -1.1, 0] }, {"type":"S", "value": [20,0.1,20]}]
+    },
+    {
+      "name": "wall1",
+      "series": [{ "type": "T", "value": [5, 0, 9] }, {"type":"Ry", "value": 0.78 }, { "type": "S", "value": [20, 20, 0.1] }]
+    },
+    {
+      "name": "wall2",
+      "series": [{ "type": "T", "value": [-5, 0, 9] }, { "type": "Ry", "value": -0.78 }, { "type": "S", "value": [20, 20, 0.1] }]
+    },
+    {
+      "name": "ball",
+      "series": [{ "type": "T", "value": [2, 0, 0] }]
+    },
+    {
+     "name": "ball2",
+      "series": [{ "type": "T", "value": [0, 1, 2] },{ "type": "S", "value": [2,2,2] }]
+    },
+    {
+      "name": "ball3",
+      "series": [{ "type": "T", "value": [-3, 0.5, 0] }, { "type": "S", "value": [1.5, 1.5, 1.5] }]
+    }
+
+  ],
+  "lights": [
+    {
+      "type": "pointlight",
+      "position": [10, 10, -10],
+      "colour": [0, 0, 1]
+    },
+    {
+      "type": "pointlight",
+      "position": [-10, 10, -10],
+      "intensityDiffuse": 0.9,
+      "intensityAmbient": 0.4,
+      "colour": [1, 1, 1]
+    }
+  ],
+  "objects": [
+    {
+      "type": "sphere",
+      "transform": "floor",
+      "material": "floor"
+    },
+    {
+      "type": "sphere",
+      "transform": "wall1",
+      "material": "floor"
+    },
+    {
+      "type": "sphere",
+      "transform": "wall2",
+      "material": "floor"
+    },
+    {
+      "type": "sphere",
+      "transform": "ball",
+      "material": "ball"
+    },
+    {
+      "type": "sphere",
+      "transform": "ball3"
+    },
+    {
+      "type": "sphere",
+      "material": "ball2",
+      "transform": "ball2"
+    }
+  ]
+}`;
+  /*
+  document.getElementById("code").value = `
   {
     "cameras": [
       {
@@ -52,7 +160,7 @@ Game.appInit = function ()
       }
     ]
   }`;
-
+  */
   Game.resetNeeded = false;
   Game.World = new World();
   Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
