@@ -220,7 +220,7 @@ class World
 
   getCameraBuffer(n)
   {
-    let datasize = 18;
+    let datasize = 20;
     let data = new Float32Array(datasize);
 
     let index = 0;
