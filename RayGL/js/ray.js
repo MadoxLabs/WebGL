@@ -184,6 +184,7 @@ Game.appInit = function ()
   // SHADERS that include the parts
   Game.loadShaderFile("assets/ray.fx");
   Game.loadShaderFile("assets/showresult.fx");
+  Game.loadShaderFile("assets/storeresult.fx");
 }
 
 Game.loadJSON = function()
@@ -219,6 +220,12 @@ Game.loadingStop = function ()
   Game.doneCompiling();
 
   Game.rayTraceSurface = new mx.RenderSurface(800, 600);
+  Game.lastResult = new mx.RenderSurface(800, 600);
+
+  var effect = Game.shaderMan.shaders["ShowResult"];
+  Game.uParams = effect.createUniform('params');
+  Game.uParams.curslice = 0;
+  Game.uParams.barsize = 0.99;
 }
 
 Game.fixShader = function(s)
@@ -274,15 +281,17 @@ Game.appUpdate = function ()
     set = false;
   }
 
-  // animate a light to show that its not a single image
-  let p = Game.World.lights[1].position.x;
-  p += diff;
-  if (p > 10 || p < -10) diff *= -1;
-  Game.World.lights[1].position.x = p;
+  if (fsqIndex == 0) {
+    // animate a light to show that its not a single image
+    let p = Game.World.lights[1].position.x;
+    p += diff;
+    if (p > 10 || p < -10) diff *= -1;
+    Game.World.lights[1].position.x = p;
 
-  p = Game.World.lights[0].position.y;
-  p += diff;
-  Game.World.lights[0].position.y = p;
+    p = Game.World.lights[0].position.y;
+    p += diff;
+    Game.World.lights[0].position.y = p;
+  }
 }
 
 //GAME RENDERING
@@ -291,6 +300,10 @@ Game.appDrawAux = function ()
 {
   if (Game.loading) return;
 
+  if (!Game.stepRender && Game.stopRender) return;
+  if (Game.stepRender) Game.stepRender -= 1;
+
+  /***  DO THE RAY TRACING ***/
   // we are rendering to a texture
   Game.rayTraceSurface.engage();
   gl.viewport(0, 0, 800, 600);
@@ -344,7 +357,22 @@ Game.appDrawAux = function ()
   effect.draw(fsq);
 
   fsqIndex += 1;
-  if (fsqIndex == numFSQ) fsqIndex = 0;
+  if (fsqIndex == numFSQ)
+  {
+    fsqIndex = 0;
+
+    /***  SAVE THE FINISHED RESULT ? ***/
+    Game.lastResult.engage();
+    gl.viewport(0, 0, 800, 600);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+    // get shader
+    var effect = Game.shaderMan.shaders["StoreResult"];
+    effect.bind();
+    effect.bindTexture("result", Game.rayTraceSurface.texture);
+    effect.draw(Game.assetMan.assets['fsq']);
+
+  }
+  Game.uParams.curslice = fsqIndex/numFSQ;
 
   // stop timing the shader
   if (Game.snapshot)
@@ -355,8 +383,15 @@ Game.appDrawAux = function ()
 }
 
 var fsqIndex = 0;
-var numFSQ = 3;
+var numFSQ = 1;
 var fsqStep = 2.0 / numFSQ;
+
+Game.setSlices = function(n)
+{
+  numFSQ = n;
+  if (n == 0) Game.uParams.barsize = 1.0;
+  else Game.uParams.barsize = 0.99;
+}
 
 Game.appDraw = function (eye)
 {
@@ -368,17 +403,15 @@ Game.appDraw = function (eye)
   effect.bind();
 
   // show the texture full screen
-  effect.bindTexture("result", Game.rayTraceSurface.texture);
+  effect.bindTexture("result", Game.lastResult.texture);
+  effect.setUniforms(Game.uParams);
   effect.draw(Game.assetMan.assets['fsq']);
 
   // are we pausing the render loop?
-  if (Game.stopRender)
-    window.cancelAnimationFrame(Game.RAFid);
+//  if (Game.stopRender)
+//    window.cancelAnimationFrame(Game.RAFid);
 
   // TODO
-
-  // todo render ray trace to surface
-  // todo draw surface to canvas - so stop button doesnt stop the mouse
   // todo only recompile for item num change
 }
 
@@ -392,14 +425,15 @@ Game.start = function ()
   if (Game.stopRender)
   {
     Game.stopRender = false;
-    Game.RAFid = window.requestAnimationFrame(Game.run);
+//    Game.RAFid = window.requestAnimationFrame(Game.run);
   }
 }
 
 Game.step = function ()
 {
-  if (Game.stopRender)
-    Game.RAFid = window.requestAnimationFrame(Game.run);
+  Game.stepRender = 1;
+//  if (Game.stopRender)
+//    Game.RAFid = window.requestAnimationFrame(Game.run);
 }
 
 // USER INTERACTION
