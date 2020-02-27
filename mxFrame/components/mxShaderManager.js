@@ -199,7 +199,15 @@
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { alert("Vertex shader: "+name + "\n" + gl.getShaderInfoLog(shader)); return null; }
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+    {
+      let msg = "Vertex shader: " + name + "\n" + gl.getShaderInfoLog(shader);
+      if (Game.failCompiling)
+        Game.failCompiling(msg);
+      else
+        alert(msg);
+      return null;
+    }
     return shader;
   }
 
@@ -210,7 +218,15 @@
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { alert("Pixel shader: " +name + "\n" +gl.getShaderInfoLog(shader)); return null; }
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+    {
+      let msg = "Pixel shader: " + name + "\n" + gl.getShaderInfoLog(shader);
+      if (Game.failCompiling)
+        Game.failCompiling(msg);
+      else
+        alert(msg);
+      return null;
+    }
     return shader;
   }
 
@@ -407,20 +423,29 @@
     let s = this.sources[name];
     if (!s) return;
     if (Game.fixShader) Game.fixShader(s);
-    this.compile(s);
+    return this.compile(s);
   }
 
   ShaderManager.prototype.compile = function (s)
   {
     var vertexShader = this.compileVertexShader(s.name, s.VS);
     var fragmentShader = this.compilePixelShader(s.name, s.PS);
+    if (!vertexShader || !fragmentShader) return false;
 
     var shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
 
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) { alert("Could not initialise shaders\n" + gl.getProgramInfoLog(shaderProgram)); }
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
+    {
+      let msg ="Could not initialize shaders\n" + gl.getProgramInfoLog(shaderProgram);
+      if (Game.failCompiling)
+        Game.failCompiling(msg);
+      else
+        alert(msg);
+      return false;
+    }
 
     var shader = new mx.Shader(shaderProgram);
 
@@ -495,6 +520,7 @@
     }
 
     this.shaders[s.name] = shader;
+    return true;
   }
 
   ShaderManager.prototype.enableUniformBuffer = function (buffer, location, obj)

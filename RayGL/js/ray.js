@@ -9,7 +9,6 @@ Game.appInit = function ()
   document.getElementById("code").value = `
 {
   "renderOptions": {
-    "jigglePoints": 0,
     "antialias": 0
   },
   "cameras": [
@@ -161,6 +160,8 @@ Game.appInit = function ()
     ]
   }`;
   */
+  Game.startCompiling();
+
   Game.resetNeeded = false;
   Game.World = new World();
   Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
@@ -186,8 +187,15 @@ Game.appInit = function ()
 
 Game.loadJSON = function()
 {
-  Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
-  Game.resetNeeded = true;
+  try
+  {
+    Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
+    Game.resetNeeded = true;
+    Game.startCompiling();
+  } catch (e)
+  {
+    alert(e);
+  }
 }
 
 Game.deviceReady = function ()
@@ -207,6 +215,7 @@ Game.loadingStop = function ()
 {
   doneLoading();
   Game.ready = true;
+  Game.doneCompiling();
 }
 
 Game.fixShader = function(s)
@@ -218,9 +227,30 @@ Game.fixShader = function(s)
   s.VS = s.VS.replace(/-NUM-OBJECTS-/g, "" + Game.World.numObjects());
   s.VS = s.VS.replace(/-NUM-LIGHTS-/g, "" + Game.World.numLights());
   s.VS = s.VS.replace(/-NUM-MATERIALS-/g, "" + Game.World.numMaterials());
+  s.VS = s.VS.replace(/-NUM-PATTERNS-/g, "" + Game.World.numPatterns());
   s.PS = s.PS.replace(/-NUM-OBJECTS-/g, "" + Game.World.numObjects());
   s.PS = s.PS.replace(/-NUM-LIGHTS-/g, "" + Game.World.numLights());
   s.PS = s.PS.replace(/-NUM-MATERIALS-/g, "" + Game.World.numMaterials());
+  s.PS = s.PS.replace(/-NUM-PATTERNS-/g, "" + Game.World.numPatterns());
+}
+
+Game.startCompiling = function()
+{
+  var modal = document.getElementById("myModal");
+  modal.style.display = "block";
+}
+
+Game.doneCompiling = function ()
+{
+  var modal = document.getElementById("myModal");
+  modal.style.display = "none";
+}
+
+Game.failCompiling = function (error)
+{
+  document.getElementById("compileMsg").innerText = error;
+  alert(error);
+  Game.stop();
 }
 
 // GAME UPDATES
@@ -235,7 +265,8 @@ Game.appUpdate = function ()
 
   if (Game.resetNeeded)
   {
-    Game.shaderMan.recompile("Ray");
+    if (Game.shaderMan.recompile("Ray"))
+      Game.doneCompiling();
     Game.resetNeeded = false;
     set = false;
   }
@@ -258,21 +289,101 @@ Game.appDrawAux = function ()
 
 }
 
+var fsqIndex = 0;
+var numFSQ = 4;
+var fsqStep = 2.0 / numFSQ;
+
 Game.appDraw = function (eye)
 {
+  // is everything ready to go?
   if (!Game.ready || Game.loading) return;
 
+  // get shader
   var effect = Game.shaderMan.shaders["Ray"];
   effect.bind();
+  // send our world data to the shader
   if (!set)
   {
+    // these dont change
     effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
     effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
     effect.setUniformBuffer("Materials", Game.World.getMaterialBuffer());
+    effect.setUniformBuffer("Patterns", Game.World.getPatternBuffer());
     set = true;
   }
   effect.setUniformBuffer("Lights", Game.World.getLightBuffer());
-  effect.draw(Game.assetMan.assets["fsq"]);
+
+  // check if we were waiting for a query result. now is a good time
+  if (Game.timer.pending)
+  {
+    let val = Game.timer.report();
+    if (val)
+    {
+      console.log("Frame shader slice time: " + val + " ms");
+      console.log("Frame shader total time: " + (val * numFSQ) + " ms");
+    }
+  }
+
+  // check if we want to time this shader run
+  if (Game.snapshot)
+    Game.timer.start();
+
+  // Ray Trace!
+  // get a full screen quad and draw it. its our only primitive
+  let start = -1.0 + (fsqIndex * fsqStep);
+  let end = start + fsqStep;
+  let startT = 0.0 + (fsqIndex * fsqStep /2.0);
+  let endT = startT + fsqStep / 2.0;
+  fsqvertices = [
+    -1.0, start, 0.0, startT,
+     1.0, start, 1.0, startT,
+    -1.0, end,   0.0, endT,
+     1.0, end,   1.0, endT
+  ];
+  var fsq = new mx.Mesh();
+  fsq.loadFromArrays(fsqvertices, null, { 'POS': 0, 'TEX0': 8 }, gl.TRIANGLE_STRIP, 4);
+  
+  effect.draw(fsq);
+
+  fsqIndex += 1;
+  if (fsqIndex == numFSQ) fsqIndex = 0;
+
+  // stop timing the shader
+  if (Game.snapshot)
+  {
+    Game.timer.end();
+    Game.snapshot = false;
+  }
+
+  // are we pausing the render loop?
+  if (Game.stopRender)
+    window.cancelAnimationFrame(Game.RAFid);
+
+  // TODO
+
+  // todo render ray trace to surface
+  // todo draw surface to canvas - so stop button doesnt stop the mouse
+  // todo only recompile for item num change
+}
+
+Game.stop = function ()
+{
+  Game.stopRender = true;
+}
+
+Game.start = function ()
+{
+  if (Game.stopRender)
+  {
+    Game.stopRender = false;
+    Game.RAFid = window.requestAnimationFrame(Game.run);
+  }
+}
+
+Game.step = function ()
+{
+  if (Game.stopRender)
+    Game.RAFid = window.requestAnimationFrame(Game.run);
 }
 
 // USER INTERACTION

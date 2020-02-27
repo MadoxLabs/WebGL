@@ -2,6 +2,91 @@ var gl; // leave this global for quick access
 
 (function ()
 {
+
+  class GLTimer
+  {
+    constructor()
+    {
+      this.timeElapsedQuery = null;
+      this.startQuery = null;
+      this.endQuery = null;
+
+      this.pending = false;
+
+      this.useTimestamps = false;
+
+      if (gl.getQuery(ext.timer.TIMESTAMP_EXT, ext.timer.QUERY_COUNTER_BITS_EXT) > 0)
+      {
+        this.useTimestamps = true;
+      }
+    }
+
+    start()
+    {
+      gl.getParameter(ext.timer.GPU_DISJOINT_EXT);
+      this.pending = false;
+
+      if (this.useTimestamps)
+      {
+        this.startQuery = gl.createQuery();
+        this.endQuery = gl.createQuery();
+        ext.timer.queryCounterEXT(this.startQuery, ext.timer.TIMESTAMP_EXT);
+      }
+      else
+      {
+        this.timeElapsedQuery = gl.createQuery();
+        gl.beginQuery(ext.timer.TIME_ELAPSED_EXT, this.timeElapsedQuery);
+      }
+    }
+
+    end()
+    {
+      if (this.useTimestamps)
+      {
+        ext.timer.queryCounterEXT(this.endQuery, ext.timer.TIMESTAMP_EXT);
+      }
+      else
+      {
+        gl.endQuery(ext.timer.TIME_ELAPSED_EXT);
+      }
+      this.pending = true;
+    }
+
+    report()
+    {
+      if (!this.pending) return 0;
+
+      var disjoint = gl.getParameter(ext.timer.GPU_DISJOINT_EXT);
+      if (disjoint) return null;
+
+      var available;
+      if (this.useTimestamps)
+        available = gl.getQueryParameter(this.endQuery, gl.QUERY_RESULT_AVAILABLE);
+      else
+        available = gl.getQueryParameter(this.timeElapsedQuery, gl.QUERY_RESULT_AVAILABLE);
+
+      if (available)
+      {
+        var timeElapsed;
+
+        if (this.useTimestamps)
+        {
+          // See how much time the rendering of the object took in nanoseconds.
+          var timeStart = gl.getQueryParameter(this.startQuery, gl.QUERY_RESULT);
+          var timeEnd = gl.getQueryParameter(this.endQuery, gl.QUERY_RESULT);
+          timeElapsed = timeEnd - timeStart;
+        }
+        else
+          timeElapsed = gl.getQueryParameter(this.timeElapsedQuery, gl.QUERY_RESULT);
+
+        this.pending = false;
+        return timeElapsed / 1000000.0;
+      }
+
+      return 0;
+    }
+  }
+
   // 
   // some graphical helpers for global use
   mx.axis = {};
@@ -106,7 +191,7 @@ var gl; // leave this global for quick access
     Game.surface = document.getElementById("surface");
     Game.mouse = new mx.Mouse(Game.surface);
 
-    Game.time = Date.now();
+    Game.time = performance.now();
     Game.lastTime = Game.time;
     Game.elapsed = 0;
 
@@ -183,9 +268,11 @@ var gl; // leave this global for quick access
     Game.appInit();
 
     Game.ready = true;
-    Game.lastTime = Date.now();
+    Game.lastTime =performance.now();
     handleSizeChange();
     Game.deviceReady();
+
+    Game.timer = new GLTimer();
   }
 
 
@@ -243,14 +330,15 @@ var gl; // leave this global for quick access
   
   Game.getFPS = function ()
   {
+    Game.snapshot = true;
     var out = "";
     var perFrame = lastidleTime + lastdrawTime + lastupdateTime;
     out += "FPS: " + lastfps + "  Each frame: " + ((lastframetime / lastfps) | 0) + " ms\n";
-    out += "Frame Time: Update: " + ((lastupdateTime / lastfps) | 0) + "ms  Draw: " + ((lastdrawTime / lastfps) | 0) + "ms  Idle: " + ((lastidleTime / lastfps) | 0) + "ms\n";
+    out += "Frame JS Time: Update: " + ((lastupdateTime / lastfps) | 0) + "ms  Draw: " + ((lastdrawTime / lastfps) | 0) + "ms  Idle: " + ((lastidleTime / lastfps) | 0) + "ms\n";
     lastupdateTime = (lastupdateTime / perFrame * 100) | 0;
     lastdrawTime = (lastdrawTime / perFrame * 100) | 0;
     lastidleTime = (lastidleTime / perFrame * 100) | 0;
-    out += "Frame Time: Update: " + lastupdateTime + "%  Draw: " + lastdrawTime + "%  Idle: " + lastidleTime + "%";
+    out += "Frame JS Time: Update: " + lastupdateTime + "%  Draw: " + lastdrawTime + "%  Idle: " + lastidleTime + "%";
     return out;
   }
 
@@ -349,20 +437,21 @@ var gl; // leave this global for quick access
   var lastdrawTime = 0;
   var lastidleTime = 0;
 
-  Game.run = function ()
+  Game.run = function (timestamp)
   {
     if (Game.ready == false) return;
 
     //  var scope = WTF.trace.enterScope('Game.run');
 
+    Game.RAFid = window.requestAnimationFrame(Game.run);
+
     Game.lastTime = Game.time;
-    Game.time = Date.now();
+    Game.time = timestamp;
     Game.elapsed = Game.time - Game.lastTime;
 
-    Game.update(); myupdateTime = Date.now() - Game.time;
-    Game.draw(); mydrawTime = Date.now() - Game.time - myupdateTime;
-    myidleTime = Game.elapsed - updateTime - mydrawTime;
-    window.requestAnimationFrame(Game.run);
+    Game.update(); myupdateTime = performance.now() - Game.time;
+    Game.draw(); mydrawTime = performance.now() - Game.time - myupdateTime;
+    myidleTime = Game.elapsed - myupdateTime - mydrawTime;
 
     updateTime += myupdateTime;
     drawTime += mydrawTime;

@@ -31,7 +31,7 @@ struct Material
   float diffuse;
   float specular;
   float shininess;
-  vec4 colour;
+  vec4 colour; // r,g,b,1 or pattern,x,x,0
 };
 
 struct LightData
@@ -44,7 +44,21 @@ struct LightData
   float intensitySpecular;
 };
 
-layout(std140) uniform Lights  // materials
+struct Pattern
+{
+  float type;
+  float numColour;
+  vec4 colour;
+  mat4  transform;
+};
+
+layout(std140) uniform Patterns  // patterns
+{
+  float numPatterns;
+  Pattern data[-NUM-PATTERNS-];
+} patterns;
+
+layout(std140) uniform Lights  // lights
 {
   float numLights;
   LightData data[-NUM-LIGHTS-];

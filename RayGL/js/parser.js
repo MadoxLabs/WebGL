@@ -1,3 +1,20 @@
+class Colour
+{
+  constructor(r, g, b)
+  {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
+
+  copy()
+  {
+    return new Colour(this.r, this.g, this.b);
+  }
+}
+
+var White = new Colour(1, 1, 1);
+
 class Touple
 {
   constructor(x, y, z, w)
@@ -50,6 +67,7 @@ class Material
     this.specular = 0.9;
     this.shininess = 200.0;
     this.colour = [1.0, 1.0, 1.0, 1.0];
+    this.pattern = null;
   }
 
   fromJSON(def)
@@ -58,6 +76,10 @@ class Material
     if (null != def.ambient) this.ambient = def.ambient;
     if (null != def.diffuse) this.diffuse = def.diffuse;
     if (null != def.colour) this.colour = [def.colour[0], def.colour[1], def.colour[2], 1.0];
+    if (def.pattern)
+    {
+      if (Game.World.patterns[def.pattern]) this.pattern = def.pattern;
+    }
   }
 }
 
@@ -112,6 +134,73 @@ class Shape
     }
   }
 }
+
+class Pattern 
+{
+  constructor()
+  {
+    this.transform = Identity4x4;
+    this.type = 0;
+  }
+
+  fromJSON(def)
+  {
+    if (def.transform)
+    {
+      if (typeof def.transform == "string" && Game.World.transforms[def.transform]) { this.transform = Game.World.transforms[def.transform]; }
+      if (typeof def.transform == "object") { this.transform = Game.World.parseTransform(def.transform); }
+    }
+  }
+}
+
+class PatternSolid extends Pattern
+{
+  constructor(c)
+  {
+    super();
+    this.colour = c ? c : White;
+    this.type = 1;
+  }
+
+  fromJSON(def)
+  {
+    super.fromJSON(def);
+    if (def.colours && def.colours.length == 3) 
+    {
+      this.colour = new Colour(def.colours[0], def.colours[1], def.colours[2]);
+    }
+  }
+}
+
+class PatternBase extends Pattern
+{
+  constructor(type)
+  {
+    super();
+    this.type = type;
+    this.num = 0;
+    this.colours = [];
+  }
+
+  fromJSON(def)
+  {
+    super.fromJSON(def);
+    if (def.colours && def.colours.length) 
+    {
+      this.num = def.colours.length;
+      for (let i = 0; i < def.colours.length; ++i)
+      {
+        if (Game.World.patterns[def.colours[i]]) this.colours.push(def.colours[i]);
+      }
+    }
+  }
+}
+
+class PatternStripe   extends PatternBase { constructor(type) { super(2); } }
+class PatternGradient extends PatternBase { constructor(type) { super(3); } }
+class PatternRing     extends PatternBase { constructor(type) { super(4); } }
+class PatternChecker  extends PatternBase { constructor(type) { super(5); } }
+class PatternBlend    extends PatternBase { constructor(type) { super(6); } }
 
 class Sphere extends Shape
 {
@@ -215,6 +304,9 @@ class World
       maxReflections: 5
     }
 
+    let white = new PatternSolid();
+    white.colour = White.copy();
+    this.patterns["white"] = white;
     this.materials["default"] = new Material();
   }
 
@@ -264,10 +356,89 @@ class World
     return Object.keys(this.materials).length;
   }
 
+  numPatterns()
+  {
+    return Object.keys(this.patterns).length;
+  }
+
+  getPatternBuffer()
+  {
+    let header = 4;
+    let datasize = 24;
+    let num = this.numPatterns();
+    let data = new Float32Array(num * datasize + header);
+
+    let index = 0;
+    data[index++] = num;
+    data[index++] = 0.0;
+    data[index++] = 0.0;
+    data[index++] = 0.0;
+
+    for (let i in this.patterns)
+    {
+      let pat = this.patterns[i];
+      data[index++] = pat.type;
+      if (pat.type == 1.0)
+      {
+        data[index++] = 0.0; // pad
+        data[index++] = 0.0;// pad
+        data[index++] = 0.0;// pad
+
+        data[index++] = pat.colour.r;
+        data[index++] = pat.colour.g;
+        data[index++] = pat.colour.b;
+        data[index++] = 1.0;
+      }
+      else
+      {
+        data[index++] = pat.num > 3 ? 3 : pat.num;
+        data[index++] = 0.0;// pad
+        data[index++] = 0.0;// pad
+
+        data[index++] = this.getPatternNumber(pat.colour[0]);
+        data[index++] = this.getPatternNumber(pat.colour[1]);
+        data[index++] = this.getPatternNumber(pat.colour[2]);
+        data[index++] = this.getPatternNumber(pat.colour[3]);
+      }
+
+      data[index++] = pat.transform.data[0];
+      data[index++] = pat.transform.data[4];
+      data[index++] = pat.transform.data[8];
+      data[index++] = pat.transform.data[12];
+
+      data[index++] = pat.transform.data[1];
+      data[index++] = pat.transform.data[5];
+      data[index++] = pat.transform.data[9];
+      data[index++] = pat.transform.data[13];
+
+      data[index++] = pat.transform.data[2];
+      data[index++] = pat.transform.data[6];
+      data[index++] = pat.transform.data[10];
+      data[index++] = pat.transform.data[14];
+
+      data[index++] = pat.transform.data[3];
+      data[index++] = pat.transform.data[7];
+      data[index++] = pat.transform.data[11];
+      data[index++] = pat.transform.data[15];
+    }
+    return data;
+  }
+
   getMaterialNumber(n)
   {
     let index = 0;
     for (let i in this.materials)
+    {
+      if (i == n) return index;
+      index++;
+    }
+    return -1;
+  }
+
+  getPatternNumber(n)
+  {
+    let index = 0;
+    for (let i in this.patterns)
     {
       if (i == n) return index;
       index++;
@@ -295,10 +466,20 @@ class World
       data[index++] = mat.diffuse;
       data[index++] = mat.specular;
       data[index++] = mat.shininess;
-      data[index++] = mat.colour[0];
-      data[index++] = mat.colour[1];
-      data[index++] = mat.colour[2];
-      data[index++] = mat.colour[3];
+      if (mat.pattern)
+      {
+        data[index++] = this.getPatternNumber(mat.pattern);
+        data[index++] = 0.0;
+        data[index++] = 0.0;
+        data[index++] = 0.0;
+      }
+      else
+      {
+        data[index++] = mat.colour[0];
+        data[index++] = mat.colour[1];
+        data[index++] = mat.colour[2];
+        data[index++] = mat.colour[3];
+      }
     }
     return data;
   }
@@ -414,7 +595,7 @@ class World
     this.reset();
     if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
     if (json.transforms) this.parseTransforms(json.transforms);
-//    if (json.patterns) this.parsePatterns(json.patterns);
+    if (json.patterns) this.parsePatterns(json.patterns);
     if (json.materials) this.parseMaterials(json.materials);
     if (json.lights) this.parseLights(json.lights);
     if (json.objects) this.parseObjects(json.objects);
@@ -487,7 +668,6 @@ class World
     return mat;
   }
 
-  /*
   parsePatterns(data)
   {
     for (let i in data)
@@ -500,17 +680,15 @@ class World
   parsePattern(data)
   {
     let p = null;
-    if (data.type == "solid") p = new ray.PatternSolid();
-    else if (data.type == "stripe") p = new ray.PatternStripe();
-    else if (data.type == "gradient") p = new ray.PatternGradient();
-    else if (data.type == "ring") p = new ray.PatternRing();
-    else if (data.type == "checker") p = new ray.PatternChecker();
-    else if (data.type == "blend") p = new ray.PatternBlend();
-    else if (data.type == "perlin") p = new ray.PatternPerlin();
+    if (data.type == "solid") p = new PatternSolid();
+    else if (data.type == "stripe") p = new PatternStripe();
+    else if (data.type == "gradient") p = new PatternGradient();
+    else if (data.type == "ring") p = new PatternRing();
+    else if (data.type == "checker") p = new PatternChecker();
+    else if (data.type == "blend") p = new PatternBlend();
     if (p) p.fromJSON(data);
     return p;
   }
-  */
 
   parseLights(data)
   {

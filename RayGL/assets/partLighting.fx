@@ -21,9 +21,66 @@ vec4 getNormal(int oIndex, vec4 p)
   return normalize(w);
 }
 
-vec4 lighting(int mIndex, int lIndex, vec4 p, vec4 eye, vec4 n, float shadow)
+vec4 getPatternColour(int pIndex, vec4 p)
 {
-  vec4 effectiveColour = materials.data[mIndex].colour * lights.data[lIndex].colour;
+  int curIndex = pIndex;
+  vec4 pp = p;
+
+  for (int loop = 0; loop < 5; ++loop)
+  {
+    if (patterns.data[curIndex].type == 1.0)
+      return vec4(1.0, 1.0, 0.0, 1.0); // patterns.data[curIndex].colour;
+
+    pp = inverse(patterns.data[curIndex].transform) * pp;
+
+    if (patterns.data[curIndex].type == 2.0) // stripe
+    {
+      int i = int(abs(floor(pp.x))) % int(patterns.data[curIndex].numColour);
+      if (i == 0)      curIndex = int(patterns.data[pIndex].colour.x);
+      else if (i == 1) curIndex = int(patterns.data[pIndex].colour.y);
+      else if (i == 2) curIndex = int(patterns.data[pIndex].colour.z);
+      else if (i == 3) curIndex = int(patterns.data[pIndex].colour.w);
+    }
+
+    else if (patterns.data[pIndex].type == 3.0) // gradiant
+    {
+
+    }
+
+    else if (patterns.data[pIndex].type == 4.0) // ring
+    {
+
+    }
+
+    else if (patterns.data[pIndex].type == 5.0) // checker
+    {
+
+    }
+
+    else if (patterns.data[pIndex].type == 6.0) // blend
+    {
+
+    }
+  }
+
+  return vec4(0.0,0.0,0.0,1.0);
+}
+
+vec4 getMaterialColour(int mIndex, int oIndex, vec4 p)
+{
+  if (materials.data[mIndex].colour.w == 1.0)
+    return materials.data[mIndex].colour;
+  else
+  {
+    vec4 pp = inverse(objects.data[oIndex].transform) * p;
+    return getPatternColour(int(materials.data[mIndex].colour.x), pp);
+  }
+}
+
+vec4 lighting(int mIndex, int oIndex, int lIndex, vec4 p, vec4 eye, vec4 n, float shadow)
+{
+  vec4 colour = getMaterialColour(mIndex, oIndex, p);
+  vec4 effectiveColour = colour * lights.data[lIndex].colour;
   vec4 ambient = effectiveColour * lights.data[lIndex].intensityAmbient *materials.data[mIndex].ambient;
   vec4 toLight = lights.data[lIndex].position - p;
   float distance = length(toLight);
@@ -77,7 +134,7 @@ vec4 getColourFor(HitData comp, int depth)
   for (int i = 0; i < int(lights.numLights); ++i)
   {
     float shadow =  isShadowed(comp.overPoint, i, int(perScene.shadowDepth));
-    ret += lighting(int(objects.data[comp.object].material), i, comp.position, comp.eye, comp.normal, shadow);
+    ret += lighting(int(objects.data[comp.object].material), comp.object, i, comp.position, comp.eye, comp.normal, shadow);
   }
   return ret;
 }
