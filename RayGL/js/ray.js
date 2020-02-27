@@ -183,6 +183,7 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/partCamera.fx");
   // SHADERS that include the parts
   Game.loadShaderFile("assets/ray.fx");
+  Game.loadShaderFile("assets/showresult.fx");
 }
 
 Game.loadJSON = function()
@@ -216,6 +217,8 @@ Game.loadingStop = function ()
   doneLoading();
   Game.ready = true;
   Game.doneCompiling();
+
+  Game.rayTraceSurface = new mx.RenderSurface(800, 600);
 }
 
 Game.fixShader = function(s)
@@ -271,6 +274,7 @@ Game.appUpdate = function ()
     set = false;
   }
 
+  // animate a light to show that its not a single image
   let p = Game.World.lights[1].position.x;
   p += diff;
   if (p > 10 || p < -10) diff *= -1;
@@ -287,20 +291,14 @@ Game.appDrawAux = function ()
 {
   if (Game.loading) return;
 
-}
-
-var fsqIndex = 0;
-var numFSQ = 4;
-var fsqStep = 2.0 / numFSQ;
-
-Game.appDraw = function (eye)
-{
-  // is everything ready to go?
-  if (!Game.ready || Game.loading) return;
-
+  // we are rendering to a texture
+  Game.rayTraceSurface.engage();
+  gl.viewport(0, 0, 800, 600);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
   // get shader
   var effect = Game.shaderMan.shaders["Ray"];
   effect.bind();
+
   // send our world data to the shader
   if (!set)
   {
@@ -332,17 +330,17 @@ Game.appDraw = function (eye)
   // get a full screen quad and draw it. its our only primitive
   let start = -1.0 + (fsqIndex * fsqStep);
   let end = start + fsqStep;
-  let startT = 0.0 + (fsqIndex * fsqStep /2.0);
+  let startT = 0.0 + (fsqIndex * fsqStep / 2.0);
   let endT = startT + fsqStep / 2.0;
   fsqvertices = [
     -1.0, start, 0.0, startT,
-     1.0, start, 1.0, startT,
-    -1.0, end,   0.0, endT,
-     1.0, end,   1.0, endT
+    1.0, start, 1.0, startT,
+    -1.0, end, 0.0, endT,
+    1.0, end, 1.0, endT
   ];
   var fsq = new mx.Mesh();
   fsq.loadFromArrays(fsqvertices, null, { 'POS': 0, 'TEX0': 8 }, gl.TRIANGLE_STRIP, 4);
-  
+
   effect.draw(fsq);
 
   fsqIndex += 1;
@@ -354,6 +352,24 @@ Game.appDraw = function (eye)
     Game.timer.end();
     Game.snapshot = false;
   }
+}
+
+var fsqIndex = 0;
+var numFSQ = 3;
+var fsqStep = 2.0 / numFSQ;
+
+Game.appDraw = function (eye)
+{
+  // is everything ready to go?
+  if (!Game.ready || Game.loading) return;
+
+  // get shader
+  var effect = Game.shaderMan.shaders["ShowResult"];
+  effect.bind();
+
+  // show the texture full screen
+  effect.bindTexture("result", Game.rayTraceSurface.texture);
+  effect.draw(Game.assetMan.assets['fsq']);
 
   // are we pausing the render loop?
   if (Game.stopRender)
