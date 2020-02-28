@@ -187,19 +187,6 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/storeresult.fx");
 }
 
-Game.loadJSON = function()
-{
-  try
-  {
-    Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
-    Game.resetNeeded = true;
-    Game.startCompiling();
-  } catch (e)
-  {
-    alert(e);
-  }
-}
-
 Game.deviceReady = function ()
 {
 }
@@ -244,8 +231,25 @@ Game.fixShader = function(s)
   s.PS = s.PS.replace(/-NUM-PATTERNS-/g, "" + Game.World.numPatterns());
 }
 
+Game.loadJSON = function ()
+{
+  Game.startCompiling();
+  setTimeout(function ()
+  {
+    try
+    {
+      Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
+      Game.resetNeeded = true;
+    } catch (e)
+    {
+      Game.failCompiling(e);
+    }
+  }, 500);
+}
+
 Game.startCompiling = function()
 {
+  document.getElementById("compileMsg").innerText = "WebGL is setting up.Please wait...";
   var modal = document.getElementById("myModal");
   modal.style.display = "block";
 }
@@ -254,12 +258,12 @@ Game.doneCompiling = function ()
 {
   var modal = document.getElementById("myModal");
   modal.style.display = "none";
+  Game.start();
 }
 
 Game.failCompiling = function (error)
 {
-  document.getElementById("compileMsg").innerText = error;
-  alert(error);
+  setTimeout(function () { document.getElementById("compileMsg").innerText = error; }, 500);
   Game.stop();
 }
 
@@ -382,6 +386,30 @@ Game.appDrawAux = function ()
   }
 }
 
+Game.appDraw = function (eye)
+{
+  // is everything ready to go?
+  if (!Game.ready || Game.loading) return;
+
+  // get shader
+  var effect = Game.shaderMan.shaders["ShowResult"];
+  effect.bind();
+
+  // show the texture full screen
+  effect.bindTexture("result", Game.lastResult.texture);
+  effect.setUniforms(Game.uParams);
+  effect.draw(Game.assetMan.assets['fsq']);
+
+  // are we pausing the render loop?
+  //  if (Game.stopRender)
+  //    window.cancelAnimationFrame(Game.RAFid);
+
+  // TODO
+  // todo only recompile for item num change
+}
+
+//GAME FRAME RATE CONTROLS
+
 var fsqIndex = 0;
 var numFSQ = 1;
 var fsqStep = 2.0 / numFSQ;
@@ -405,28 +433,6 @@ Game.setSlices = function (n)
   document.getElementById('slices').value = numFSQ;
 }
 
-
-Game.appDraw = function (eye)
-{
-  // is everything ready to go?
-  if (!Game.ready || Game.loading) return;
-
-  // get shader
-  var effect = Game.shaderMan.shaders["ShowResult"];
-  effect.bind();
-
-  // show the texture full screen
-  effect.bindTexture("result", Game.lastResult.texture);
-  effect.setUniforms(Game.uParams);
-  effect.draw(Game.assetMan.assets['fsq']);
-
-  // are we pausing the render loop?
-//  if (Game.stopRender)
-//    window.cancelAnimationFrame(Game.RAFid);
-
-  // TODO
-  // todo only recompile for item num change
-}
 
 Game.stop = function ()
 {
