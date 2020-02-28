@@ -165,9 +165,9 @@ class PatternSolid extends Pattern
   fromJSON(def)
   {
     super.fromJSON(def);
-    if (def.colours && def.colours.length == 3) 
+    if (def.colour && def.colour.length == 3)
     {
-      this.colour = new Colour(def.colours[0], def.colours[1], def.colours[2]);
+      this.colour = new Colour(def.colour[0], def.colour[1], def.colour[2]);
     }
   }
 }
@@ -395,10 +395,10 @@ class World
         data[index++] = 0.0;// pad
         data[index++] = 0.0;// pad
 
-        data[index++] = this.getPatternNumber(pat.colour[0]);
-        data[index++] = this.getPatternNumber(pat.colour[1]);
-        data[index++] = this.getPatternNumber(pat.colour[2]);
-        data[index++] = this.getPatternNumber(pat.colour[3]);
+        data[index++] = this.getPatternNumber(pat.colours[0]);
+        data[index++] = this.getPatternNumber(pat.colours[1]);
+        data[index++] = this.getPatternNumber(pat.colours[2]);
+        data[index++] = this.getPatternNumber(pat.colours[3]);
       }
 
       data[index++] = pat.transform.data[0];

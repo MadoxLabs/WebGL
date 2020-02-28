@@ -29,35 +29,37 @@ vec4 getPatternColour(int pIndex, vec4 p)
   for (int loop = 0; loop < 5; ++loop)
   {
     if (patterns.data[curIndex].type == 1.0)
-      return vec4(1.0, 1.0, 0.0, 1.0); // patterns.data[curIndex].colour;
+    {
+      return patterns.data[curIndex].colour;
+    }
 
     pp = inverse(patterns.data[curIndex].transform) * pp;
 
     if (patterns.data[curIndex].type == 2.0) // stripe
     {
       int i = int(abs(floor(pp.x))) % int(patterns.data[curIndex].numColour);
-      if (i == 0)      curIndex = int(patterns.data[pIndex].colour.x);
-      else if (i == 1) curIndex = int(patterns.data[pIndex].colour.y);
-      else if (i == 2) curIndex = int(patterns.data[pIndex].colour.z);
-      else if (i == 3) curIndex = int(patterns.data[pIndex].colour.w);
+      if (i == 0)      curIndex = int(patterns.data[curIndex].colour.x);
+      else if (i == 1) curIndex = int(patterns.data[curIndex].colour.y);
+      else if (i == 2) curIndex = int(patterns.data[curIndex].colour.z);
+      else if (i == 3) curIndex = int(patterns.data[curIndex].colour.w);
     }
 
-    else if (patterns.data[pIndex].type == 3.0) // gradiant
+    else if (patterns.data[curIndex].type == 3.0) // gradiant
     {
 
     }
 
-    else if (patterns.data[pIndex].type == 4.0) // ring
+    else if (patterns.data[curIndex].type == 4.0) // ring
     {
 
     }
 
-    else if (patterns.data[pIndex].type == 5.0) // checker
+    else if (patterns.data[curIndex].type == 5.0) // checker
     {
 
     }
 
-    else if (patterns.data[pIndex].type == 6.0) // blend
+    else if (patterns.data[curIndex].type == 6.0) // blend
     {
 
     }
