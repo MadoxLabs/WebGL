@@ -386,12 +386,25 @@ var fsqIndex = 0;
 var numFSQ = 1;
 var fsqStep = 2.0 / numFSQ;
 
-Game.setSlices = function(n)
+Game.upSlices = function ()
+{
+  Game.setSlices(numFSQ + 1);
+}
+
+Game.downSlices = function ()
+{
+  if (numFSQ > 1) Game.setSlices(numFSQ - 1);
+}
+
+Game.setSlices = function (n)
 {
   numFSQ = n;
-  if (n == 0) Game.uParams.barsize = 1.0;
+  fsqIndex = 0;
+  if (n == 1) Game.uParams.barsize = 1.0;
   else Game.uParams.barsize = 0.99;
+  document.getElementById('slices').value = numFSQ;
 }
+
 
 Game.appDraw = function (eye)
 {
