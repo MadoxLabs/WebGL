@@ -263,8 +263,14 @@ Game.doneCompiling = function ()
 
 Game.failCompiling = function (error)
 {
-  setTimeout(function () { document.getElementById("compileMsg").innerText = error; }, 500);
+  setTimeout(function () 
+  {
+    var modal = document.getElementById("myModal");
+    modal.style.display = "block";
+    document.getElementById("compileMsg").innerText = error;
+  }, 500);
   Game.stop();
+  window.cancelAnimationFrame(Game.RAFid);
 }
 
 // GAME UPDATES

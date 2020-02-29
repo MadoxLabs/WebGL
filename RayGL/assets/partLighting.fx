@@ -21,6 +21,54 @@ vec4 getNormal(int oIndex, vec4 p)
   return normalize(w);
 }
 
+
+// no recursion - this will be fun
+int resolveNextPattern(int curIndex, vec4 pp)
+{
+  float val = 0.0;
+  if (patterns.data[curIndex].type == 2.0) // stripe
+  {
+    val = pp.x;
+  }
+  else if (patterns.data[curIndex].type == 4.0) // ring
+  {
+    val = sqrt(pp.x * pp.x + pp.z * pp.z);
+  }
+  else if (patterns.data[curIndex].type == 5.0) // checker
+  {
+    val = abs(floor(pp.x) + floor(pp.y) + floor(pp.z));
+  }
+
+  int i = int(abs(floor(val))) % int(patterns.data[curIndex].numColour);
+  if (i == 0)      return int(patterns.data[curIndex].colour.x);
+  else if (i == 1) return int(patterns.data[curIndex].colour.y);
+  else if (i == 2) return int(patterns.data[curIndex].colour.z);
+  else if (i == 3) return int(patterns.data[curIndex].colour.w);
+  return 0;
+}
+
+vec4 getPatternColour2(int pIndex, vec4 p)
+{
+  int curIndex = pIndex;
+  vec4 pp = p;
+
+  for (int loop = 0; loop < 5; ++loop)
+  {
+    if (patterns.data[curIndex].type == 1.0)
+    {
+      return patterns.data[curIndex].colour;
+    }
+
+    else
+    {
+      pp = inverse(patterns.data[curIndex].transform) * pp;
+      curIndex = resolveNextPattern(curIndex, pp);
+    }
+  }
+
+  return vec4(0.0, 0.0, 0.0, 1.0);
+}
+
 vec4 getPatternColour(int pIndex, vec4 p)
 {
   int curIndex = pIndex;
@@ -33,35 +81,22 @@ vec4 getPatternColour(int pIndex, vec4 p)
       return patterns.data[curIndex].colour;
     }
 
-    pp = inverse(patterns.data[curIndex].transform) * pp;
-
-    if (patterns.data[curIndex].type == 2.0) // stripe
-    {
-      int i = int(abs(floor(pp.x))) % int(patterns.data[curIndex].numColour);
-      if (i == 0)      curIndex = int(patterns.data[curIndex].colour.x);
-      else if (i == 1) curIndex = int(patterns.data[curIndex].colour.y);
-      else if (i == 2) curIndex = int(patterns.data[curIndex].colour.z);
-      else if (i == 3) curIndex = int(patterns.data[curIndex].colour.w);
-    }
-
     else if (patterns.data[curIndex].type == 3.0) // gradiant
     {
-
-    }
-
-    else if (patterns.data[curIndex].type == 4.0) // ring
-    {
-
-    }
-
-    else if (patterns.data[curIndex].type == 5.0) // checker
-    {
-
+      float u = pp.x - floor(pp.x);
+      float v = 1.0 - u;
+      return (getPatternColour2(int(patterns.data[curIndex].colour.x),pp * v) + getPatternColour2(int(patterns.data[curIndex].colour.y),pp) * u);
     }
 
     else if (patterns.data[curIndex].type == 6.0) // blend
     {
+      return (getPatternColour2(int(patterns.data[curIndex].colour.x),pp) + getPatternColour2(int(patterns.data[curIndex].colour.y),pp)) *0.5;
+    }
 
+    else
+    {
+      pp = inverse(patterns.data[curIndex].transform) * pp;
+      curIndex = resolveNextPattern(curIndex, pp);
     }
   }
 
