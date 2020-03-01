@@ -7,6 +7,7 @@ Game.appWebGL = function() { return 2; }
 Game.appInit = function ()
 {
   document.getElementById("code").value = `
+
 {
   "renderOptions": {
     "antialias": 0
@@ -31,11 +32,18 @@ Game.appInit = function ()
     {
       "name": "ball2",
       "shininess": 50,
+"reflective" : "0.1",
       "colour": [0.2, 1, 0.2]
+    },
+    {
+      "name": "wall",
+      "shininess": 200,
+      "colour": [1,1,1]
     },
     {
       "name": "floor",
       "shininess": 200,
+"reflective" : "0.1",
       "colour": [1,1,1]
     }
   ],
@@ -89,12 +97,12 @@ Game.appInit = function ()
     {
       "type": "sphere",
       "transform": "wall1",
-      "material": "floor"
+      "material": "wall"
     },
     {
       "type": "sphere",
       "transform": "wall2",
-      "material": "floor"
+      "material": "wall"
     },
     {
       "type": "sphere",
@@ -293,7 +301,6 @@ Game.appUpdate = function ()
 
   if (fsqIndex == 0)
   {
-    return;
     // animate a light to show that its not a single image
     let p = Game.World.lights[1].position.x;
     p += diff;
