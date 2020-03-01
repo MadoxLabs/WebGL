@@ -36,7 +36,7 @@ int resolveNextPattern(int curIndex, vec4 pp)
   }
   else if (patterns.data[curIndex].type == 5.0) // checker
   {
-    val = abs(floor(pp.x) + floor(pp.y) + floor(pp.z));
+    val = float(int(pp.x) + int( pp.y) + int( pp.z));
   }
 
   int i = int(abs(floor(val))) % int(patterns.data[curIndex].numColour);

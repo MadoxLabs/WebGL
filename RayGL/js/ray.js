@@ -13,6 +13,10 @@ Game.appInit = function ()
   // load scenes
   Game.loadScene("assets/scene1.txt");
   Game.loadScene("assets/scene2.txt");
+  Game.loadScene("assets/scene3.txt");
+  Game.loadScene("assets/scene4.txt");
+  Game.loadScene("assets/scene5.txt");
+  Game.loadScene("assets/scene6.txt");
 
   document.getElementById("code").value = `  {
     "animate": [

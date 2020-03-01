@@ -1,0 +1,223 @@
+{
+        "renderOptions": {
+        },
+        "cameras": [
+          {
+            "name": "main",
+            "width": 800,
+            "height": 600,
+            "fov": 1.54,
+            "from": [0, 3, -5],
+            "to": [0, 1, 0],
+            "up": [0, 1, 0]
+          }
+        ],
+        "patterns": [
+          {
+            "name": "green",
+            "type": "solid",
+            "colour": [0, 1, 0]
+          },
+          {
+            "name": "yellow",
+            "type": "solid",
+            "colour": [1, 1, 0]
+          },
+          {
+            "name": "red",
+            "type": "solid",
+            "colour": [1, 0, 0]
+          },
+          {
+            "name": "white",
+            "type": "solid",
+            "colour": [1, 1, 1]
+          },
+          {
+            "name": "backGradient1",
+            "type": "stripe",
+            "transform": "back1",
+            "colours": ["green","red"]
+          },
+          {
+            "name": "backGradient2",
+            "type": "stripe",
+            "transform": "back2",
+            "colours": ["red", "green"]
+          },
+          {
+            "name": "back",
+            "type": "checker",
+            "colours": ["backGradient1", "backGradient2"]
+          },
+
+          {
+            "name": "floor",
+            "type": "stripe",
+            "colours": ["white", "red"]
+          },
+          {
+            "name": "disk",
+            "type": "ring",
+            "transform": "shrink",
+            "colours": ["white", "red"]
+          },
+          {
+            "name": "ball2",
+            "type": "stripe",
+            "transform": "shrink2",
+            "colours": ["red", "green", "white"]
+          },
+          {
+            "name": "blend1",
+            "type": "stripe",
+            "transform": "blend1",
+            "colours": ["yellow", "white"]
+          },
+          {
+            "name": "blend2",
+            "type": "stripe",
+            "transform": "blend2",
+            "colours": ["yellow", "white"]
+          },
+          {
+            "name": "ball3",
+            "type": "blend",
+            "colours": ["blend1", "blend2"]
+          },
+          {
+            "name": "ball",
+            "type": "gradient",
+            "transform": "grad",
+            "colours": ["red", "green"]
+          }
+        ],
+        "materials": [
+          {
+            "name": "ball3",
+            "shininess": 50,
+            "pattern": "ball3"
+          },
+          {
+            "name": "ball",
+            "shininess": 50,
+            "pattern": "ball"
+          },
+          {
+            "name": "ball2",
+            "shininess": 50,
+            "pattern": "ball2"
+          },
+          {
+            "name": "disk",
+            "shininess": 50,
+            "pattern": "disk"
+          },
+          {
+            "name": "floor",
+            "specular": 0,
+            "pattern": "floor"
+          },
+          {
+            "name": "back",
+            "specular": 0,
+            "pattern": "back"
+          }
+        ],
+        "transforms": [
+          {
+            "name": "blend1",
+            "series": [{ "type": "S", "value": [0.2, 0.2, 0.2] }]
+          },
+          {
+            "name": "blend2",
+            "series": [{ "type": "Ry", "value": 0.78 }, { "type": "S", "value": [0.2, 0.2, 0.2] }]
+          },
+          {
+            "name": "back1",
+            "series": [{ "type": "Ry", "value": -0.78 }, { "type": "S", "value": [0.2, 1, 1] }]
+          },
+          {
+            "name": "back2",
+            "series": [{ "type": "Ry", "value": 0.78 }, { "type": "S", "value": [0.2, 1, 1] }]
+          },
+          {
+            "name": "back",
+            "series": [{ "type": "T", "value": [0, 0, 10] }, { "type": "Rx", "value": -1.54 }]
+          },
+          {
+            "name": "disk",
+            "series": [{ "type": "T", "value": [0, 0.1, 0] }, { "type": "S", "value": [2,0.1,2] }]
+          },
+          {
+            "name": "shrink",
+            "series": [{ "type": "S", "value": [0.1,0.1,0.1] } ]
+          },
+          {
+            "name": "shrink2",
+            "series": [{ "type": "S", "value": [0.67, 0.67, 0.67] }, { "type": "T", "value": [0.5, 0, 0] }]
+          },
+          {
+            "name": "grad",
+            "series": [{ "type": "Rz", "value": 0.78 }, { "type": "S", "value": [2, 1, 1] }, { "type": "T", "value": [0.5, 0, 0] }]
+          },
+          {
+            "name": "ball",
+            "series": [{ "type": "T", "value": [3, 0.8, 0.5] }, { "type": "S", "value": [0.8, 0.8, 0.8] }]
+          },
+          {
+            "name": "ball2",
+            "series": [{ "type": "T", "value": [0, 2, 2] },{ "type": "S", "value": [2,2,2] }]
+          },
+          {
+            "name": "ball3",
+            "series": [{ "type": "T", "value": [-3, 1.5, 0] }, { "type": "S", "value": [1.5, 1.5, 1.5] }]
+          }
+
+        ],
+        "lights": [
+          {
+            "type": "pointlight",
+            "position": [-10, 10, -10],
+            "intensityDiffuse": 1.1,
+            "intensityAmbient": 0.4,
+            "colour": [1, 1, 1]
+          },
+          {
+            "type": "pointlight",
+            "position": [10, 10, -10],
+            "colour": [0, 0, 1]
+          }
+        ],
+        "objects": [
+          {
+            "type": "plane",
+            "material": "floor"
+          },
+          {
+            "type": "plane",
+            "transform": "back",
+            "material": "back"
+          },
+          {
+            "type": "sphere",
+            "transform": "ball",
+            "material": "ball"
+          },
+          {
+            "type": "sphere",
+            "material": "ball3",
+            "transform": "ball3"
+          },
+          {
+            "type": "sphere",
+            "material": "ball2",
+            "transform": "ball2"
+          },
+          {
+            "type": "sphere",
+            "transform": "disk",
+            "material": "disk"
+          }
+        ]
+      }
