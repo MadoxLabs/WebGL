@@ -65,6 +65,9 @@ class Material
     this.ambient = 0.1;
     this.diffuse = 0.9;
     this.specular = 0.9;
+    this.reflective = 0.0;
+    this.transparency = 0.0;
+    this.refraction = 1.0;
     this.shininess = 200.0;
     this.colour = [1.0, 1.0, 1.0, 1.0];
     this.pattern = null;
@@ -72,6 +75,9 @@ class Material
 
   fromJSON(def)
   {
+    if (null != def.reflective) this.reflective = def.reflective;
+    if (null != def.transparency) this.transparency = def.transparency;
+    if (null != def.refraction) this.refraction = def.refraction;
     if (null != def.shininess) this.shininess = def.shininess;
     if (null != def.ambient) this.ambient = def.ambient;
     if (null != def.diffuse) this.diffuse = def.diffuse;
@@ -449,7 +455,7 @@ class World
   getMaterialBuffer()
   {
     let header = 4;
-    let datasize = 8;
+    let datasize = 12;
     let num = this.numMaterials();
     let data = new Float32Array(num * datasize + header);
 
@@ -466,6 +472,10 @@ class World
       data[index++] = mat.diffuse;
       data[index++] = mat.specular;
       data[index++] = mat.shininess;
+      data[index++] = mat.reflective;
+      data[index++] = mat.transparency;
+      data[index++] = mat.refraction;
+      data[index++] = 0.0;
       if (mat.pattern)
       {
         data[index++] = this.getPatternNumber(mat.pattern);

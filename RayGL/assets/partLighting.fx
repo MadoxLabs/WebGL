@@ -81,11 +81,13 @@ vec4 getPatternColour(int pIndex, vec4 p)
       return patterns.data[curIndex].colour;
     }
 
-    else if (patterns.data[curIndex].type == 3.0) // gradiant
+    pp = inverse(patterns.data[curIndex].transform) * pp;
+
+    if (patterns.data[curIndex].type == 3.0) // gradiant
     {
       float u = pp.x - floor(pp.x);
       float v = 1.0 - u;
-      return (getPatternColour2(int(patterns.data[curIndex].colour.x),pp * v) + getPatternColour2(int(patterns.data[curIndex].colour.y),pp) * u);
+      return getPatternColour2(int(patterns.data[curIndex].colour.x),pp) * v + getPatternColour2(int(patterns.data[curIndex].colour.y),pp) * u;
     }
 
     else if (patterns.data[curIndex].type == 6.0) // blend
@@ -95,7 +97,6 @@ vec4 getPatternColour(int pIndex, vec4 p)
 
     else
     {
-      pp = inverse(patterns.data[curIndex].transform) * pp;
       curIndex = resolveNextPattern(curIndex, pp);
     }
   }
@@ -168,6 +169,20 @@ float isShadowed(vec4 p, int lIndex, int depth)
 vec4 getColourFor(HitData comp, int depth)
 {
   vec4 ret = vec4(0.0);
+  
+  // set up a call for the reflection - ray.fx will pick up this ray and cast it
+  if (depth > 0 && materials.data[int(objects.data[comp.object].material)].reflective > 0.0)
+  {
+    Ray ray;
+    ray.origin = comp.overPoint;
+    ray.direction = comp.reflect;
+
+    colourStack[stackI] = ray;
+    multStack[stackI] = materials.data[int(objects.data[comp.object].material)].reflective;
+    stackI++;
+  }
+
+  // resolve the colour for this ray
   for (int i = 0; i < int(lights.numLights); ++i)
   {
     float shadow =  isShadowed(comp.overPoint, i, int(perScene.shadowDepth));

@@ -291,7 +291,9 @@ Game.appUpdate = function ()
     set = false;
   }
 
-  if (fsqIndex == 0) {
+  if (fsqIndex == 0)
+  {
+    return;
     // animate a light to show that its not a single image
     let p = Game.World.lights[1].position.x;
     p += diff;

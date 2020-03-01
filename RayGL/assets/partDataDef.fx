@@ -31,6 +31,9 @@ struct Material
   float diffuse;
   float specular;
   float shininess;
+  float reflective;
+  float transparency;
+  float refraction;
   vec4 colour; // r,g,b,1 or pattern,x,x,0
 };
 
@@ -114,6 +117,10 @@ struct HitData
 
 float epsilon = 0.0005;
 float Infinity = 3.402823466e+38;
+
+Ray colourStack[20];
+float multStack[20];
+int stackI = 0;
 
 void intersect(in Ray ray);
 bool getHitSkipNoShadow();
