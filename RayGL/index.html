@@ -51,6 +51,8 @@
           <div><canvas id='surface'></div>
         </td>
         <td>
+          <select onChange="Game.runScene();" id="scenes"></select>
+          <br />
           <textarea id="code"></textarea>
           <br>
           <button id="render" onClick="Game.loadJSON()">Update</button>

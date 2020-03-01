@@ -6,123 +6,21 @@ Game.appWebGL = function() { return 2; }
 
 Game.appInit = function ()
 {
-  document.getElementById("code").value = `
+  Game.scenes = [];
+  Game.webgl2 = true;
+  Game.textureLocation = "assets/"  // autoloaded textures live here
 
-{
-  "renderOptions": {
-    "antialias": 0
-  },
-  "cameras": [
-    {
-      "name": "main",
-      "width": 800,
-      "height": 800,
-      "fov": 1.25,
-      "from": [0, 2, -5],
-      "to": [0, 1, 0],
-      "up": [0, 1, 0]
-    }
-  ],
-  "materials": [
-    {
-      "name": "ball",
-      "shininess": 50,
-      "colour": [1, 0.2, 0.2]
-    },
-    {
-      "name": "ball2",
-      "shininess": 50,
-"reflective" : "0.1",
-      "colour": [0.2, 1, 0.2]
-    },
-    {
-      "name": "wall",
-      "shininess": 200,
-      "colour": [1,1,1]
-    },
-    {
-      "name": "floor",
-      "shininess": 200,
-"reflective" : "0.1",
-      "colour": [1,1,1]
-    }
-  ],
-  "transforms": [
-    {
-      "name": "floor",
-      "series": [{ "type": "T", "value": [0, -1.1, 0] }, {"type":"S", "value": [20,0.1,20]}]
-    },
-    {
-      "name": "wall1",
-      "series": [{ "type": "T", "value": [5, 0, 9] }, {"type":"Ry", "value": 0.78 }, { "type": "S", "value": [20, 20, 0.1] }]
-    },
-    {
-      "name": "wall2",
-      "series": [{ "type": "T", "value": [-5, 0, 9] }, { "type": "Ry", "value": -0.78 }, { "type": "S", "value": [20, 20, 0.1] }]
-    },
-    {
-      "name": "ball",
-      "series": [{ "type": "T", "value": [2, 0, 0] }]
-    },
-    {
-     "name": "ball2",
-      "series": [{ "type": "T", "value": [0, 1, 2] },{ "type": "S", "value": [2,2,2] }]
-    },
-    {
-      "name": "ball3",
-      "series": [{ "type": "T", "value": [-3, 0.5, 0] }, { "type": "S", "value": [1.5, 1.5, 1.5] }]
-    }
+  // load scenes
+  Game.loadScene("assets/scene1.txt");
+  Game.loadScene("assets/scene2.txt");
 
-  ],
-  "lights": [
+  document.getElementById("code").value = `  {
+    "animate": [
     {
-      "type": "pointlight",
-      "position": [10, 10, -10],
-      "colour": [0, 0, 1]
-    },
-    {
-      "type": "pointlight",
-      "position": [-10, 10, -10],
-      "intensityDiffuse": 0.9,
-      "intensityAmbient": 0.4,
-      "colour": [1, 1, 1]
+      "item" : "lights.1.position.x",
+      "range":[-10,10,0.4]
     }
-  ],
-  "objects": [
-    {
-      "type": "sphere",
-      "transform": "floor",
-      "material": "floor"
-    },
-    {
-      "type": "sphere",
-      "transform": "wall1",
-      "material": "wall"
-    },
-    {
-      "type": "sphere",
-      "transform": "wall2",
-      "material": "wall"
-    },
-    {
-      "type": "sphere",
-      "transform": "ball",
-      "material": "ball"
-    },
-    {
-      "type": "sphere",
-      "transform": "ball3"
-    },
-    {
-      "type": "sphere",
-      "material": "ball2",
-      "transform": "ball2"
-    }
-  ]
-}`;
-  /*
-  document.getElementById("code").value = `
-  {
+    ],
     "cameras": [
       {
         "name": "main",
@@ -150,12 +48,12 @@ Game.appInit = function ()
     "lights": [
       {
         "type": "pointlight",
-        "position": [10, -10, -10],
+        "position": [10, 10, -10],
         "colour": [0, 0, 1]
       },
       {
         "type": "pointlight",
-        "position": [-10, -10, -10],
+        "position": [-10, 10, -10],
         "colour": [1, 1, 1]
       }
     ],
@@ -167,15 +65,12 @@ Game.appInit = function ()
       }
     ]
   }`;
-  */
   Game.startCompiling();
 
   Game.resetNeeded = false;
   Game.World = new World();
   Game.World.loadFromJSON(JSON.parse(document.getElementById("code").value));
 
-  Game.webgl2 = true;
-  Game.textureLocation = "assets/"  // autoloaded textures live here
   // SHADER PARTS to be included
   Game.loadShaderFile("assets/partCommon.fx");
   Game.loadShaderFile("assets/partNoBlend.fx");
@@ -193,6 +88,33 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/ray.fx");
   Game.loadShaderFile("assets/showresult.fx");
   Game.loadShaderFile("assets/storeresult.fx");
+}
+
+Game.runScene = function()
+{
+  var e = document.getElementById("scenes");
+  document.getElementById("code").value = Game.scenes[e.options[e.selectedIndex].text];
+  Game.loadJSON();
+}
+
+Game.storeScene = function(name, text)
+{
+  if (text.indexOf("xml") != -1) return;
+
+  Game.scenes[name] = text;
+  let select = document.getElementById('scenes');
+  let opt = document.createElement('option');
+  opt.value = name;
+  opt.innerHTML = name;
+  select.appendChild(opt);
+}
+
+Game.loadScene = function (name)
+{
+  var client = new XMLHttpRequest();
+  client.open('GET', name);
+  client.onload = function () { Game.storeScene(name, client.responseText); }
+  client.send();
 }
 
 Game.deviceReady = function ()
@@ -301,15 +223,24 @@ Game.appUpdate = function ()
 
   if (fsqIndex == 0)
   {
+    Game.World.animateStep();
+    /*
     // animate a light to show that its not a single image
-    let p = Game.World.lights[1].position.x;
-    p += diff;
-    if (p > 10 || p < -10) diff *= -1;
-    Game.World.lights[1].position.x = p;
-
-    p = Game.World.lights[0].position.y;
-    p += diff;
-    Game.World.lights[0].position.y = p;
+    if (Game.World.lights[1])
+    {
+      let p = Game.World.lights[1].position.x;
+      p += diff;
+      if (p > 5 || p < -5) diff *= -1;
+      Game.World.lights[1].position.x = p;
+    }
+    if (Game.World.cameras["main"])
+    {
+      let p = Game.World.cameras["main"].from.x;
+      p += diff/10.0;
+      if (p > -0.5 || p < -4.5) diff *= -1;
+      Game.World.cameras["main"].from.x = p;
+    }
+    */
   }
 }
 
@@ -332,16 +263,16 @@ Game.appDrawAux = function ()
   effect.bind();
 
   // send our world data to the shader
-  if (!set)
+//  if (!set)
   {
-    // these dont change
-    effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
+    // these dont change - ya they do
     effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
     effect.setUniformBuffer("Materials", Game.World.getMaterialBuffer());
     effect.setUniformBuffer("Patterns", Game.World.getPatternBuffer());
+    effect.setUniformBuffer("Lights", Game.World.getLightBuffer());
     set = true;
   }
-  effect.setUniformBuffer("Lights", Game.World.getLightBuffer());
+  effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
 
   // check if we were waiting for a query result. now is a good time
   if (Game.timer.pending)

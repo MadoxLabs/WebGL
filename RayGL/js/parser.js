@@ -34,6 +34,44 @@ class Touple
 function Point(x, y, z) { return new Touple(x, y, z, 1.0); }
 function Vector(x, y, z) { return new Touple(x, y, z, 0.0); }
 
+class Animate
+{
+  constructor()
+  {
+    this.item = [];
+    this.min = 0;
+    this.max = 0;
+    this.step = 0;
+    this.cur = 0;
+  }
+
+  fromJSON(def)
+  {
+    if (def.item) this.item = def.item.split(".");
+    if (def.range)
+    {
+      this.min = def.range[0];
+      this.max = def.range[1];
+      this.step = def.range[2];
+      this.cur = this.min;
+    }
+  }
+
+  animateStep()
+  {
+    this.cur = this.cur + this.step;
+    if (this.cur > this.max || this.cur < this.min) this.step *= -1;
+
+    let val = Game.World;
+    let i = 0;
+    for (i = 0; i < this.item.length - 1; ++i)
+    {
+      if (val[this.item[i]]) val = val[this.item[i]];
+    }
+    val[this.item[i]] = this.cur;
+  }
+}
+
 class Camera
 {
   constructor(w,h,fov)
@@ -298,6 +336,7 @@ class World
 
   reset()
   {
+    this.animate = [];
     this.patterns = {}; // just a cache
     this.materials = {}; // just a cache
     this.transforms = {}; // just a cache
@@ -610,6 +649,27 @@ class World
     if (json.lights) this.parseLights(json.lights);
     if (json.objects) this.parseObjects(json.objects);
     if (json.cameras) this.parseCameras(json.cameras);
+    if (json.animate) this.parseAnimates(json.animate);
+  }
+
+  parseAnimates(data)
+  {
+    for (let i in data)
+    {
+      if (!data[i].item) continue;
+      if (!data[i].range) continue;
+      let c = new Animate();
+      c.fromJSON(data[i]);
+      this.animate.push(c);
+    }
+  }
+
+  animateStep()
+  {
+    for (let i in this.animate)
+    {
+      this.animate[i].animateStep();
+    }
   }
 
   parseCameras(data)
