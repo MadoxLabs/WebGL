@@ -182,6 +182,18 @@ vec4 getColourFor(HitData comp, int depth)
     stackI++;
   }
 
+  // set up a call for refraction
+  if (depth > 0 && materials.data[int(objects.data[comp.object].material)].transparency > 0.0)
+  {
+    Ray ray;
+    if (getRefractedRay(comp, ray))
+    {
+      colourStack[stackI] = ray;
+      multStack[stackI] = materials.data[int(objects.data[comp.object].material)].transparency;
+      stackI++;
+    }
+  }
+
   // resolve the colour for this ray
   for (int i = 0; i < int(lights.numLights); ++i)
   {

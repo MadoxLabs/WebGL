@@ -113,9 +113,11 @@ struct HitData
   vec4 reflect;
   vec4 overPoint;
   vec4 underPoint;
+  float n1;
+  float n2;
 };
 
-float epsilon = 0.0005;
+float epsilon = 0.007;
 float Infinity = 3.402823466e+38;
 
 Ray colourStack[20];
@@ -124,5 +126,6 @@ int stackI = 0;
 
 void intersect(in Ray ray);
 bool getHitSkipNoShadow();
+bool getRefractedRay(HitData comp, out Ray ray);
 
 [END]

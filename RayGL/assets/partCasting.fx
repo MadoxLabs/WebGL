@@ -4,6 +4,25 @@ Casting
 
 [PIXEL]
 
+bool getRefractedRay(HitData comp, out Ray ray)
+{
+  float nRatio = comp.n1 / comp.n2;
+  float cosThetaI = dot(comp.eye, comp.normal);
+  float sin2ThetaT = nRatio * nRatio * (1.0 - (cosThetaI * cosThetaI));
+  if (sin2ThetaT > 1.0)
+  {
+    // total internal refraction case
+    return false;
+  }
+  float cosThetaT = sqrt(1.0 - sin2ThetaT);
+  vec4 dir = comp.normal * (nRatio * cosThetaI - cosThetaT) - comp.eye * nRatio;
+
+  ray.origin = comp.underPoint;
+  ray.direction = dir;
+
+  return true;
+}
+
 Ray getRayAt(float u, float v, float ox, float oy)
 {
   float x = u * camera.width + ox;
@@ -116,6 +135,9 @@ HitData precompute(Ray ray)
   ret.reflect = reflect(ray.direction, ret.normal);
   ret.overPoint = ret.position + scaleNormal;
   ret.underPoint = ret.position - scaleNormal;
+
+  ret.n1 = 1.5;
+  ret.n2 = 1.5;
   return ret;
 }
 
