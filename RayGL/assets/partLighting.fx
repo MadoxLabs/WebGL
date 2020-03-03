@@ -166,30 +166,57 @@ float isShadowed(vec4 p, int lIndex, int depth)
   return 0.0;
 }
 
+float schlick(HitData comp)
+{
+  float cos = dot(comp.eye, comp.normal);
+  if (comp.n1 > comp.n2)
+  {
+    float n = comp.n1 / comp.n2;
+    float sin = n * n * (1.0 - cos * cos);
+    if (sin > 1.0)
+      return 1.0;
+    cos = sqrt(1.0 - sin);
+  }
+  float r0 = ((comp.n1 - comp.n2) / (comp.n1 + comp.n2));
+  r0 = r0 * r0;
+  return r0 + (1.0 - r0) * pow((1.0 - cos), 5.0);
+}
+
 vec4 getColourFor(HitData comp, int depth)
 {
   vec4 ret = vec4(0.0);
   
+  float reflect = materials.data[int(objects.data[comp.object].material)].reflective;
+  float transp = materials.data[int(objects.data[comp.object].material)].transparency;
+
+  // compute schlick
+  if (reflect > 0.0 && transp > 0.0)
+  {
+    float schlickFactor = schlick(comp);
+    reflect *= schlickFactor;
+    transp *= (1.0 - schlickFactor);
+  }
+
   // set up a call for the reflection - ray.fx will pick up this ray and cast it
-  if (depth > 0 && materials.data[int(objects.data[comp.object].material)].reflective > 0.0)
+  if (depth > 0 && reflect > 0.0)
   {
     Ray ray;
     ray.origin = comp.overPoint;
     ray.direction = comp.reflect;
 
     colourStack[stackI] = ray;
-    multStack[stackI] = materials.data[int(objects.data[comp.object].material)].reflective;
+    multStack[stackI] = reflect;
     stackI++;
   }
 
   // set up a call for refraction
-  if (depth > 0 && materials.data[int(objects.data[comp.object].material)].transparency > 0.0)
+  if (depth > 0 && transp > 0.0)
   {
     Ray ray;
     if (getRefractedRay(comp, ray))
     {
       colourStack[stackI] = ray;
-      multStack[stackI] = materials.data[int(objects.data[comp.object].material)].transparency;
+      multStack[stackI] = transp;
       stackI++;
     }
   }

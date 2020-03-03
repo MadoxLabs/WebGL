@@ -11,14 +11,6 @@ bool check_cap(Ray r, float t)
   return (x * x + z * z) <= 1.0;
 }
 
-void addIntersect(float val, int index)
-{
-  if (hitsize < 20) {
-    hitlist[hitsize] = Intersect(val, index);
-    hitsize++;
-  }
-}
-
 void cylinder_intersect(in int index, in Ray r)
 {
   float a = r.direction.x * r.direction.x + r.direction.z * r.direction.z;

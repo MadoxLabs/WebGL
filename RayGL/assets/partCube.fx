@@ -37,14 +37,8 @@ void cube_intersect(in int index, in Ray ray)
 
   if (minv <= maxv)
   {
-    if (hitsize < 20) {
-      hitlist[hitsize] = Intersect(minv, index);
-      hitsize++;
-    }
-    if (hitsize < 20) {
-      hitlist[hitsize] = Intersect(maxv, index);
-      hitsize++;
-    }
+    addIntersect(minv, index);
+    addIntersect(maxv, index);
   }
 }
 

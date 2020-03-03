@@ -15,14 +15,8 @@ void sphere_intersect(in int index, in Ray ray)
   if (discr < 0.0) return;
 
   float rootDiscr = sqrt(discr);
-  if (hitsize < 20) {
-    hitlist[hitsize] = Intersect((-b - rootDiscr) / aa, index);
-    hitsize++;
-  }
-  if (hitsize < 20) {
-    hitlist[hitsize] = Intersect((-b + rootDiscr) / aa, index);
-    hitsize++;
-  }
+  addIntersect((-b - rootDiscr) / aa, index);
+  addIntersect((-b + rootDiscr) / aa, index);
 }
 
 vec4 sphere_normal(vec4 p)

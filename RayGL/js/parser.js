@@ -536,7 +536,7 @@ class World
   getObjectBuffer()
   {
     let header = 4;
-    let datasize = 24;
+    let datasize = 28;
     let num = this.objects.length;
     let data = new Float32Array(num * datasize + header);
 
@@ -549,6 +549,7 @@ class World
     for (let i = 0; i < num; ++i)
     {
       let obj = this.objects[i];
+      data[index++] = obj.id;
       data[index++] = obj.shadow;
       data[index++] = obj.type;
       data[index++] = this.getMaterialNumber(obj.material);
@@ -558,6 +559,10 @@ class World
         case 1:
         case 3:
           data[index++] = 0.0;
+          data[index++] = 0.0; // pad
+          data[index++] = 0.0;// pad
+          data[index++] = 0.0;// pad
+
           data[index++] = 0.0;
           data[index++] = 0.0;
           data[index++] = 0.0;
@@ -565,6 +570,10 @@ class World
           break;
         case 2:
           data[index++] = obj.limits ? 1.0 : 0.0;
+          data[index++] = 0.0; // pad
+          data[index++] = 0.0;// pad
+          data[index++] = 0.0;// pad
+
           data[index++] = obj.xMin;
           data[index++] = obj.xMax;
           data[index++] = obj.yMin;
@@ -573,6 +582,10 @@ class World
         case 4:
         case 5:
           data[index++] = obj.closed ? 1.0 : 0.0;
+          data[index++] = 0.0; // pad
+          data[index++] = 0.0;// pad
+          data[index++] = 0.0;// pad
+
           data[index++] = obj.min;
           data[index++] = obj.max;
           data[index++] = 0.0;

@@ -17,11 +17,12 @@ struct CameraData
 
 struct ObjectData
 {
+  float id;
   float shadow;
   float type;
   float material;
-  float extra1;
-  vec4 extra2;
+  float extra1; // limits? closed? y/n for some
+  vec4 extra2;  // limit? min max min max  for some
   mat4  transform;
 };
 
@@ -125,6 +126,7 @@ float multStack[20];
 int stackI = 0;
 
 void intersect(in Ray ray);
+void addIntersect(float val, int index);
 bool getHitSkipNoShadow();
 bool getRefractedRay(HitData comp, out Ray ray);
 

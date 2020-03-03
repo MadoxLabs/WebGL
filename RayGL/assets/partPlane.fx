@@ -18,10 +18,7 @@ void plane_intersect(in int index, in Ray ray)
     if (p.z < objects.data[index].extra2.z) return;
   }
 
-  if (hitsize < 20) {
-    hitlist[hitsize] = Intersect(d, index);
-    hitsize++;
-  }
+  addIntersect(d, index);
 }
 
 vec4 plane_normal(vec4 p)
