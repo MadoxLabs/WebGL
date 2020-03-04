@@ -1,51 +1,93 @@
-  {
-    "animate": [
-    {
-      "item" : "lights.1.position.x",
-      "range":[-10,10,0.4]
-    }
-    ],
-    "cameras": [
-      {
-        "name": "main",
-        "width": 800,
-        "height": 600,
-        "fov": 1.57,
-        "from": [0, 0, -2.5],
-        "to": [0, 0, 0],
-        "up": [0, 1, 0]
-      }
-    ],
-    "materials": [
-      {
-        "name": "ball",
-        "shininess": 50,
-        "colour": [1, 0.2, 0.2]
-      }
-    ],
-    "transforms": [
-      {
-        "name": "ball",
-        "series": [{ "type": "T", "value": [0, 0, 0] }]
-      }
-    ],
-    "lights": [
-      {
-        "type": "pointlight",
-        "position": [10, 10, -10],
-        "colour": [0, 0, 1]
-      },
-      {
-        "type": "pointlight",
-        "position": [-10, 10, -10],
-        "colour": [1, 1, 1]
-      }
-    ],
-    "objects": [
-      {
-        "type": "sphere",
-        "transform": "ball",
-        "material": "ball"
-      }
-    ]
-  }
+        {
+          "renderOptions": {
+            "maxReflections": 5
+          },
+          "cameras": [
+            {
+              "name": "main",
+              "width": 800,
+              "height": 600,
+              "fov": 1.047,
+              "from": [0,2.5,0],
+              "origfrom": [0,2.5,0],
+              "to": [0,0,0],
+              "up": [0, 0, 1]
+            }
+          ],
+          "transforms": [
+            {
+              "name": "floor",
+              "series": [{ "type": "T", "value": [0, -10.1, 0] }]
+            },
+            {
+              "name": "pfloor",
+              "series": [{ "type": "T", "value": [0, 0.1, 0] }]
+            },
+            {
+              "name": "ball2",
+              "series": [{ "type": "S", "value": [0.5,0.5,0.5] }]
+            }
+          ],
+          "patterns": [
+            {
+              "name": "black",
+              "type": "solid",
+              "colour": [0,0,0]
+            },
+            {
+              "name": "floor",
+              "type": "checker",
+              "transform": "pfloor",
+              "colours": ["black","white"]
+            }
+          ],
+          "materials": [
+            {
+              "name": "floor",
+              "pattern": "floor"
+            },
+            {
+              "name": "ball",
+              "diffuse": 0.1,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 1,
+              "transparency": 1,
+              "refraction": 1.52,
+              "transmit": 0.8
+            },
+            {
+              "name": "ball2",
+              "diffuse": 0.1,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 1,
+              "transparency": 1,
+              "refraction": 1,
+              "transmit": 1
+            }
+          ],
+          "lights": [
+            {
+              "type": "pointlight",
+              "position": [20,10,0],
+              "colour": [1, 1, 1]
+            }
+          ],
+          "objects": [
+            {
+              "type": "plane",
+              "transform": "floor",
+              "material": "floor"
+            },
+            {
+              "type": "sphere",
+              "material": "ball"
+            },
+            {
+              "type": "sphere",
+              "transform": "ball2",
+              "material": "ball2"
+            }
+          ]
+        }

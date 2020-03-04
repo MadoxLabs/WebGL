@@ -1,51 +1,131 @@
-  {
-    "animate": [
+        {
+          "renderOptions": {
+            "maxReflections": 100
+          },
+   "animate": [
     {
-      "item" : "lights.1.position.x",
-      "range":[-10,10,0.4]
+      "item" : "cameras.main.from.x",
+      "range":[-1,1,0.01]
+    },
+    {
+      "item" : "cameras.main.to.x",
+      "range":[-1,1,0.01]
     }
     ],
-    "cameras": [
-      {
-        "name": "main",
-        "width": 800,
-        "height": 600,
-        "fov": 1.57,
-        "from": [0, 0, -2.5],
-        "to": [0, 0, 0],
-        "up": [0, 1, 0]
-      }
-    ],
-    "materials": [
-      {
-        "name": "ball",
-        "shininess": 50,
-        "colour": [1, 0.2, 0.2]
-      }
-    ],
-    "transforms": [
-      {
-        "name": "ball",
-        "series": [{ "type": "T", "value": [0, 0, 0] }]
-      }
-    ],
-    "lights": [
-      {
-        "type": "pointlight",
-        "position": [10, 10, -10],
-        "colour": [0, 0, 1]
-      },
-      {
-        "type": "pointlight",
-        "position": [-10, 10, -10],
-        "colour": [1, 1, 1]
-      }
-    ],
-    "objects": [
-      {
-        "type": "sphere",
-        "transform": "ball",
-        "material": "ball"
-      }
-    ]
-  }
+          "cameras": [
+            {
+              "name": "main",
+              "width": 800,
+              "height": 600,
+              "fov": 1.256,
+              "from": [0, 3, -5],
+              "origfrom": [0, 3, -5],
+              "to": [0, 1, 0],
+              "up": [0, 1, 0]
+            }
+          ],
+          "transforms": [
+            {
+              "name": "ball1",
+              "series": [{ "type": "T", "value": [-1.25, 1, 0] }]
+            },
+            {
+              "name": "ball2",
+              "series": [{ "type": "T", "value": [1.25, 1, 0] }]
+            },
+            {
+              "name": "back",
+              "series": [{ "type": "T", "value": [0, 0, 4] }, { "type": "Rx", "value": -1.57 }]
+            },
+            {
+              "name": "back2",
+              "series": [{ "type": "T", "value": [0, 0, -6] }, { "type": "Ry", "value": 3.1415 },{ "type": "Rx", "value": -1.57 }]
+            }
+          ],
+          "patterns": [
+            {
+              "name": "brown",
+              "type": "solid",
+              "colour": [0.435, 0.305, 0.0470]
+            },
+            {
+              "name": "black",
+              "type": "solid",
+              "colour": [0,0,0]
+            },
+            {
+              "name": "floor",
+              "type": "checker",
+              "colours": ["brown","black"]
+            }
+          ],
+          "materials": [
+            {
+              "name": "floor",
+              "shininess": 300,
+              "pattern": "floor",
+              "reflective": 0.3
+            },
+            {
+              "name": "ball1",
+              "shininess": 5,
+              "specular": 0.3,
+              "colour": [1,0,0]
+            },
+            {
+              "name": "ball2",
+              "shininess": 300,
+              "colour": [0.2, 0.2, 0.2],
+              "reflective": 0.9
+            },
+            {
+              "name": "back",
+              "shininess": 300,
+              "colour": [0.1, 0.1, 0.1],
+              "reflective": 0.99
+            }
+          ],
+          "lights": [
+            {
+              "type": "pointlight",
+              "position": [-10, 10, -10],
+              "intensityDiffuse": 1.1,
+              "intensityAmbient": 0.4,
+              "colour": [1, 1, 1]
+            }
+          ],
+          "objects": [
+            {
+              "type": "sphere",
+              "material": "ball1",
+              "transform": "ball1"
+            },
+            {
+              "type": "sphere",
+              "material": "ball2",
+              "transform": "ball2"
+            },
+            {
+              "type": "plane",
+              "transform": "back",
+              "material": "back",
+              "xMin": -4,
+              "xMax": 4,
+              "yMin": 0,
+              "yMax": 4
+            },
+            {
+              "type": "plane",
+              "transform": "back2",
+              "material": "back",
+              "xMin": -4,
+              "xMax": 4,
+              "yMin": 0,
+              "yMax": 4
+            },
+            {
+              "type": "plane",
+              "material": "floor"
+            }
+          ]
+        }
