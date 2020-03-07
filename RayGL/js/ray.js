@@ -209,9 +209,6 @@ Game.failCompiling = function (error)
 
 // GAME UPDATES
 
-var diff = 0.5;
-var set = false;
-
 Game.appUpdate = function ()
 {
   if (Game.loading) return;
@@ -222,29 +219,11 @@ Game.appUpdate = function ()
     if (Game.shaderMan.recompile("Ray"))
       Game.doneCompiling();
     Game.resetNeeded = false;
-    set = false;
   }
 
   if (fsqIndex == 0)
   {
     Game.World.animateStep();
-    /*
-    // animate a light to show that its not a single image
-    if (Game.World.lights[1])
-    {
-      let p = Game.World.lights[1].position.x;
-      p += diff;
-      if (p > 5 || p < -5) diff *= -1;
-      Game.World.lights[1].position.x = p;
-    }
-    if (Game.World.cameras["main"])
-    {
-      let p = Game.World.cameras["main"].from.x;
-      p += diff/10.0;
-      if (p > -0.5 || p < -4.5) diff *= -1;
-      Game.World.cameras["main"].from.x = p;
-    }
-    */
   }
 }
 
@@ -267,15 +246,10 @@ Game.appDrawAux = function ()
   effect.bind();
 
   // send our world data to the shader
-//  if (!set)
-  {
-    // these dont change - ya they do
-    effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
-    effect.setUniformBuffer("Materials", Game.World.getMaterialBuffer());
-    effect.setUniformBuffer("Patterns", Game.World.getPatternBuffer());
-    effect.setUniformBuffer("Lights", Game.World.getLightBuffer());
-    set = true;
-  }
+  effect.setUniformBuffer("Objects", Game.World.getObjectBuffer());
+  effect.setUniformBuffer("Materials", Game.World.getMaterialBuffer());
+  effect.setUniformBuffer("Patterns", Game.World.getPatternBuffer());
+  effect.setUniformBuffer("Lights", Game.World.getLightBuffer());
   effect.setUniformBuffer("PerScene", Game.World.getCameraBuffer("main"));
 
   // check if we were waiting for a query result. now is a good time
@@ -350,10 +324,6 @@ Game.appDraw = function (eye)
   effect.setUniforms(Game.uParams);
   effect.draw(Game.assetMan.assets['fsq']);
 
-  // are we pausing the render loop?
-  //  if (Game.stopRender)
-  //    window.cancelAnimationFrame(Game.RAFid);
-
   // TODO
   // todo only recompile for item num change
 }
@@ -418,3 +388,4 @@ Game.appHandleKeyDown = function (event)
 Game.appHandleKeyUp = function (event)
 {
 }
+
