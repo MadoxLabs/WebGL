@@ -119,6 +119,7 @@ class Material
     if (null != def.shininess) this.shininess = def.shininess;
     if (null != def.ambient) this.ambient = def.ambient;
     if (null != def.diffuse) this.diffuse = def.diffuse;
+    if (null != def.specular) this.specular = def.specular;
     if (null != def.colour) this.colour = [def.colour[0], def.colour[1], def.colour[2], 1.0];
     if (def.pattern)
     {
