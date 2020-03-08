@@ -129,9 +129,9 @@
       for (let i = 0; i < this.objects.length; ++i)
       {
         // TODO intersect lights
-        ret.add(this.objects[i].intersect(r));
+        this.objects[i].intersect(r, ret);
       }
-      ret.sort();
+//      ret.sort();
       return ret;
     }
 

@@ -488,8 +488,8 @@
   {
     constructor()
     {
-      this.list = new Array(20);
-      this.max = 20;
+      this.list = new Array(40);
+      this.max = 40;
       this.num = 0;
       this.sorted = false;
       this.isIntersections = true;
@@ -499,7 +499,18 @@
     {
       if (i.isIntersection)
       {
-        this.list[this.num++] = i;
+        let index = 0;
+        if (this.num > 0)
+        {
+          for (index = this.num; index > 0; --index)
+          {
+            if (i.length > this.list[index - 1].length) break;
+            this.list[index] = this.list[index - 1];
+          }
+        }
+        this.list[index] = i;
+        this.num++;
+
         if (this.num == this.max)
         {
           this.max += 20;
@@ -511,34 +522,13 @@
       {
         for (let x = 0; x < i.num; ++x)
         {
-          this.list[this.num++] = i.list[x];
-          if (this.num == this.max)
-          {
-            this.max += 20;
-            console.log("Hit the max!");
-            this.list[this.max] = null;
-          }
+          this.add(i.list[x]);
         }
       }
-      this.sorted = false;
-    }
-
-    sort()
-    {
-      if (this.sorted) return;
-      if (this.num > 1)
-      {
-        ray.timsort(this.list, function (a, b)
-        {
-          return a.length - b.length;
-        }, 0, this.num);
-      }
-      this.sorted = true;
     }
 
     hit()
     {
-      this.sort();
       for (let i = 0; i < this.num; ++i)
       {
         if (this.list[i].length >= 0) return this.list[i];
@@ -548,7 +538,6 @@
 
     hitSkipNoShadow()
     {
-      this.sort();
       for (let i = 0; i < this.num; ++i)
       {
         if (this.list[i].length >= 0 && this.list[i].object.shadow) return this.list[i];

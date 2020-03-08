@@ -41,11 +41,11 @@
       return wNormal.normalize();
     }
 
-    intersect(r)
+    intersect(r, hits)
     {
       if (this.dirty) this.clean();
       let r2 = r.transform(this.inverse);
-      return this.local_intersect(r2);
+      return this.local_intersect(r2, hits);
     }
 
     fromJSON(def)
@@ -105,22 +105,22 @@
       return this.normal.copy();
     }
 
-    local_intersect(r)
+    local_intersect(r, hits)
     {
-      let ret = ray.Intersections();
-      if (Math.abs(r.direction.y) < ray.epsilon) return ret;
+//      let ret = ray.Intersections();
+      if (Math.abs(r.direction.y) < ray.epsilon) return;
 
       let d = (-r.origin.y / r.direction.y);
       if (this.limits)
       {
         let p = r.position(d);
-        if (this.xMax != null && p.x > this.xMax) return ret;
-        if (this.xMin != null && p.x < this.xMin) return ret;
-        if (this.yMax != null && p.z > this.yMax) return ret;
-        if (this.yMin != null && p.z < this.yMin) return ret;
+        if (this.xMax != null && p.x > this.xMax) return;
+        if (this.xMin != null && p.x < this.xMin) return;
+        if (this.yMax != null && p.z > this.yMax) return;
+        if (this.yMin != null && p.z < this.yMin) return;
       }
-      ret.add(ray.Intersection(d, this));
-      return ret;
+      hits.add(ray.Intersection(d, this));
+//      return ret;
     }
 
     static test1()
@@ -225,9 +225,9 @@
       return p.minus(ray.Origin);
     }
 
-    local_intersect(r)
+    local_intersect(r, hits)
     {
-      let ret = ray.Intersections();
+//      let ret = ray.Intersections();
 
       let sphereToRay = ray.Touple.subtract(r.origin, ray.Origin);
       let a = r.direction.dot(r.direction);
@@ -235,12 +235,12 @@
       let c = sphereToRay.dot(sphereToRay) - 1;
       let aa = a + a;
       let discr = b * b - 2.0 * aa * c;
-      if (discr < 0) return ret;
+      if (discr < 0) return;
 
       let rootDiscr = Math.sqrt(discr);
-      ret.add(ray.Intersection((-b - rootDiscr) / aa, this));
-      ret.add(ray.Intersection((-b + rootDiscr) / aa, this));
-      return ret;
+      hits.add(ray.Intersection((-b - rootDiscr) / aa, this));
+      hits.add(ray.Intersection((-b + rootDiscr) / aa, this));
+//      return ret;
     }
 
     // tests
@@ -492,20 +492,20 @@
       return { min: min, max: max }
     }
 
-    local_intersect(r)
+    local_intersect(r, hits)
     {
       let x = this.checkAxis(r.origin.x, r.direction.x);
       let y = this.checkAxis(r.origin.y, r.direction.y);
       let z = this.checkAxis(r.origin.z, r.direction.z);
       let min = Math.max(x.min, y.min, z.min);
       let max = Math.min(x.max, y.max, z.max);
-      let ret = ray.Intersections();
+//      let ret = ray.Intersections();
       if (min <= max)
       {
-        ret.add(ray.Intersection(min, this));
-        ret.add(ray.Intersection(max, this));
+        hits.add(ray.Intersection(min, this));
+        hits.add(ray.Intersection(max, this));
       }
-      return ret;
+//      return ret;
     }
 
     // tests
@@ -647,9 +647,9 @@
       return (x * x + z * z) <= 1.0;
     }
 
-    local_intersect(r)
+    local_intersect(r, hits)
     {
-      let ret = ray.Intersections();
+//      let ret = ray.Intersections();
       let a = r.direction.x * r.direction.x + r.direction.z * r.direction.z;
 
       if (ray.isEqual(a, 0) == false) // hit the walls?
@@ -667,21 +667,21 @@
         if (t0 > t1) { let t = t0; t0 = t1; t1 = t; } // swap
 
         let y = r.origin.y + t0 * r.direction.y;
-        if (this.min < y && y < this.max) ret.add(ray.Intersection(t0, this));
+        if (this.min < y && y < this.max) hits.add(ray.Intersection(t0, this));
 
         y = r.origin.y + t1 * r.direction.y;
-        if (this.min < y && y < this.max) ret.add(ray.Intersection(t1, this));
+        if (this.min < y && y < this.max) hits.add(ray.Intersection(t1, this));
       }
 
       if (this.closed) // hit the ends?
       {
         let t = (this.min - r.origin.y) / r.direction.y;
-        if (this.check_cap(r, t)) ret.add(ray.Intersection(t, this));
+        if (this.check_cap(r, t)) hits.add(ray.Intersection(t, this));
         t = (this.max - r.origin.y) / r.direction.y;
-        if (this.check_cap(r, t)) ret.add(ray.Intersection(t, this));
+        if (this.check_cap(r, t)) hits.add(ray.Intersection(t, this));
       }
 
-      return ret;
+//      return ret;
     }
 
     // tests
@@ -891,9 +891,9 @@
       return (x * x + z * z) <= this.max * this.max;
     }
 
-    local_intersect(r)
+    local_intersect(r, hits)
     {
-      let ret = ray.Intersections();
+//      let ret = ray.Intersections();
       let a = r.direction.x * r.direction.x - r.direction.y * r.direction.y + r.direction.z * r.direction.z;
       let b = 2 * r.origin.x * r.direction.x - 2 * r.origin.y * r.direction.y + 2 * r.origin.z * r.direction.z;
 
@@ -906,7 +906,7 @@
         let c = r.origin.x * r.origin.x - r.origin.y * r.origin.y + r.origin.z * r.origin.z;
         let t = -c / (2.0 * b);
         let y = r.origin.y + t * r.direction.y;
-        if (this.min < y && y < this.max) ret.add(ray.Intersection(t, this));
+        if (this.min < y && y < this.max) hits.add(ray.Intersection(t, this));
       }
       else if (ray.isEqual(a, 0) == false) // hit the walls?
       {
@@ -922,21 +922,21 @@
         if (t0 > t1) { let t = t0; t0 = t1; t1 = t; } // swap
 
         let y = r.origin.y + t0 * r.direction.y;
-        if (this.min < y && y < this.max) ret.add(ray.Intersection(t0, this));
+        if (this.min < y && y < this.max) hits.add(ray.Intersection(t0, this));
 
         y = r.origin.y + t1 * r.direction.y;
-        if (this.min < y && y < this.max) ret.add(ray.Intersection(t1, this));
+        if (this.min < y && y < this.max) hits.add(ray.Intersection(t1, this));
       }
 
       if (this.closed) // hit the ends?
       {
         let t = (this.min - r.origin.y) / r.direction.y;
-        if (this.check_mincap(r, t)) ret.add(ray.Intersection(t, this));
+        if (this.check_mincap(r, t)) hits.add(ray.Intersection(t, this));
         t = (this.max - r.origin.y) / r.direction.y;
-        if (this.check_maxcap(r, t)) ret.add(ray.Intersection(t, this));
+        if (this.check_maxcap(r, t)) hits.add(ray.Intersection(t, this));
       }
 
-      return ret;
+//      return ret;
     }
 
     // tests
