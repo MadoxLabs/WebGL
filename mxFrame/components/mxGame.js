@@ -15,7 +15,7 @@ var gl; // leave this global for quick access
 
       this.useTimestamps = false;
 
-      if (!Game.appWebGL || Game.appWebGL() == 1) return;
+      if (!Game.appWebGL || Game.appWebGL() == 1 || !ext.timer) return;
 
       if (gl.getQuery(ext.timer.TIMESTAMP_EXT, ext.timer.QUERY_COUNTER_BITS_EXT) > 0)
       {
@@ -25,7 +25,7 @@ var gl; // leave this global for quick access
 
     start()
     {
-      if (!Game.appWebGL || Game.appWebGL() == 1) return;
+      if (!Game.appWebGL || Game.appWebGL() == 1 || !ext.timer) return;
       gl.getParameter(ext.timer.GPU_DISJOINT_EXT);
       this.pending = false;
 
@@ -44,7 +44,7 @@ var gl; // leave this global for quick access
 
     end()
     {
-      if (!Game.appWebGL || Game.appWebGL() == 1) return;
+      if (!Game.appWebGL || Game.appWebGL() == 1 || !ext.timer) return;
       if (this.useTimestamps)
       {
         ext.timer.queryCounterEXT(this.endQuery, ext.timer.TIMESTAMP_EXT);
@@ -58,7 +58,7 @@ var gl; // leave this global for quick access
 
     report()
     {
-      if (!Game.appWebGL || Game.appWebGL() == 1) return;
+      if (!Game.appWebGL || Game.appWebGL() == 1 || !ext.timer) return;
       if (!this.pending) return 0;
 
       var disjoint = gl.getParameter(ext.timer.GPU_DISJOINT_EXT);
