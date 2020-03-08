@@ -89,10 +89,12 @@ layout(std140) uniform Objects // objects
 
 struct Intersect
 {
+  int id;
   float length;
   int object;
 };
 
+int hituuid = 0;
 Intersect hitlist[20];
 int hitsize;
 Intersect hit;

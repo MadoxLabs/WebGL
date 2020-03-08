@@ -41,32 +41,6 @@ Ray getRayAt(float u, float v, float ox, float oy)
   return ray;
 }
 
-void sortIntersections()
-{
-  bool changed = false;
-  float l = 0.0;
-  int o = 0;
-  for (int loop = 0; loop < 101; ++loop)
-  {
-    int ii = 1;
-    for (int i = 0; i < hitsize-1; ++i)
-    {
-      if (hitlist[i].length > hitlist[ii].length)
-      {
-        changed = true;
-        l = hitlist[i].length;
-        o = hitlist[i].object;
-        hitlist[i].length = hitlist[ii].length;
-        hitlist[i].object = hitlist[ii].object;
-        hitlist[ii].length = l;
-        hitlist[ii].object = o;
-      }
-      ii++;
-    }
-    if (!changed) break;
-  }
-}
-
 bool getHit()
 {
   for (int i = 0; i < hitsize; i += 1)
@@ -103,25 +77,14 @@ void addIntersect(float val, int index)
     for (i = hitsize; i > 0; --i)
     {
       if (val > hitlist[i - 1].length) break;
-      hitlist[i].length = hitlist[i - 1].length;
-      hitlist[i].object = hitlist[i - 1].object;
+      hitlist[i] = hitlist[i - 1];
     }
   }
   hitlist[i].length = val;
   hitlist[i].object = index;
+  hitlist[i].id = hituuid++;
   hitsize++;
 }
-
-/*
-void addIntersect(float val, int index)
-{
-if (hitsize < 20) {
-hitlist[hitsize].length = val;
-hitlist[hitsize].object = index;
-hitsize++;
-}
-}
-*/
 
 void intersect(in Ray ray)
 {
@@ -130,7 +93,7 @@ void intersect(in Ray ray)
   {
     // transform to object space
     Ray r2;
-    r2.origin = inverse(objects.data[i].transform) * ray.origin;
+    r2.origin = inverse(objects.data[i].transform) * ray.origin;        // TODO SPEED UP
     r2.direction = inverse(objects.data[i].transform) * ray.direction;
     // hit?
     if (objects.data[i].type == 1.0) sphere_intersect(i, r2);
@@ -139,18 +102,17 @@ void intersect(in Ray ray)
     else if (objects.data[i].type == 4.0) cylinder_intersect(i, r2);
     else if (objects.data[i].type == 5.0) cone_intersect(i, r2);
   }
-//  sortIntersections();
 }
 
 //--------------
-int RefractList[40]; // lsit of object indexs, keeping track up material enter and exits
+int RefractList[40]; // list of object indexs, keeping track up material enter and exits
 int RefractSize = 0;
 
-bool RefractListContainsId(float id, out int index) // check if an object id is in list
+bool RefractListContainsId(int id, out int index) // check if an object id is in list
 {
   for (int i = 0; i < RefractSize; ++i)
   {
-    if (objects.data[RefractList[i]].id == id)
+    if (RefractList[i] == id)
     {
       index = i;
       return true;
@@ -159,15 +121,15 @@ bool RefractListContainsId(float id, out int index) // check if an object id is 
   return false;
 }
 
-void RefractListAdd(int index) // append an object index
+void RefractListAdd(int id) // append an object index
 {
-  RefractList[RefractSize] = index;
+  RefractList[RefractSize] = id;
   RefractSize++;
 }
 
 void RefractListRemove(int index) // remove an object index, bump all rest down
 {
-  for (int i = index + 1; i < RefractSize; ++i)
+  for (int i = index; i < RefractSize-1; ++i)
   {
     RefractList[i] = RefractList[i + 1];
   }
@@ -202,35 +164,37 @@ HitData precompute(Ray ray)
   ret.overPoint = ret.position + scaleNormal;
   ret.underPoint = ret.position - scaleNormal;
 
+  RefractSize = 0;
   for (int i = 0; i < hitsize; ++i)
   {
-    if (hitlist[i].length == hit.length)
+    int hitlistid = hitlist[i].id;
+    if (hitlistid == hit.id)
     {
       if (RefractSize == 0) ret.n1 = 1.0;
-      else ret.n1 = materials.data[int(objects.data[RefractList[RefractSize]].material)].refraction;
+      else ret.n1 = materials.data[int(objects.data[RefractList[RefractSize-1]].material)].refraction;
     }
 
     int index;
-    if (RefractListContainsId(objects.data[hitlist[i].object].id, index))
+    if (RefractListContainsId(hitlist[i].object, index))
       RefractListRemove(index);
     else
       RefractListAdd(hitlist[i].object);
 
-    if (hitlist[i].length == hit.length)
+    if (hitlistid == hit.id)
     {
       if (RefractSize == 0) ret.n2 = 1.0;
-      else ret.n2 = materials.data[int(objects.data[RefractList[RefractSize]].material)].refraction;
+      else ret.n2 = materials.data[int(objects.data[RefractList[RefractSize-1]].material)].refraction;
       break;
     }
   }
   return ret;
 }
 
-vec4 castRay(Ray ray, int depth)
+vec4 castRay(float myMult, Ray ray, int depth)
 {
   intersect(ray);
   if (getHit() == false) return vec4(0.0, 0.0, 0.0, 1.0);
-  return getColourFor(precompute(ray), depth);
+  return getColourFor(myMult, precompute(ray), depth);
 }
 
 

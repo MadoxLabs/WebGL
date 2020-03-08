@@ -36,13 +36,10 @@ int resolveNextPattern(int curIndex, vec4 pp)
   }
   else if (patterns.data[curIndex].type == 5.0) // checker
   {
-    float x = float(int(pp.x));
-    if (x < 0.0) x += 1.0;
-    float y = float(int(pp.y));
-    if (y < 0.0) y += 1.0;
-    float z = float(int(pp.z));
-    if (z < 0.0) z += 1.0;
-    val = x + y + z;
+    int x = int(pp.x + 1000.0); // just to get away from negative numbers
+    int y = int(pp.y + 1000.0);
+    int z = int(pp.z + 1000.0);
+    val = float(abs(x) + abs(y) + abs(z));
   }
 
   int i = int(abs(floor(val))) % int(patterns.data[curIndex].numColour);
@@ -188,7 +185,7 @@ float schlick(HitData comp)
   return r0 + (1.0 - r0) * pow((1.0 - cos), 5.0);
 }
 
-vec4 getColourFor(HitData comp, int depth)
+vec4 getColourFor(float myMult, HitData comp, int depth)
 {
   vec4 ret = vec4(0.0);
   
@@ -211,7 +208,7 @@ vec4 getColourFor(HitData comp, int depth)
     ray.direction = comp.reflect;
 
     colourStack[stackI] = ray;
-    multStack[stackI] = reflect;
+    multStack[stackI] = reflect * myMult;
     stackI++;
   }
 
@@ -222,7 +219,7 @@ vec4 getColourFor(HitData comp, int depth)
     if (getRefractedRay(comp, ray))
     {
       colourStack[stackI] = ray;
-      multStack[stackI] = transp;
+      multStack[stackI] = transp * myMult;
       stackI++;
     }
   }
@@ -231,8 +228,10 @@ vec4 getColourFor(HitData comp, int depth)
   for (int i = 0; i < int(lights.numLights); ++i)
   {
     float shadow =  isShadowed(comp.overPoint, i, int(perScene.shadowDepth));
-    ret += lighting(int(objects.data[comp.object].material), comp.object, i, comp.position, comp.eye, comp.normal, shadow);
+    ret += lighting(int(objects.data[comp.object].material), comp.object, i, comp.overPoint, comp.eye, comp.normal, shadow);
   }
+  ret = ret * myMult;
+  ret.w = 1.0;
   return ret;
 }
 

@@ -38,9 +38,10 @@ void main(void)
     Ray ray = colourStack[stackI];
     float mult = multStack[stackI];
 
-    vec4 c = castRay(ray, depth--);
-    finalColour = finalColour + (c * mult);
+    vec4 c = castRay(mult, ray, depth--);
+    finalColour = finalColour + c;
   }
+  finalColour.w = 1.0;
   outColor = finalColour;
 }
 
