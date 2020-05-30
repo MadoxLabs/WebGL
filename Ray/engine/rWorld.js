@@ -19,8 +19,20 @@
         lighting: true,
         shadowing: true,
         jigglePoints: false,
+        threaded: true,
         maxReflections: 5
       }
+
+      this.modeCaustics = false;
+      this.minCaustics = 1;
+
+      this.causticFilter = new Array(400 * 400);
+    }
+
+    causticMode(val)
+    {
+      this.options.threaded = !val;
+      this.modeCaustics = val;
     }
 
     setCamera(c, name)
@@ -54,6 +66,28 @@
         intersection: 0,
         intersections: 0
       };
+
+      if (this.modeCaustics)
+      {
+        // if we are in caustics mode, we do not render pixels. each call for a pixel will instead render N rays from each light
+        for (let l in this.lights)
+        {
+          for (let i = 0; i < this.objects.length; ++i)
+          {
+            let origin = this.lights[l].position;
+
+            for (let t = 0; t < 10; ++t)
+            {
+              let jiggle = ray.Point(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5);
+              let p = this.objects[i].transform.times(ray.Origin.copy().plus(jiggle));
+              let direction = p.copy().minus(origin);
+              let r = ray.Ray(origin, direction.normalize());
+              this.causticCast(this.lights[l], r);
+            }
+          }
+        }
+        return;
+      }
 
       let colour = ray.Black;
       let factor = 1.0;
@@ -93,10 +127,13 @@
       for (let x = 0; x < c.width; ++x)
       {
         let colour = this.renderPixel(x, y, c);
-        buffer[index++] = colour.redByte;
-        buffer[index++] = colour.greenByte;
-        buffer[index++] = colour.blueByte;
-        buffer[index++] = 255;
+        if (!this.modeCaustics)
+        {
+          buffer[index++] = colour.redByte;
+          buffer[index++] = colour.greenByte;
+          buffer[index++] = colour.blueByte;
+          buffer[index++] = 255;
+        }
       }
     }
 
@@ -146,6 +183,95 @@
       return ray.Render.getColourFor(comp, depth);
     }
 
+    //------------------
+    // CAUSTIC
+
+    causticCast(l, r)
+    {
+      // cast the ray until hit non transpart
+      // find where spot is in camera view
+      // write to location in buffer
+
+      let depth = this.options.maxReflections;
+      let hit = null;
+      let lensed = false;
+
+      do
+      {
+        let points = this.intersect(r);
+        hit = points.hit();
+        if (!hit)
+        {
+          hit = null;
+          break;
+        }
+        //  we have a hit - is it transparent? - keep going, it lensed
+        //  it has to be speculat - try doing the dot test normal.eye
+        //  what is eye? just use the vector itself
+        if (hit.object.material.transparency)
+        {
+          let comp = hit.precompute(r, points);
+          let reflect = ray.Touple.reflect(r.direction, comp.normal);
+          let reflectDotEye = reflect.dot(comp.eye);
+          if (reflectDotEye <= 0)
+          {
+            hit = null;
+            break;
+          }
+          r = ray.Render.getRefractedRay(comp);
+          lensed = true;
+          if (!r) break;
+          continue;
+        }
+        // is it reflective? keep going
+        if (hit.object.material.reflective)
+        {
+          let comp = hit.precompute(r, points);
+          r = ray.Ray(comp.overPoint.copy(), comp.reflect.copy());
+          depth--;
+          continue;
+        }
+        // stop, draw caustic 
+        break;
+      } while (depth > 0);
+
+      if (hit && lensed && r)
+      {
+        // we have a hit where a caustic appears
+        // find where it in is camera space
+        let c = this.cameras["main"];
+        let x = -1;
+        let y = -1;
+        let p = r.origin.copy().plus(r.direction.normalize().times(hit.length)); // point in real world
+        p.minus(c.position).normalize(); // vector from camera to point
+        // untransform it
+        p = c.transform.times(p);
+        // convert to canvas coords
+        x = (c.halfWidth - p.x) / c.pixelSize - 0.5;
+        y = (c.halfHeight - p.y) / c.pixelSize - 0.5;
+
+        if (x >= 0 && y >= 0 && x <= c.width && y <= c.height)
+        {
+//          let index = (y * 400 + x) | 0;
+//          if (!this.causticFilter[index]) this.causticFilter[index] = 1;
+//          else this.causticFilter[index] += 1;
+//          if (this.causticFilter[index] > this.minCaustics)
+          {
+//            this.causticFilter[index] = 0;
+            let colour = {};
+            c.canvas.get(colour, x, y);
+            colour.red += 0.004;
+            colour.green += 0.004;
+            colour.blue += 0.004;
+            c.canvas.set(colour, x, y);
+          }
+        }
+      }
+    }
+
+    //--------------------
+    // PARSE
+
     loadFromJSON(json)
     {
       this.reset();
@@ -180,6 +306,13 @@
       if (data.shadowing != null) this.options.shadowing = data.shadowing;
       if (data.jigglePoints != null) this.options.jigglePoints = data.jigglePoints;
       if (data.maxReflections != null) this.options.maxReflections = data.maxReflections;
+      if (data.threaded != null) this.options.threaded = data.threaded;
+      if (data.caustics != null)
+      {
+        this.modeCaustics = data.caustics;
+        this.minCaustics = data.minCaustics;
+        this.options.threaded = !data.caustics;
+      }
     }
 
     parseTransforms(data)
@@ -462,6 +595,7 @@
 
     createView(from, to, up)
     {
+      this.position = from;
       this.forward = ray.Touple.subtract(to, from).normalize();
       this.left = ray.Touple.cross(this.forward, ray.Touple.normalize(up));
       this.up = ray.Touple.cross(this.left, this.forward);

@@ -1,6 +1,8 @@
 function loadscene(n)
 {
-  document.getElementById("code").value = `
+  if (n == 1) 
+  {
+    document.getElementById("code").value = `
 
         {
           "renderOptions": {
@@ -77,6 +79,77 @@ function loadscene(n)
           ]
         }
 `;
+  }
+
+  if (n == 2) 
+  {
+    document.getElementById("code").value = `
+
+        {
+          "renderOptions": {
+            "antialias": 0,
+            "maxReflections": 10, "caustics": false
+          },
+          "cameras": [
+            {
+              "name": "main",
+              "width": 400,
+              "height": 400,
+              "fov": 1.2566,
+              "from": [0, 3, -3],
+              "to": [0, 1, 0],
+              "up": [0, 1, 0]
+            }
+          ],
+          "lights": [
+            {
+              "type": "pointlight",
+              "position": [0, 5, -1],
+              "intensityDiffuse": 0.5,
+              "intensityAmbient": 0.2,
+              "colour": [1, 1, 1]
+            }
+          ],
+"materials" :[
+            {
+              "name": "glass",
+              "ambient": 0,
+              "diffuse": 0.4,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 0.9,
+              "transparency": 0.9,
+              "transmit": 0.7,
+              "refraction": 1.5,
+              "colour": [0.2, 0.2, 0.2]
+            },
+           {
+              "name": "air",
+              "ambient": 0,
+              "diffuse": 0.4,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 0.9,
+              "transparency": 0.9,
+              "transmit": 1,
+              "refraction": 1.0,
+              "colour": [0.2, 0.2, 0.2]
+            }
+],
+"transforms": [
+{ "name": "air", "series" : [{"type": "S", "value" : [0.98,0.98,0.98]}] }, 
+{ "name": "floor", "series" : [{"type": "T", "value" : [0,-1,0]}] }, 
+{ "name": "left", "series" : [{"type": "T", "value" : [-2.2,0,0]}] }, 
+{ "name": "back", "series" : [{"type": "T", "value" : [0,0,2]}] }, 
+{ "name": "right", "series" : [{"type": "T", "value" : [2.2,0,0]}] }
+],
+          "objects": [
+{ "type": "plane", "transform": "floor"},
+{ "type": "cylinder", "material": "glass", "min": -1, "max": 1, "closed": true}
+          ]
+        }
+`;
+  }
 }
 
 (function ()
@@ -98,6 +171,7 @@ function loadscene(n)
 <br>
 <button id="render" onClick="obj.transform()">Render</button>
 <input type="button" id="scene1" onClick="loadscene(1)" value="Load Scene 1"></input>
+<input type="button" id="scene2" onClick="loadscene(2)" value="Load Scene 2"></input>
 </td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
@@ -159,9 +233,7 @@ function loadscene(n)
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
-      this.canvas.tvstatic();
-      this.canvas.draw();
-      this.thread = 1;
+//      this.thread = 1;
 
       document.getElementById("surface").addEventListener("click", function (event)
       {
@@ -191,8 +263,10 @@ function loadscene(n)
       this.shuffle(this.rows);
 
       this.setupDef = {};
+//      ray.World.loadFromJSON(this.setupDef);
 
-      if (this.thread)
+//      if (ray.World.options.threaded)
+    // set up threads
       {
         // workers setup
         let obj = this;
@@ -205,17 +279,18 @@ function loadscene(n)
           this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
         }
       }
-      else
+//      else
+    // setup non threaded
       {
         this.buffer = new Uint8ClampedArray(this.size * 4);
-        ray.World.loadFromJSON(this.setupDef);
       }
     }
 
     begin()
     {
       ray.World.loadFromJSON(this.setupDef);
-      if (this.thread)
+      ray.World.cameras["main"].canvas = this.canvas;
+      if (ray.World.options.threaded)
       {
         for (let i = 0; i < this.load; ++i)
           this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': this.setupDef });
@@ -247,7 +322,7 @@ function loadscene(n)
 
         if (this.restart) this.begin();
 
-        if (this.kill && this.thread)
+        if (this.kill && ray.World.options.threaded)
         {
           for (let i = 0; i < this.load; ++i)
             this.workers[i].terminate();
@@ -257,14 +332,15 @@ function loadscene(n)
       }
 
       ray.App.setMessage("Rendering row " + this.renderY);
-      if (this.thread)
+      if (ray.World.options.threaded)
         this.workers[id].postMessage({ cmd: 'render', y: this.rows[this.renderY], buffer: this.buffers[id] }, [this.buffers[id].buffer]);
       else
       {
-        ray.usePool = true;
+        ray.usePool = false;
         ray.World.renderRowToBuffer("main", this.renderY, this.buffer);
         ray.usePool = false;
-        this.canvas.bltData(this.buffer, 0, this.renderY);
+        if (!ray.World.modeCaustics)
+          this.canvas.bltData(this.buffer, 0, this.renderY);
         this.canvas.draw();
         let obj = this;
         setTimeout(function () { obj.renderRow(0); }, 0);
@@ -272,7 +348,7 @@ function loadscene(n)
 
       this.renderY += 1;
 
-      if (this.kill && this.thread)
+      if (this.kill && ray.World.options.threaded)
       {
         for (let i = 0; i < this.load; ++i)
           this.workers[i].terminate();

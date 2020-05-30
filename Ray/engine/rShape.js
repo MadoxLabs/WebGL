@@ -657,7 +657,7 @@
         let b = 2 * r.origin.x * r.direction.x + 2 * r.origin.z * r.direction.z;
         let c = r.origin.x * r.origin.x + r.origin.z * r.origin.z - 1.0;
         let disc = b * b - 4.0 * a * c;
-        if (disc < 0) return ret;
+        if (disc < 0) return;
 
         let aa = 2.0 * a;
         let rootdisc = Math.sqrt(disc);
@@ -900,6 +900,7 @@
       if (ray.isEqual(a, 0) == true && ray.isEqual(b, 0) == true)
       {
         // missed
+        return;
       }
       if (ray.isEqual(a, 0) == true && ray.isEqual(b, 0) == false)// parallel to one cone
       {
@@ -912,7 +913,7 @@
       {
         let c = r.origin.x * r.origin.x - r.origin.y * r.origin.y + r.origin.z * r.origin.z;
         let disc = b * b - 4.0 * a * c;
-        if (disc < 0) return ret;
+        if (disc < 0) return;
 
         let aa = 2.0 * a;
         let rootdisc = Math.sqrt(disc);

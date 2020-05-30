@@ -52,6 +52,7 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
       this.canvas.fromElement("surface");
       this.canvas.tvstatic();
       this.canvas.draw();
+
       this.thread = 1;
 
       document.getElementById("surface").addEventListener("click", function (event)
@@ -563,6 +564,7 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
     begin()
     {
       ray.World.loadFromJSON(this.setupDef);
+      ray.World.cameras["main"].canvas = this.canvas;
       if (this.thread)
       {
         for (let i = 0; i < this.load; ++i)
@@ -626,9 +628,10 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
       else
       {
         ray.usePool = true;
+        ray.World.causticMode(true);
         ray.World.renderRowToBuffer("main", this.renderY, this.buffer);
         ray.usePool = false;
-        this.canvas.bltData(this.buffer, 0, this.renderY);
+//        this.canvas.bltData(this.buffer, 0, this.renderY);
         this.canvas.draw();
         let obj = this;
         setTimeout(function () { obj.renderRow(0); }, 0);
