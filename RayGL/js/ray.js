@@ -94,6 +94,88 @@ Game.appInit = function ()
   Game.loadShaderFile("assets/storeresult.fx");
 }
 
+Game.loadPhysics = function()
+{
+  Game.startCompiling();
+  setTimeout(function ()
+  {
+    try
+    {
+      let code = `  {
+    "cameras": [
+      {
+        "name": "main",
+        "width": 800,
+        "height": 600,
+        "fov": 1.57,
+        "from": [0, 0, -2.5],
+        "to": [0, 0, 0],
+        "up": [0, 1, 0]
+      }
+    ],
+    "lights": [
+      {
+        "type": "pointlight",
+        "position": [10, 10, -10],
+        "colour": [0, 0, 1]
+      },
+      {
+        "type": "pointlight",
+        "position": [-10, 10, -10],
+        "colour": [1, 1, 1]
+      }
+    ],
+    "materials": [
+            {
+              "name": "glass",
+              "ambient": 0,
+              "diffuse": 0.4,
+              "shininess": 300,
+              "specular": 0.9,
+              "reflective": 0.9,
+              "transparency": 0.9,
+              "transmit": 0.7,
+              "refraction": 1.5,
+              "colour": [0.2, 0.2, 0.2]
+            }
+    ],
+    "transforms": [
+      { "name": "floor", "series" : [{"type": "T", "value" : [0,-1,0]}] }
+    ],
+    "objects": [
+      { "type": "plane", "transform": "floor"}
+    ]
+  }`;
+      Game.World.loadFromJSON(JSON.parse(code));
+
+      // spawn many balls
+      for (let i = 0; i < 20; ++i)
+      {
+        let obj = new Sphere();
+        // random pos
+        let x = Math.random() * 10.0 - 5.0;
+        let y = Math.random() * 10.0 + 1.0;
+        let z = Math.random() * 20.0;
+        let pos = Matrix.translation(x, y, z);
+        // random scale
+        let s = Math.random() * 2.0 + 0.5;
+        let size = Matrix.scale(0.5, 0.5, 0.5);
+        obj.transform = size.times(pos);
+        obj.material = "glass";
+        Game.World.objects.push(obj);
+      }
+
+      Game.physicsWorker = new PhysicsWorker();
+      
+      Game.resetNeeded = true;
+    } catch (e)
+    {
+      Game.failCompiling(e);
+    }
+  }, 500);
+
+}
+
 Game.runScene = function()
 {
   var e = document.getElementById("scenes");

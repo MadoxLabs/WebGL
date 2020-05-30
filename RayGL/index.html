@@ -28,7 +28,7 @@
       }
     </script>
   </head>
-  <body style="margin:0;padding:0;" onload="mx.loadApp(['js/matrix.js', 'js/parser.js', 'js/ray.js'], '../mxFrame', mx.WITH_MXFRAME);">
+  <body style="margin:0;padding:0;" onload="mx.loadApp(['js/cannon.js', 'js/physicsHandler.js', 'js/matrix.js', 'js/parser.js', 'js/ray.js'], '../mxFrame', mx.WITH_MXFRAME);">
 
     <p>Madoxlabs GLSL Ray Tracer</p>
     <div id="loading">Booting up:</div>
@@ -55,6 +55,8 @@
           <br />
           <textarea id="code"></textarea>
           <br>
+          <button onClick="Game.loadPhysics()">Physics Scene</button>
+          <br />
           <button id="render" onClick="Game.loadJSON()">Update</button>
           <button id="step" onClick="Game.step()">Step</button>
           <button id="stop" onClick="Game.stop()">Stop</button>

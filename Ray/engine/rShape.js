@@ -1063,6 +1063,21 @@
     }
   }
 
+  class rAABB
+  {
+    constructor(min, max)
+    {
+      this.min = min;
+      this.max = max;
+    }
+
+    transform(m)
+    {
+
+    }
+
+  }
+
   class rGroup extends rShape
   {
     constructor()
