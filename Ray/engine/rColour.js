@@ -252,6 +252,20 @@
       this.refraction = 1.0;
     }
 
+    clone(m)
+    {
+      this.ambient      = m.ambient     
+      this.diffuse      = m.diffuse     
+      this.specular     = m.specular    
+      this.shininess    = m.shininess   
+      this.colour = makeColour(m.colour.red, m.colour.green, m.colour.blue);      
+      this.pattern      = null     
+      this.reflective   = m.reflective  
+      this.transparency = m.transparency
+      this.transmit     = m.transmit    
+      this.refraction   = m.refraction                      
+    }
+
     colourAt(p, obj)
     {
       if (this.pattern) return this.pattern.colourAt(p, obj);
@@ -378,13 +392,15 @@
 
     colourAt(p, obj)
     {
-      let point = p;
+      let point = p.copy();
       if (obj && obj.isObject)
       {
-        if (obj.dirty) obj.clean();
-        point = obj.inverse.times(p);
+        point.worldToObject(obj);
+//        if (obj.dirty) obj.clean();
+//        point = obj.inverse.times(p);
       }
       if (this.dirty) this.clean();
+
       if (this.inverse) point = this.inverse.times(point);
       return this.resolve(point);
     }

@@ -13,6 +13,7 @@
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
       this.objects = [];
+      this.widgets = {};  // non rendering group children
       this.lights = [];
       this.cameras = {};
       this.options = {
@@ -142,6 +143,7 @@
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
       this.objects = [];
+      this.widgets = {};
       this.lights = [];
       this.lights.push(new ray.LightPoint(ray.Point(-10, 10, -10), ray.RGBColour(1, 1, 1)));
 
@@ -280,6 +282,7 @@
       if (json.patterns) this.parsePatterns(json.patterns);
       if (json.materials) this.parseMaterials(json.materials);
       if (json.lights) this.parseLights(json.lights);
+      if (json.widgets) this.parseWidgets(json.widgets);
       if (json.objects) this.parseObjects(json.objects);
       if (json.cameras) this.parseCameras(json.cameras);
     }
@@ -398,42 +401,74 @@
       }
     }
 
+    parseObject(data)
+    {
+        if (data.skip) return null;
+        if (data.type == "sphere")
+        {
+          let obj = new ray.Sphere();
+          obj.fromJSON(data);
+          return obj;
+        }
+        else if (data.type == "plane")
+        {
+          let obj = new ray.Plane();
+          obj.fromJSON(data);
+          return obj;
+        }
+        else if (data.type == "cube")
+        {
+          let obj = new ray.Cube();
+          obj.fromJSON(data);
+          return obj;
+        }
+        else if (data.type == "cylinder")
+        {
+          let obj = new ray.Cylinder();
+          obj.fromJSON(data);
+          return obj;
+        }
+        else if (data.type == "cone")
+        {
+          let obj = new ray.Cone();
+          obj.fromJSON(data);
+          return obj;
+        }
+        else if (data.type == "group")
+        {
+          let obj = new ray.Group();
+          obj.fromJSON(data);
+          return obj;
+        }
+        else if (data.type == "hexagon")
+        {
+          let obj = new ray.Hexagon();
+          obj.fromJSON(data);
+          return obj;
+        }
+    }
+
     parseObjects(data)
     {
       for (let i in data)
       {
-        if (data[i].skip) continue;
-        if (data[i].type == "sphere")
-        {
-          let obj = new ray.Sphere();
-          obj.fromJSON(data[i]);
-          this.objects.push(obj);
-        }
-        else if (data[i].type == "plane")
-        {
-          let obj = new ray.Plane();
-          obj.fromJSON(data[i]);
-          this.objects.push(obj);
-        }
-        else if (data[i].type == "cube")
-        {
-          let obj = new ray.Cube();
-          obj.fromJSON(data[i]);
-          this.objects.push(obj);
-        }
-        else if (data[i].type == "cylinder")
-        {
-          let obj = new ray.Cylinder();
-          obj.fromJSON(data[i]);
-          this.objects.push(obj);
-        }
-        else if (data[i].type == "cone")
-        {
-          let obj = new ray.Cone();
-          obj.fromJSON(data[i]);
-          this.objects.push(obj);
-        }
+        let o = this.parseObject(data[i]);
+        if (o) this.objects.push(o);
       }
+    }
+
+    parseWidgets(data)
+    {
+      for (let i in data)
+      {
+        let name = data[i].name;
+        this.widgets[name] = data[i];
+      }
+    }
+
+    getWidget(name)
+    {
+      return this.parseObject(this.widgets[name]);
     }
 
     static test1()

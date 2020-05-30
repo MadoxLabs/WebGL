@@ -63,7 +63,8 @@
         {
           let r = new rRay(new ray.Point(0, 0, -5), new ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
-          let points = s.intersect(r);
+          let points = ray.Intersections();
+          s.intersect(r, points);
           if (points.num != 2) return false;
           if (points.list[0].length != 4.0) return false;
           if (points.list[1].length != 6.0) return false;
@@ -80,7 +81,8 @@
         {
           let r = new rRay(new ray.Point(0, 1, -5), new ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
-          let points = s.intersect(r);
+          let points = ray.Intersections();
+          s.intersect(r, points);
           if (points.num != 2) return false;
           if (points.list[0].length != 5.0) return false;
           if (points.list[1].length != 5.0) return false;
@@ -97,7 +99,8 @@
         {
           let r = new rRay(new ray.Point(0, 2, -5), new ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
-          let points = s.intersect(r);
+          let points = ray.Intersections();
+          s.intersect(r, points);
           if (points.num != 0) return false;
           return true;
         }
@@ -112,7 +115,8 @@
         {
           let r = new rRay(new ray.Point(0, 0, 0), new ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
-          let points = s.intersect(r);
+          let points = ray.Intersections();
+          s.intersect(r, points);
           if (points.num != 2) return false;
           if (points.list[0].length != -1.0) return false;
           if (points.list[1].length != 1.0) return false;
@@ -129,7 +133,8 @@
         {
           let r = new rRay(new ray.Point(0, 0, 5), new ray.Vector(0, 0, 1));
           let s = new ray.Sphere();
-          let points = s.intersect(r);
+          let points = ray.Intersections();
+          s.intersect(r, points);
           if (points.num != 2) return false;
           if (points.list[0].length != -6.0) return false;
           if (points.list[1].length != -4.0) return false;

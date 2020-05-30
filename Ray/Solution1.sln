@@ -24,6 +24,27 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Ray", ".", "{B3F22EFE-4109-
 		SlnRelativePath = "..\Ray\"
 	EndProjectSection
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RayGL", "..\RayGL\", "{D375CBE6-CE1E-4DF7-8946-4A346B4926C2}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_54211"
+		Debug.AspNetCompiler.PhysicalPath = "..\RayGL\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_54211\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_54211"
+		Release.AspNetCompiler.PhysicalPath = "..\RayGL\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_54211\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "54211"
+		SlnRelativePath = "..\RayGL\"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +52,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B3F22EFE-4109-4BBF-9D5C-E21853A4FB33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B3F22EFE-4109-4BBF-9D5C-E21853A4FB33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D375CBE6-CE1E-4DF7-8946-4A346B4926C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D375CBE6-CE1E-4DF7-8946-4A346B4926C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

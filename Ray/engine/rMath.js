@@ -11,6 +11,14 @@
       this.isTouple = true;
     }
 
+    set(t)
+    {
+      this.x = t.x;
+      this.y = t.y;
+      this.z = t.z;
+      this.w = t.w;
+    }
+
     copy()
     {
       return makeTouple(this.x, this.y, this.z, this.w);
@@ -105,6 +113,33 @@
       ret += this.z * t.z;
       ret += this.w * t.w;
       return ret;
+    }
+
+    vectorToWorld(shape)
+    {
+      shape.update();
+      let n = shape.transpose.times(this);
+      n.w = 0;
+      this.set(n.normalize());
+
+      if (shape.parent)
+      {
+        this.vectorToWorld(shape.parent);
+      }
+
+      return this;
+    }
+
+    worldToObject(shape)
+    {
+      if (shape.parent)
+      {
+        this.worldToObject(shape.parent);
+      }
+      shape.update();
+      this.set(shape.inverse.times(this));
+
+      return this;
     }
 
     static cross(v, t)
