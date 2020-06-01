@@ -10,11 +10,21 @@
       this.material = new ray.Material();
       this.shadow = true;
       this.parent = null;
-      this.blending = "self";
+      this.blending = "parent";
       this.inverse = null;
       this.transpose = null
 
       this.dirty = true;
+    }
+
+    getAABB()
+    {
+      if (!this.aabb) this.fixAABB();
+      return this.aabb;
+    }
+
+    fixAABB()
+    {
     }
 
     update()
@@ -27,6 +37,7 @@
       this.dirty = false;
       this.inverse = ray.Matrix.inverse(this.transform);
       this.transpose = ray.Matrix.transpose(this.inverse);
+      this.fixAABB();
     }
 
     setTransform(t)
@@ -35,6 +46,7 @@
       this.transpose = null
       this.inverse = null;
       this.dirty = true;
+      if (this.parent) this.parent.bbdirty = true;
     }
 
     normalAt(p)
@@ -114,6 +126,13 @@
     {
       super();
       this.normal = ray.Vector(0, 1, 0);
+    }
+
+    fixAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      this.aabb.min = ray.Point(this.limits ? this.xMin : -Infinity, 0, this.limits ? this.yMin : -Infinity);
+      this.aabb.max = ray.Point(this.limits ? this.xMax : Infinity, 0, this.limits ? this.yMax : Infinity);
     }
 
     fromJSON(def)
@@ -242,6 +261,13 @@
     {
       super();
       this.isSphere = true;
+    }
+
+    fixAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      this.aabb.min = ray.Point(-1,-1,-1);
+      this.aabb.max = ray.Point(1,1,1);
     }
 
     fromJSON(def)
@@ -481,12 +507,94 @@
     }
   }
 
+  class rWireframe extends rShape
+  {
+    constructor()
+    {
+      super();
+      this.isWireframe = true;
+    }
+
+    fixAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      this.aabb.min = ray.Point(-1, -1, -1);
+      this.aabb.max = ray.Point(1, 1, 1);
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+    }
+
+    local_normalAt(p)
+    {
+      let max = Math.max(Math.abs(p.x), Math.abs(p.y), Math.abs(p.z));
+      if (max == Math.abs(p.x)) return ray.Vector(p.x, 0, 0);
+      if (max == Math.abs(p.y)) return ray.Vector(0, p.y, 0);
+      return ray.Vector(0, 0, p.z);
+    }
+
+    checkAxis(origin, dir)
+    {
+      let minNumerator = -1 - origin;
+      let maxNumerator = 1 - origin;
+      let min = 0;
+      let max = 0;
+      if (Math.abs(dir) >= ray.epsilon)
+      {
+        min = minNumerator / dir;
+        max = maxNumerator / dir;
+      }
+      else
+      {
+        min = minNumerator * Infinity;
+        max = maxNumerator * Infinity;
+      }
+
+      if (min > max) return { min: max, max: min }
+      return { min: min, max: max }
+    }
+
+    local_intersect(r, hits)
+    {
+      let x = this.checkAxis(r.origin.x, r.direction.x);
+      let y = this.checkAxis(r.origin.y, r.direction.y);
+      let z = this.checkAxis(r.origin.z, r.direction.z);
+      let min = Math.max(x.min, y.min, z.min);
+      let max = Math.min(x.max, y.max, z.max);
+      if (min <= max)
+      {
+        let size = 0.02;
+        let t = r.direction.copy().times(min).plus(r.origin);
+        let xedge = Math.abs(Math.abs(t.x) - 1.0) < size;
+        let yedge = Math.abs(Math.abs(t.y) - 1.0) < size;
+        let zedge = Math.abs(Math.abs(t.z) - 1.0) < size;
+        if ((xedge && yedge) || (xedge && zedge) || (zedge && yedge))
+          hits.add(ray.Intersection(min, this));
+        t = r.direction.copy().times(max).plus(r.origin);
+        xedge = Math.abs(Math.abs(t.x) - 1.0) < size;
+        yedge = Math.abs(Math.abs(t.y) - 1.0) < size;
+        zedge = Math.abs(Math.abs(t.z) - 1.0) < size;
+        if ((xedge && yedge) || (xedge && zedge) || (zedge && yedge))
+          hits.add(ray.Intersection(max, this));
+      }
+    }
+  }
+
   class rCube extends rShape
   {
     constructor()
     {
       super();
       this.isCube = true;
+    }
+
+    fixAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      this.aabb.min = ray.Point(-1, -1, -1);
+      this.aabb.max = ray.Point(1, 1, 1);
     }
 
     fromJSON(def)
@@ -518,6 +626,7 @@
         min = minNumerator * Infinity;
         max = maxNumerator * Infinity;      
       }
+
       if (min > max) return { min: max, max: min }
       return { min: min, max: max }
     }
@@ -529,13 +638,11 @@
       let z = this.checkAxis(r.origin.z, r.direction.z);
       let min = Math.max(x.min, y.min, z.min);
       let max = Math.min(x.max, y.max, z.max);
-//      let ret = ray.Intersections();
       if (min <= max)
       {
         hits.add(ray.Intersection(min, this));
         hits.add(ray.Intersection(max, this));
       }
-//      return ret;
     }
 
     // tests
@@ -654,6 +761,13 @@
       this.min = -Infinity;
       this.max = Infinity;
       this.closed = false;
+    }
+
+    fixAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      this.aabb.min = ray.Point(-1, this.limits ? this.min : -Infinity, -1);
+      this.aabb.max = ray.Point( 1, this.limits ? this.max :  Infinity,  1);
     }
 
     fromJSON(def)
@@ -892,6 +1006,14 @@
       this.closed = false;
     }
 
+    fixAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      let extent = Math.max(this.limits ? Math.abs(this.max) : Infinity, this.limits ? Math.abs(this.min) : Infinity);
+      this.aabb.min = ray.Point(-extent, this.limits ? this.min : -Infinity, -extent);
+      this.aabb.max = ray.Point( extent, this.limits ? this.max :  Infinity,  extent);
+    }
+
     fromJSON(def)
     {
       super.fromJSON(def);
@@ -1065,17 +1187,84 @@
 
   class rAABB
   {
-    constructor(min, max)
+    constructor()
     {
-      this.min = min;
-      this.max = max;
+      this.wireframe = null;
+      this.clear();
     }
 
-    transform(m)
+    clear()
     {
-
+      this.min = null; // point
+      this.max = null; // point
     }
 
+    updateWireframe()
+    {
+      if (!this.max || !this.min) return;
+      if (!this.wireframe) this.wireframe = new rWireframe();
+      let scale = ray.Matrix.scale((this.max.x - this.min.x) / 2.0, (this.max.y - this.min.y) / 2.0, (this.max.z - this.min.z)/2.0);
+      let pos = ray.Matrix.translation(this.min.x + (this.max.x - this.min.x) / 2.0,
+                                       this.min.y + (this.max.y - this.min.y) / 2.0,
+                                       this.min.z + (this.max.z - this.min.z) / 2.0);
+      this.wireframe.setTransform(pos.times(scale));
+    }
+
+    merge(obj)
+    {
+      let aabb = obj.getAABB();
+      let p1 = obj.transform.times(ray.Point(aabb.min.x, aabb.min.y, aabb.min.z));
+      let p2 = obj.transform.times(ray.Point(aabb.min.x, aabb.min.y, aabb.max.z));
+      let p3 = obj.transform.times(ray.Point(aabb.min.x, aabb.max.y, aabb.min.z));
+      let p4 = obj.transform.times(ray.Point(aabb.min.x, aabb.max.y, aabb.max.z));
+      let p5 = obj.transform.times(ray.Point(aabb.max.x, aabb.min.y, aabb.min.z));
+      let p6 = obj.transform.times(ray.Point(aabb.max.x, aabb.min.y, aabb.max.z));
+      let p7 = obj.transform.times(ray.Point(aabb.max.x, aabb.max.y, aabb.min.z));
+      let p8 = obj.transform.times(ray.Point(aabb.max.x, aabb.max.y, aabb.max.z));
+      let minx = Math.min(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x);
+      let miny = Math.min(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y);
+      let minz = Math.min(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z);
+      let maxx = Math.max(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x);
+      let maxy = Math.max(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y);
+      let maxz = Math.max(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z);
+      if (!this.min) this.min = ray.Point(minx, miny, minz);
+      else this.min.setv(Math.min(this.min.x, minx), Math.min(this.min.y, miny), Math.min(this.min.z, minz));
+      if (!this.max) this.max = ray.Point(maxx, maxy, maxz);
+      else this.max.setv(Math.max(this.max.x, maxx), Math.max(this.max.y, maxy), Math.max(this.max.z, maxz));
+    }
+
+    checkAxis(origin, dir, lmin, lmax)
+    {
+      let minNumerator = lmin - origin;
+      let maxNumerator = lmax - origin;
+      let min = 0;
+      let max = 0;
+      if (Math.abs(dir) >= ray.epsilon)
+      {
+        min = minNumerator / dir;
+        max = maxNumerator / dir;
+      }
+      else
+      {
+        min = minNumerator * Infinity;
+        max = maxNumerator * Infinity;
+      }
+
+      if (min > max) return { min: max, max: min }
+      return { min: min, max: max }
+    }
+
+    intersects(r)
+    {
+      if (!this.min || !this.max) return false;
+      let x = this.checkAxis(r.origin.x, r.direction.x, this.min.x, this.max.x);
+      let y = this.checkAxis(r.origin.y, r.direction.y, this.min.y, this.max.y);
+      let z = this.checkAxis(r.origin.z, r.direction.z, this.min.z, this.max.z);
+      let min = Math.max(x.min, y.min, z.min);
+      let max = Math.min(x.max, y.max, z.max);
+      if (min <= max) return true;
+      return false;
+    }
   }
 
   class rGroup extends rShape
@@ -1085,6 +1274,28 @@
       super();
       this.isGroup = true;
       this.children = {};
+      this.bbdirty = false;
+    }
+
+    getAABB()
+    {
+      if (!this.aabb)
+      {
+        this.bbdirty = true;
+        this.aabb = new rAABB();
+      }
+      if (this.bbdirty)
+      {
+        this.bbdirty = false;
+        this.aabb.clear();
+        for (let c in this.children)
+        {
+          let child = this.children[c];
+          this.aabb.merge(child);
+        }
+        this.aabb.updateWireframe();
+      }
+      return this.aabb;
     }
 
     fromJSON(def)
@@ -1107,6 +1318,8 @@
 
     local_intersect(r, hits)
     {
+//      if (this.getAABB().intersects(r) == false) return;
+
       for (let c in this.children)
       {
         let child = this.children[c];
@@ -1125,6 +1338,7 @@
     {
       c.parent = null;
       delete this.children[c.id];
+      this.bbdirty = true;
     }
 
     addChild(c)
@@ -1135,6 +1349,7 @@
       c.parent = this;
       this.children[c.id] = c;
       c.bakeMaterial();
+      this.bbdirty = true;
     }
 
     numChildren()
@@ -1190,7 +1405,7 @@
     static test4()
     {
       return {
-        name: "Check intersecting a ray with a group",
+        name: "Check intersecting a ray with a empty group",
         test: function ()
         {
           let g = new rGroup();
@@ -1351,6 +1566,7 @@
       let edge = new rCylinder();
       edge.min = 0;
       edge.max = 1;
+      edge.limits = true;
       edge.setTransform(       ray.Matrix.translation(0, 0, -1)
                         .times(ray.Matrix.yRotation(-1 * Math.PI / 6.0))
                         .times(ray.Matrix.zRotation(-1 * Math.PI / 2.0))
@@ -1390,5 +1606,7 @@
   ray.Sphere = rSphere;
   ray.TestShape = rTestShape;
   ray.Group = rGroup;
+  ray.Wireframe = rWireframe;
   ray.Hexagon = rHexagon;
+  ray.AABB = rAABB;
 })();

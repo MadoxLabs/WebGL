@@ -1,4 +1,5 @@
-(function (){
+(function ()
+{
 
   class rWorld
   {
@@ -21,7 +22,8 @@
         shadowing: true,
         jigglePoints: false,
         threaded: true,
-        maxReflections: 5
+        maxReflections: 5,
+        wireframes: false
       }
 
       this.modeCaustics = false;
@@ -170,7 +172,7 @@
         // TODO intersect lights
         this.objects[i].intersect(r, ret);
       }
-//      ret.sort();
+      //      ret.sort();
       return ret;
     }
 
@@ -254,12 +256,12 @@
 
         if (x >= 0 && y >= 0 && x <= c.width && y <= c.height)
         {
-//          let index = (y * 400 + x) | 0;
-//          if (!this.causticFilter[index]) this.causticFilter[index] = 1;
-//          else this.causticFilter[index] += 1;
-//          if (this.causticFilter[index] > this.minCaustics)
+          //          let index = (y * 400 + x) | 0;
+          //          if (!this.causticFilter[index]) this.causticFilter[index] = 1;
+          //          else this.causticFilter[index] += 1;
+          //          if (this.causticFilter[index] > this.minCaustics)
           {
-//            this.causticFilter[index] = 0;
+            //            this.causticFilter[index] = 0;
             let colour = {};
             c.canvas.get(colour, x, y);
             colour.red += 0.004;
@@ -310,6 +312,7 @@
       if (data.jigglePoints != null) this.options.jigglePoints = data.jigglePoints;
       if (data.maxReflections != null) this.options.maxReflections = data.maxReflections;
       if (data.threaded != null) this.options.threaded = data.threaded;
+      if (data.wireframes != null) this.options.wireframes = data.wireframes;
       if (data.caustics != null)
       {
         this.modeCaustics = data.caustics;
@@ -367,19 +370,19 @@
       {
         if (!data[i].name) continue;
         this.patterns[data[i].name] = this.parsePattern(data[i]);
-       }
+      }
     }
 
     parsePattern(data)
     {
       let p = null;
-      if (data.type == "solid")    p = new ray.PatternSolid();
-      else if (data.type == "stripe")   p = new ray.PatternStripe();
+      if (data.type == "solid") p = new ray.PatternSolid();
+      else if (data.type == "stripe") p = new ray.PatternStripe();
       else if (data.type == "gradient") p = new ray.PatternGradient();
-      else if (data.type == "ring")     p = new ray.PatternRing();
-      else if (data.type == "checker")  p = new ray.PatternChecker();
-      else if (data.type == "blend")    p = new ray.PatternBlend();
-      else if (data.type == "perlin")   p = new ray.PatternPerlin();
+      else if (data.type == "ring") p = new ray.PatternRing();
+      else if (data.type == "checker") p = new ray.PatternChecker();
+      else if (data.type == "blend") p = new ray.PatternBlend();
+      else if (data.type == "perlin") p = new ray.PatternPerlin();
       if (p) p.fromJSON(data);
       return p;
     }
@@ -403,49 +406,55 @@
 
     parseObject(data)
     {
-        if (data.skip) return null;
-        if (data.type == "sphere")
-        {
-          let obj = new ray.Sphere();
-          obj.fromJSON(data);
-          return obj;
-        }
-        else if (data.type == "plane")
-        {
-          let obj = new ray.Plane();
-          obj.fromJSON(data);
-          return obj;
-        }
-        else if (data.type == "cube")
-        {
-          let obj = new ray.Cube();
-          obj.fromJSON(data);
-          return obj;
-        }
-        else if (data.type == "cylinder")
-        {
-          let obj = new ray.Cylinder();
-          obj.fromJSON(data);
-          return obj;
-        }
-        else if (data.type == "cone")
-        {
-          let obj = new ray.Cone();
-          obj.fromJSON(data);
-          return obj;
-        }
-        else if (data.type == "group")
-        {
-          let obj = new ray.Group();
-          obj.fromJSON(data);
-          return obj;
-        }
-        else if (data.type == "hexagon")
-        {
-          let obj = new ray.Hexagon();
-          obj.fromJSON(data);
-          return obj;
-        }
+      if (data.skip) return null;
+      if (data.type == "sphere")
+      {
+        let obj = new ray.Sphere();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "plane")
+      {
+        let obj = new ray.Plane();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "cube")
+      {
+        let obj = new ray.Cube();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "wireframe")
+      {
+        let obj = new ray.Wireframe();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "cylinder")
+      {
+        let obj = new ray.Cylinder();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "cone")
+      {
+        let obj = new ray.Cone();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "group")
+      {
+        let obj = new ray.Group();
+        obj.fromJSON(data);
+        return obj;
+      }
+      else if (data.type == "hexagon")
+      {
+        let obj = new ray.Hexagon();
+        obj.fromJSON(data);
+        return obj;
+      }
     }
 
     parseObjects(data)
@@ -453,8 +462,45 @@
       for (let i in data)
       {
         let o = this.parseObject(data[i]);
-        if (o) this.objects.push(o);
+        if (o)
+        {
+          this.objects.push(o);
+          if (this.options.wireframes)
+          {
+            //            if (data[i].type == "group")
+            //            {
+            //              this.objects.push(o.getAABB().wireframe);
+            //            }
+            //            else if (data[i].type == "hexagon")
+            //            {
+            //              let aabb = new ray.AABB();
+            //              aabb.merge(o);
+            //              aabb.updateWireframe();
+            //              this.objects.push(aabb.wireframe);
+            //              this.objects.push(o.getAABB().wireframe);
+            //            }
+            //            else
+            {
+              this.addWireframes(o);
+            }
+          }
+        }
       }
+    }
+
+    addWireframes(o)
+    {
+      if (o) 
+      {
+        let aabb = new ray.AABB();
+        aabb.merge(o);
+        aabb.updateWireframe();
+        this.objects.push(aabb.wireframe);
+      }
+//      if (o.children)
+//      {
+//        for (let i in o.children) this.addWireframes(o.children[i]);
+//      }
     }
 
     parseWidgets(data)
@@ -468,7 +514,8 @@
 
     getWidget(name)
     {
-      return this.parseObject(this.widgets[name]);
+      let o = this.parseObject(this.widgets[name]);
+      return o;
     }
 
     static test1()

@@ -354,7 +354,12 @@
         if (p.id == this.id) // reached the hit point, list has been updated to account for enter/exit so... 
         {
           if (!rLink.last.data) ret.n2 = 1.0;// entering nothing, use 1
-          else ret.n2 = rLink.last.data.material.refraction; // entering the last material in list
+          else
+          {
+            if (!rLink.last.data.material)
+              console.log("Asdasd");
+            ret.n2 = rLink.last.data.material.refraction; // entering the last material in list
+          }
           break;
         }
       }
