@@ -22,6 +22,7 @@ function reportLoading(name, value) { }
                  "NoiseLib/noise.js",
                  "NoiseLib/FastMath.js",
                  "NoiseLib/FastPerlin.js",
+                 "engine/pako.js",
                  "engine/sort.js",
                  "engine/rMath.js",
                  "engine/rShape.js",
@@ -29,7 +30,8 @@ function reportLoading(name, value) { }
                  "engine/rCanvas.js",
                  "engine/rMatrix.js",
                  "engine/rWorld.js",
-                 "engine/rRay.js"
+                 "engine/rRay.js",
+                 "engine/rMesh.js"
                 ];
   var appSrc = ["rUnittest.js",
                 "stages/Stage1.js",

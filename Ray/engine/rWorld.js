@@ -1,5 +1,13 @@
 (function ()
 {
+  function loadCheck()
+  {
+    if (ray.World.loading <= 0)
+    {
+      ray.World.loadingCB();
+    }
+    setTimeout(loadCheck, 10);
+  }
 
   class rWorld
   {
@@ -10,6 +18,7 @@
 
     reset()
     {
+      this.loadingCB = null;
       this.patterns = {}; // just a cache
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
@@ -23,7 +32,8 @@
         jigglePoints: false,
         threaded: true,
         maxReflections: 5,
-        wireframes: false
+        wireframes: false,
+        regroup: false
       }
 
       this.modeCaustics = false;
@@ -274,11 +284,88 @@
     }
 
     //--------------------
-    // PARSE
+    // REGROUP
 
-    loadFromJSON(json)
+    regroup()
+    {
+      let topgroup = new ray.Group();
+      for (let i in this.objects)
+      {
+        let o = this.objects[i];
+        o.blending = "self";
+        topgroup.addChild(o);
+      }
+      this.objects = [];
+      this.objects.push(topgroup);
+      this.split(topgroup);
+      // put all top level objects in a group.
+      // set them all to self
+      // split group
+    }
+
+    split(group)
+    {
+      console.log("Split group: " + group.numChildren() + " children");
+
+      if (group.numChildren() < 4) return;
+      let box = new ray.AABB();
+      box.min = group.getAABB().min.copy();
+      box.max = group.getAABB().max.copy();
+      let size = { x: box.max.x - box.min.x, y: box.max.y - box.min.y, z: box.max.z - box.min.z };
+      console.log(" size: " + size.x + " x " + size.y + " x " + size.z);
+      let sub = { x: box.splitX(), y: box.splitY(), z: box.splitZ() };
+      let score = { x: group.subsumeScore(sub.x), y: group.subsumeScore(sub.y), z: group.subsumeScore(sub.z) };
+      let child = null;
+      if (score.x && (!score.y || score.x.value <= score.y.value))
+      {
+        if (score.x && (!score.z || score.x.value <= score.z.value))
+          child = score.x;
+        else
+          child = score.z;
+      }
+      if (score.y && (!score.x || score.y.value <= score.x.value))
+      {
+        if (score.y && (!score.z || score.y.value <= score.z.value))
+          child = score.y;
+        else
+          child = score.z;
+      }
+      if (score.z && (!score.y || score.z.value <= score.y.value))
+      {
+        if (score.z && (!score.x || score.z.value <= score.x.value))
+          child = score.z;
+        else
+          child = score.x;
+      }
+      if (!child) { console.log(" no split"); return; }
+      let left = new ray.Group();
+      let right = new ray.Group();
+      for (let i in child.list[0]) left.addChild(child.list[0][i]);
+      for (let i in child.list[1]) right.addChild(child.list[1][i]);
+      group.addChild(left);
+      group.addChild(right);
+      console.log(" subgroup children: " + left.numChildren() + ", " + right.numChildren());
+
+      this.split(left);
+      this.split(right);
+
+      // split
+      // find the total aabb size
+      // split into 2 aabbs in x,y and z
+      // for all childs, try to fit into a aabb for each
+      // which dir has best split?
+      // none? end
+      // create aabbs with objs.
+      // leave obj that dont fit in parent
+      // recurse group 1 and 2 (if above max obj)
+    }
+
+    //--------------------
+    // PARSE
+    loadFromJSON(json, cb)
     {
       this.reset();
+      this.loadingCB = cb;
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
       if (json.transforms) this.parseTransforms(json.transforms);
       if (json.patterns) this.parsePatterns(json.patterns);
@@ -287,8 +374,17 @@
       if (json.widgets) this.parseWidgets(json.widgets);
       if (json.objects) this.parseObjects(json.objects);
       if (json.cameras) this.parseCameras(json.cameras);
-    }
+      if (cb && json.meshes) this.parseMeshes(json.meshes);
 
+      if (this.options.regroup) this.regroup();
+
+      if (this.loading)
+      {
+        setTimeout(loadCheck, 10);
+      }
+      else if (cb) cb();
+    }
+    
     parseCameras(data)
     {
       for (let i in data)
@@ -313,6 +409,7 @@
       if (data.maxReflections != null) this.options.maxReflections = data.maxReflections;
       if (data.threaded != null) this.options.threaded = data.threaded;
       if (data.wireframes != null) this.options.wireframes = data.wireframes;
+      if (data.regroup != null) this.options.regroup = data.regroup;
       if (data.caustics != null)
       {
         this.modeCaustics = data.caustics;
@@ -488,6 +585,17 @@
       }
     }
 
+    parseMeshes(data)
+    {
+      for (let i in data)
+      {
+        if (data[i].skip || !data[i].name || !data[i].file) return null;
+
+        let obj = new ray.Mesh(data[i].name, data[i].file);
+        this.objects.push(obj);
+      }
+    }
+
     addWireframes(o)
     {
       if (o) 
@@ -516,6 +624,21 @@
     {
       let o = this.parseObject(this.widgets[name]);
       return o;
+    }
+
+    incrLoading()
+    {
+      this.loading += 1;
+    }
+
+    decrLoading()
+    {
+      this.loading -= 1;
+    }
+
+    loadingError(name)
+    {
+      console.log("Error loading " + name);
     }
 
     static test1()

@@ -7,6 +7,8 @@
       this.template = `
 <p>Stage 12 - Groups and Bounding boxes</p>
 <p>A scene showing off groups and AABBs</p>
+<p>This scene contains 16 groups of 4 hexagons. Each hexagon contains 6 spheres and 6 cylinders. <br>
+That is 768 shapes in all. Without AABB, this renders 23x slower on my computer.</p>
 <table><tr><td>
 <div><canvas id='surface' width="800" height="800"></div>
 </td><td><p>
@@ -80,229 +82,89 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
 
       // world data
       this.setupDef = JSON.parse(`
-{
-  "renderOptions": {
-    "antialias": 0,
-    "maxReflections": 4,
-    "shadowDepth": 2
-  },
-  "cameras": [
-    {
-      "name": "main",
-      "width": 800,
-      "height": 800,
-      "fov": 1.2566,
-      "from": [-2, -4, -6],
-      "origfrom": [-15, -1, -8],
-      "to": [6, -4, 0],
-      "up": [0, 1, 0]
-    }
-  ],
-  "lights": [
-    {
-      "type": "pointlight",
-      "position": [-10, 10, 10],
-      "intensityDiffuse": 0.8,
-      "intensityAmbient": 0.8,
-      "colour": [1, 1, 1]
-    },
-    {
-      "type": "pointlight",
-      "position": [-10, 10, -10],
-      "intensityDiffuse": 0.8,
-      "intensityAmbient": 0.8,
-      "colour": [1, 1, 1]
-    },
-    {
-      "type": "pointlight",
-      "position": [1, -4, 0],
-      "intensityDiffuse": 1,
-      "intensityAmbient": 1,
-      "attenuation": [0,0.13,0],
-      "colour": [1, 1, 0.2]
-    }
-  ],
-  "materials" :[
-      { "name": "desk", "ambient": 0.2, "diffuse": 1.0, "specular":0.5, "reflective": 0.1, "colour": [0.2,0.2,0.2] },
-      { "name": "legs", "ambient": 0.2, "diffuse": 1.0, "specular":0.5, "reflective": 0.01, "colour": [0.2,0.2,0.2] },
+
+        {
+          "renderOptions": {
+            "antialias": 0,
+            "maxReflections": 10
+          },
+          "cameras": [
             {
-              "name": "glass",
-              "ambient": 0.1,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.7,
-              "transmit": 0.7,
-              "refraction": 1.5,
-              "colour": [0.2, 0.2, 0.2]
-            },
-           {
-              "name": "water",
-              "ambient": 0,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.7,
-              "transmit": 1,
-              "refraction": 1.333,
-              "colour": [0.0, 0.0, 1]
-            },
-           {
-              "name": "air",
-              "ambient": 0,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.9,
-              "transmit": 1,
-              "refraction": 1,
-              "colour": [0.2, 0.2, 0.2]
+              "name": "main",
+              "width": 800,
+              "height": 800,
+              "fov": 1.2566,
+              "origfrom": [0, 12, 0],
+              "from": [0, 12, 0],
+              "to": [0, 1, 0],
+              "up": [0, 0, 1]
             }
-  ],
-  "transforms": [
-  ],
-  "objects": [
-  {
-    "name": "glass",
-    "type": "cylinder",
-    "max": 2,
-    "min":0,
-    "transform": {"series":[{ "type":"T", "value":[0,-5,-5] },{ "type":"S", "value":[0.8,0.8,0.8] }]}, 
-    "material": "glass"
-  },  
-  {
-    "name": "water",
-    "type": "cylinder",
-    "max": 1.6,
-    "min":0,
-    "transform": {"series":[{ "type":"T", "value":[0,-4.9,-5] },{ "type":"S", "value":[0.6,0.8,0.6] }]}, 
-    "material": "water"
-  },  
-  {
-    "name": "air",
-    "type": "cylinder",
-    "max": 1.6,
-    "min":0,
-    "transform": {"series":[{ "type":"T", "value":[0,-4.6,-5] },{ "type":"S", "value":[0.6,0.8,0.6] }]}, 
-    "material": "air"
-  },  
-  {
-    "name": "stick",
-    "type": "cylinder",
-    "max": 2.5,
-    "min":0,
-    "transform": {"series":[{ "type":"T", "value":[0,-4.8,-5] },{ "type":"Rz", "value":-0.4 },{ "type":"S", "value":[0.05,1,0.05] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
-                  "colour": [0.7,0.7,0.7]                  
-                }
-  },  
-  {
-    "name": "widget",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[-1.4,-4.5,3] },{ "type":"Ry", "value":-1.2 },{ "type":"S", "value":[0.5,0.3,0.5] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
-                  "colour": [0.7,0,0]                  
-                }
-  },
-  {
-    "name": "widget",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[0.5,-4.8,-3] },{ "type":"Ry", "value":1.1 },{ "type":"S", "value":[0.2,0.2,0.8] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
-                  "colour": [0,0.4,0.8]                  
-                }
-  },
-  {
-    "name": "paper",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[-1.4,-4.7,-1] },{ "type":"Ry", "value":1.8 },{ "type":"S", "value":[1,0.01,1.5] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
-                  "colour": [1,1,1]                  
-                }
-  },
-  {
-    "name": "lampshade",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[1,-1.4,0] },{ "type":"S", "value":[1,0.75,1] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
-                  "colour": [0.2,0.45,0.2]                  
-                }
-  },
-  {
-    "name": "lamppost",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[1,-4,0] },{ "type":"S", "value":[0.1,1,0.1] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":1,
-                  "reflective": 0.1,
-                  "colour": [0,0,0]                  
-                }
-  },
-  {
-    "name": "lamp",
-    "type": "sphere",
-    "transform": {"series":[{ "type":"T", "value":[1,-2,0] },{ "type":"S", "value":[1,1,1] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":1,
-                  "reflective": 0.9, "transparency": 0.9, "transmit": 0.9,
-                  "colour": [0.15,0.15,0.15]                  
-                }
-  },
-  {
-    "name": "desk",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[0,-5,0] },{ "type":"S", "value":[4,0.2,8] }]}, 
-    "material": "desk"
-  },
-  {
-    "name": "leg",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[-3.5,-10,-7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
-    "material": "legs"
-  },
-  {
-    "name": "leg",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[3.5,-10,7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
-    "material": "legs"
-  },
-  {
-    "name": "leg",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[3.5,-10,-7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
-    "material": "legs"
-  },
-  {
-    "name": "leg",
-    "type": "cube",
-    "transform": {"series":[{ "type":"T", "value":[-3.5,-10,7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
-    "material": "legs"
-  },
-  {
-    "name": "walls",
-    "type": "cube",
-    "transform": {"series":[{ "type":"S", "value":[16,16,16] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,                  
-                  "pattern": { "type": "stripe",
-                               "transform": {"series":[{ "type":"S", "value":[0.03,0.05,0.05] },{ "type":"Ry", "value":1 }]}, 
-                               "colours" : [[0.37,0.21,0.10],[0.16, 0.16, 0.16]]
-                             }
-                }
-  },
-  {
-    "name": "floor",
-    "type": "cube",
-    "transform": {"series":[{ "type":"S", "value":[17,15.5,17] }]}, 
-    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,                  
-                  "pattern": { "type": "checker",
-                               "transform": {"series":[{ "type":"S", "value":[0.315,0.315,0.315] }]}, 
-                               "colours" : [[0.7, 0.6, 0.6],[0.16, 0.16, 0.16]]
-                             }
-                }
-  }
-  ]
-}
+          ],
+          "lights": [
+            {
+              "type": "pointlight",
+              "position": [-10, 10, -10],
+              "intensityDiffuse": 1.1,
+              "intensityAmbient": 0.4,
+              "colour": [1, 1, 1]
+            }
+          ],
+      "transforms":[
+         { "name":"q1", "series":[{"type": "T", "value" : [-1,0,-1]} ]},
+         { "name":"q2", "series":[{"type": "T", "value" : [ 1,0,-1]} ]},
+         { "name":"q3", "series":[{"type": "T", "value" : [-1,0, 1]} ]},
+         { "name":"q4", "series":[{"type": "T", "value" : [ 1,0, 1]} ]},
+
+         { "name":"g11", "series":[{"type": "T", "value" : [-6,0,-6]} ]},
+         { "name":"g12", "series":[{"type": "T", "value" : [-6,0,-2]} ]},
+         { "name":"g13", "series":[{"type": "T", "value" : [-6,0, 2]} ]},
+         { "name":"g14", "series":[{"type": "T", "value" : [-6,0, 6]} ]},
+
+         { "name":"g21", "series":[{"type": "T", "value" : [-2,0,-6]} ]},
+         { "name":"g22", "series":[{"type": "T", "value" : [-2,0,-2]} ]},
+         { "name":"g23", "series":[{"type": "T", "value" : [-2,0, 2]} ]},
+         { "name":"g24", "series":[{"type": "T", "value" : [-2,0, 6]} ]},
+
+         { "name":"g31", "series":[{"type": "T", "value" : [ 2,0,-6]} ]},
+         { "name":"g32", "series":[{"type": "T", "value" : [ 2,0,-2]} ]},
+         { "name":"g33", "series":[{"type": "T", "value" : [ 2,0, 2]} ]},
+         { "name":"g34", "series":[{"type": "T", "value" : [ 2,0, 6]} ]},
+
+         { "name":"g41", "series":[{"type": "T", "value" : [6,0,-6]} ]},
+         { "name":"g42", "series":[{"type": "T", "value" : [6,0,-2]} ]},
+         { "name":"g43", "series":[{"type": "T", "value" : [6,0, 2]} ]},
+         { "name":"g44", "series":[{"type": "T", "value" : [6,0, 6]} ]}
+
+       ],
+
+          "widgets": [
+	{ "type": "hexagon", "name": "h1", "transform": "q1" },
+	{ "type": "hexagon", "name": "h2", "transform": "q2" },
+	{ "type": "hexagon", "name": "h3", "transform": "q3" },
+	{ "type": "hexagon", "name": "h4", "transform": "q4" }
+          ],
+
+          "objects": [
+{ "type": "group", "transform": "g11", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g12", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g13", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g14", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g21", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g22", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g23", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g24", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g31", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g32", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g33", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g34", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g41", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g42", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g43", "children": ["h1", "h2", "h3", "h4"] },
+{ "type": "group", "transform": "g44", "children": ["h1", "h2", "h3", "h4"] }
+
+         ]
+        }
+
 
 `);
 

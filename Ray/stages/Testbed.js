@@ -288,7 +288,12 @@ function loadscene(n)
 
     begin()
     {
-      ray.World.loadFromJSON(this.setupDef);
+      let self = this;
+      ray.World.loadFromJSON(this.setupDef, function() { self.begin2(); } );
+    }
+
+    begin2()
+    {
       ray.World.cameras["main"].canvas = this.canvas;
       if (ray.World.options.threaded)
       {

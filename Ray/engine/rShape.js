@@ -1,5 +1,7 @@
 (function (){
 
+  ray.maxint = Number.MAX_SAFE_INTEGER;
+
   class rShape
   {
     constructor()
@@ -131,8 +133,8 @@
     fixAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
-      this.aabb.min = ray.Point(this.limits ? this.xMin : -Infinity, 0, this.limits ? this.yMin : -Infinity);
-      this.aabb.max = ray.Point(this.limits ? this.xMax : Infinity, 0, this.limits ? this.yMax : Infinity);
+      this.aabb.min = ray.Point(this.limits ? this.xMin : -ray.maxint, -0.01, this.limits ? this.yMin : -ray.maxint);
+      this.aabb.max = ray.Point(this.limits ? this.xMax : ray.maxint, 0.01, this.limits ? this.yMax : ray.maxint);
     }
 
     fromJSON(def)
@@ -766,8 +768,8 @@
     fixAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
-      this.aabb.min = ray.Point(-1, this.limits ? this.min : -Infinity, -1);
-      this.aabb.max = ray.Point( 1, this.limits ? this.max :  Infinity,  1);
+      this.aabb.min = ray.Point(-1, this.limits ? this.min : -ray.maxint, -1);
+      this.aabb.max = ray.Point(1, this.limits ? this.max : ray.maxint,  1);
     }
 
     fromJSON(def)
@@ -1009,9 +1011,9 @@
     fixAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
-      let extent = Math.max(this.limits ? Math.abs(this.max) : Infinity, this.limits ? Math.abs(this.min) : Infinity);
-      this.aabb.min = ray.Point(-extent, this.limits ? this.min : -Infinity, -extent);
-      this.aabb.max = ray.Point( extent, this.limits ? this.max :  Infinity,  extent);
+      let extent = Math.max(this.limits ? Math.abs(this.max) : ray.maxint, this.limits ? Math.abs(this.min) : ray.maxint);
+      this.aabb.min = ray.Point(-extent, this.limits ? this.min : -ray.maxint, -extent);
+      this.aabb.max = ray.Point(extent, this.limits ? this.max : ray.maxint,  extent);
     }
 
     fromJSON(def)
@@ -1199,6 +1201,57 @@
       this.max = null; // point
     }
 
+    contains(obj)
+    {
+      let aabb = obj.getAABB();
+      let p1 = obj.transform.times(ray.Point(aabb.min.x, aabb.min.y, aabb.min.z));
+      let p2 = obj.transform.times(ray.Point(aabb.max.x, aabb.max.y, aabb.max.z));
+
+      if (p1.x < this.min.x) return false;
+      if (p1.y < this.min.y) return false;
+      if (p1.z < this.min.z) return false;
+      if (p2.x < this.min.x) return false;
+      if (p2.y < this.min.y) return false;
+      if (p2.z < this.min.z) return false;
+      if (p1.x > this.max.x) return false;
+      if (p1.y > this.max.y) return false;
+      if (p1.z > this.max.z) return false;
+      if (p2.x > this.max.x) return false;
+      if (p2.y > this.max.y) return false;
+      if (p2.z > this.max.z) return false;
+      return true;
+    }
+
+    splitX()
+    {
+      let ret = [new rAABB(), new rAABB()];
+      ret[0].min = ray.Point(this.min.x, this.min.y, this.min.z);
+      ret[0].max = ray.Point(this.min.x + (this.max.x - this.min.x) / 2.0, this.max.y, this.max.z);
+      ret[1].min = ray.Point(this.min.x + (this.max.x - this.min.x) / 2.0, this.min.y, this.min.z);
+      ret[1].max = ray.Point(this.max.x, this.max.y, this.max.z);
+      return ret;
+    }
+
+    splitY()
+    {
+      let ret = [new rAABB(), new rAABB()];
+      ret[0].min = ray.Point(this.min.x, this.min.y, this.min.z);
+      ret[0].max = ray.Point(this.min.x, this.min.y + (this.max.y - this.min.y) / 2.0, this.max.z);
+      ret[1].min = ray.Point(this.min.x, this.min.y + (this.max.y - this.min.y) / 2.0, this.min.z);
+      ret[1].max = ray.Point(this.max.x, this.max.y, this.max.z);
+      return ret;
+    }
+
+    splitZ()
+    {
+      let ret = [new rAABB(), new rAABB()];
+      ret[0].min = ray.Point(this.min.x, this.min.y, this.min.z);
+      ret[0].max = ray.Point(this.min.x, this.min.y, this.min.z = (this.max.z - this.min.z) / 2.0);
+      ret[1].min = ray.Point(this.min.x, this.min.y, this.min.z + (this.max.z - this.min.z) / 2.0);
+      ret[1].max = ray.Point(this.max.x, this.max.y, this.max.z);
+      return ret;
+    }
+
     updateWireframe()
     {
       if (!this.max || !this.min) return;
@@ -1277,6 +1330,22 @@
       this.bbdirty = false;
     }
 
+    subsumeScore(boxes)
+    {
+      let left = [];
+      let right = [];
+      let none = 0;
+      for (let i in this.children)
+      {
+        if (boxes[0].contains(this.children[i])) left.push(this.children[i]);
+        else if (boxes[1].contains(this.children[i])) right.push(this.children[i]);
+        else none++;
+      }
+      let ret = { value: Math.abs(left.length - right.length) + none, list: [left, right] };
+      if (ret.value == this.numChildren()) return null;
+      return ret;
+    }
+
     getAABB()
     {
       if (!this.aabb)
@@ -1318,7 +1387,7 @@
 
     local_intersect(r, hits)
     {
-//      if (this.getAABB().intersects(r) == false) return;
+      if (this.getAABB().intersects(r) == false) return;
 
       for (let c in this.children)
       {
