@@ -6,17 +6,19 @@ Game.appWebGL = function() { return 2; }
 
 Game.appInit = function ()
 {
+  Game.sceneFiles = [];
   Game.scenes = [];
   Game.webgl2 = true;
   Game.textureLocation = "assets/"  // autoloaded textures live here
 
   // load scenes
-  Game.loadScene("assets/scene1.txt");
-  Game.loadScene("assets/scene2.txt");
-  Game.loadScene("assets/scene3.txt");
-  Game.loadScene("assets/scene4.txt");
-  Game.loadScene("assets/scene5.txt");
-  Game.loadScene("assets/scene6.txt");
+  Game.registerloadScene("assets/scene1.txt");
+  Game.registerloadScene("assets/scene2.txt");
+  Game.registerloadScene("assets/scene3.txt");
+  Game.registerloadScene("assets/scene4.txt");
+  Game.registerloadScene("assets/scene5.txt");
+  Game.registerloadScene("assets/scene6.txt");
+  Game.loadScene();
 
   document.getElementById("code").value = `  {
     "animate": [
@@ -193,14 +195,27 @@ Game.storeScene = function(name, text)
   opt.value = name;
   opt.innerHTML = name;
   select.appendChild(opt);
+
+  Game.loadScene();
 }
 
-Game.loadScene = function (name)
+Game.registerloadScene = function(file)
 {
-  var client = new XMLHttpRequest();
-  client.open('GET', name);
-  client.onload = function () { Game.storeScene(name, client.responseText); }
-  client.send();
+  Game.sceneFiles.push(file);
+}
+
+Game.loadScene = function ()
+{
+  if (Game.sceneFiles.length)
+  {
+    var name = Game.sceneFiles[0];
+    Game.sceneFiles.splice(0,1);
+
+    var client = new XMLHttpRequest();
+    client.open('GET', name);
+    client.onload = function () { Game.storeScene(name, client.responseText); }
+    client.send();  
+  }
 }
 
 Game.deviceReady = function ()
@@ -265,7 +280,11 @@ Game.loadJSON = function ()
 
 Game.startCompiling = function()
 {
-  document.getElementById("compileMsg").innerText = "WebGL is setting up.Please wait...";
+  document.getElementById("compileMsg").innerHTML = "\
+  WebGL is setting up. Please wait... <br>\
+  <br>\
+  The ray tracing shader is over 1300 lines and takes a while to compile.<br>\
+  Your computer might freeze for a bit.";
   var modal = document.getElementById("myModal");
   modal.style.display = "block";
 }
