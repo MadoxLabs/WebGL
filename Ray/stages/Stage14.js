@@ -5,7 +5,7 @@
     constructor()
     {
       this.template = `
-<p>Stage 12 - Groups and Bounding boxes</p>
+<p>Stage 14 - Groups and Bounding boxes</p>
 <p>A scene showing off groups and AABBs</p>
 <p>This scene contains 16 groups of 4 hexagons. Each hexagon contains 6 spheres and 6 cylinders. <br>
 That is 768 shapes in all. Without AABB, this renders 23x slower on my computer.</p>
@@ -15,8 +15,8 @@ That is 768 shapes in all. Without AABB, this renders 23x slower on my computer.
 Antialias:  <input type="range" min="0" max="2" value="0" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
 <br>
 Camera:<br>
-FOV:  <input type="range" min="0.1" max="1.0" value="0.36815" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
-Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
+FOV:  <input type="range" min="0.1" max="2.0" value="0.4" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
+Camera distance:  <input type="range" min="-5" max="5" value="0" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
 </p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }
@@ -215,7 +215,6 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
       let to = ray.Point(this.setupDef.cameras[0].to[0], this.setupDef.cameras[0].to[1], this.setupDef.cameras[0].to[2]);
       let val = document.getElementById("zCamera").value;
       let num = parseFloat(val);
-      console.log(num);
       let v = ray.Touple.subtract(to, from).normalize().times(num);
       from.plus(v);
       this.setupDef.cameras[0].from[0] = from.x;

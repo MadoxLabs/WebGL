@@ -5,7 +5,7 @@
     constructor()
     {
       this.template = `
-<p>Stage 12 - Cylinders and Cones</p>
+<p>Stage 13 - Cylinders and Cones</p>
 <p>A scene showing off cylinders and cones</p>
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
@@ -13,7 +13,7 @@
 Antialias:  <input type="range" min="0" max="2" value="0" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
 <br>
 Camera:<br>
-FOV:  <input type="range" min="0.1" max="1.0" value="0.36815" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
+FOV:  <input type="range" min="0.1" max="1.0" value="0.4" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
 Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
 </p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
@@ -93,7 +93,7 @@ Camera distance:  <input type="range" min="-10" max="5" value="0" onInput="obj.t
       "height": 400,
       "fov": 1.2566,
       "from": [-2, -4, -6],
-      "origfrom": [-15, -1, -8],
+      "origfrom": [-2, -4, -6],
       "to": [6, -4, 0],
       "up": [0, 1, 0]
     }

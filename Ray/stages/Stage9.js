@@ -12,7 +12,7 @@
 </td><td><p>
 Antialias:  <input type="range" min="0" max="1" value="0" onInput="obj.transform()" step="1" class="slider" id="aa"> <br>
 Camera:<br>
-FOV:  <input type="range" min="0.1" max="1.0" value="0.5" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
+FOV:  <input type="range" min="0.1" max="1.0" value="0.4" onInput="obj.transform()" step="0.01" class="slider" id="fov"> <br>
 Camera distance:  <input type="range" min="2" max="10.0" value="5" onInput="obj.transform()" step="0.1" class="slider" id="zCamera"> <br>
 </p></td></tr></table>`;
       this.load = navigator.hardwareConcurrency;

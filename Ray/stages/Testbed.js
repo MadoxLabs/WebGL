@@ -163,11 +163,11 @@ function loadscene(n)
       this.size = 400;
 
       this.template = `
-<p>Rendering testbed for crating test scenes on the fly</p>
+<p>Rendering testbed for creating test scenes on the fly</p>
 <table><tr><td>
 <div><canvas id='surface' width="400" height="400"></div>
 </td><td>
-<textarea id="code"></textarea>
+<textarea cols='50' rows='20' id="code"></textarea>
 <br>
 <button id="render" onClick="obj.transform()">Render</button>
 <input type="button" id="scene1" onClick="loadscene(1)" value="Load Scene 1"></input>
