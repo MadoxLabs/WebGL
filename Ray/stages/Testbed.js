@@ -150,6 +150,47 @@ function loadscene(n)
         }
 `;
   }
+
+  if (n == 3) 
+  {
+    document.getElementById("code").value = `
+    {
+      "renderOptions": {
+        "antialias": 0,
+"wireframes": true,
+"nestedwireframes": true,
+        "maxReflections": 10
+      },
+      "cameras": [
+        {
+          "name": "main",
+          "width": 400,
+          "height": 400,
+          "fov": 1.2566,
+          "from": [0, 0, -3],
+          "to": [0, 0, 0],
+          "up": [0, 1, 0]
+        }
+      ],
+      "lights": [
+        {
+          "type": "pointlight",
+          "position": [-10, 10, -10],
+          "intensityDiffuse": 1.1,
+          "intensityAmbient": 0.4,
+          "colour": [1, 1, 1]
+        }
+      ],
+"transforms": [
+{ "name": "turn", "series" : [{"type": "Rx", "value" : 1.57}] }
+],
+      "objects": [
+{ "type": "hexagon", "transform": "turn" }
+      ]
+    }
+`;
+  }
+
 }
 
 (function ()
@@ -172,6 +213,7 @@ function loadscene(n)
 <button id="render" onClick="obj.transform()">Render</button>
 <input type="button" id="scene1" onClick="loadscene(1)" value="Load Scene 1"></input>
 <input type="button" id="scene2" onClick="loadscene(2)" value="Load Scene 2"></input>
+<input type="button" id="scene3" onClick="loadscene(3)" value="Load Scene 3"></input>
 </td></tr></table>`;
       this.load = navigator.hardwareConcurrency;
     }

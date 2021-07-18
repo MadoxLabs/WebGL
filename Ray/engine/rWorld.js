@@ -24,6 +24,7 @@
       this.transforms = {}; // just a cache
       this.objects = [];
       this.widgets = {};  // non rendering group children
+      this.meshes = {}; 
       this.lights = [];
       this.cameras = {};
       this.options = {
@@ -33,6 +34,7 @@
         threaded: true,
         maxReflections: 5,
         wireframes: false,
+        nestedwireframes: false,
         regroup: false
       }
 
@@ -409,6 +411,7 @@
       if (data.maxReflections != null) this.options.maxReflections = data.maxReflections;
       if (data.threaded != null) this.options.threaded = data.threaded;
       if (data.wireframes != null) this.options.wireframes = data.wireframes;
+      if (data.nestedwireframes != null) this.options.nestedwireframes = data.nestedwireframes;
       if (data.regroup != null) this.options.regroup = data.regroup;
       if (data.caustics != null)
       {
@@ -552,6 +555,12 @@
         obj.fromJSON(data);
         return obj;
       }
+      else if (data.type == "model")
+      {
+        let obj = new ray.Model();
+        obj.fromJSON(data);
+        return obj;
+      }
     }
 
     parseObjects(data)
@@ -564,22 +573,7 @@
           this.objects.push(o);
           if (this.options.wireframes)
           {
-            //            if (data[i].type == "group")
-            //            {
-            //              this.objects.push(o.getAABB().wireframe);
-            //            }
-            //            else if (data[i].type == "hexagon")
-            //            {
-            //              let aabb = new ray.AABB();
-            //              aabb.merge(o);
-            //              aabb.updateWireframe();
-            //              this.objects.push(aabb.wireframe);
-            //              this.objects.push(o.getAABB().wireframe);
-            //            }
-            //            else
-            {
-              this.addWireframes(o);
-            }
+            this.addWireframes(o);
           }
         }
       }
@@ -592,23 +586,23 @@
         if (data[i].skip || !data[i].name || !data[i].file) return null;
 
         let obj = new ray.Mesh(data[i].name, data[i].file);
-        this.objects.push(obj);
+        this.meshes[obj.name] = obj;
       }
     }
 
     addWireframes(o)
     {
-      if (o) 
+      if (o && (o.isSphere || o.isCylinder)) 
       {
         let aabb = new ray.AABB();
         aabb.merge(o);
         aabb.updateWireframe();
-        this.objects.push(aabb.wireframe);
+          this.objects.push(aabb.wireframe);
       }
-//      if (o.children)
-//      {
-//        for (let i in o.children) this.addWireframes(o.children[i]);
-//      }
+      if (o.children && this.options.nestedwireframes)
+      {
+        for (let i in o.children) this.addWireframes(o.children[i]);
+      }
     }
 
     parseWidgets(data)

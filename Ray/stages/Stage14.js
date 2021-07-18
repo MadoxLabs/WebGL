@@ -86,7 +86,8 @@ Camera distance:  <input type="range" min="-5" max="5" value="0" onInput="obj.tr
         {
           "renderOptions": {
             "antialias": 0,
-            "maxReflections": 10
+            "maxReflections": 10,
+            "regroup": true
           },
           "cameras": [
             {

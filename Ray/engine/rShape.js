@@ -16,16 +16,36 @@
       this.inverse = null;
       this.transpose = null
 
+      this.setDirty();
+    }
+
+    setClean()
+    {
+      this.dirty = false;
+    }
+
+    setDirty()
+    {
       this.dirty = true;
+      if (this.parent && !this.parent.dirty) 
+      {
+        this.parent.setDirty();
+      }
+    }
+
+    getParentSpaceAABB()
+    {
+      if (!this.aabb || this.dirty) this.clean();
+      return this.aabb.getTransformedCopy(this.transform);
     }
 
     getAABB()
     {
-      if (!this.aabb) this.fixAABB();
+      if (!this.aabb || this.dirty) this.clean();
       return this.aabb;
     }
 
-    fixAABB()
+    updateAABB()
     {
     }
 
@@ -36,10 +56,10 @@
 
     clean()
     {
-      this.dirty = false;
+      this.setClean();
       this.inverse = ray.Matrix.inverse(this.transform);
       this.transpose = ray.Matrix.transpose(this.inverse);
-      this.fixAABB();
+      this.updateAABB();
     }
 
     setTransform(t)
@@ -47,8 +67,7 @@
       this.transform = t;
       this.transpose = null
       this.inverse = null;
-      this.dirty = true;
-      if (this.parent) this.parent.bbdirty = true;
+      this.setDirty();
     }
 
     normalAt(p)
@@ -79,10 +98,11 @@
       }
       if (def.transform)
       {
-        if (typeof def.transform == "string" && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform]; this.dirty = true; }
-        if (typeof def.transform == "object") { this.transform = ray.World.parseTransform(def.transform); this.dirty = true; }
+        if (typeof def.transform == "string" && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform];  this.setDirty(); }
+        if (typeof def.transform == "object") { this.transform = ray.World.parseTransform(def.transform); this.setDirty(); }
       }
       this.materialSelf = this.material;
+      this.setDirty();
     }
 
     bakeMaterial()
@@ -128,22 +148,51 @@
     {
       super();
       this.normal = ray.Vector(0, 1, 0);
+      this.limits = false;
     }
 
-    fixAABB()
+    updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
-      this.aabb.min = ray.Point(this.limits ? this.xMin : -ray.maxint, -0.01, this.limits ? this.yMin : -ray.maxint);
-      this.aabb.max = ray.Point(this.limits ? this.xMax : ray.maxint, 0.01, this.limits ? this.yMax : ray.maxint);
+      this.aabb.min = ray.Point(this.limits ? this.xMin : -ray.maxint, 0, this.limits ? this.yMin : -ray.maxint);
+      this.aabb.max = ray.Point(this.limits ? this.xMax : ray.maxint, 0, this.limits ? this.yMax : ray.maxint);
+    }
+
+    setMinX(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.xMin = val;      
+    }
+
+    setMaxX(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.xMax = val;
+    }
+
+    setMinY(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.yMin = val;
+    }
+
+    setMaxY(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.yMax = val;
     }
 
     fromJSON(def)
     {
       super.fromJSON(def);
-      if (def.xMin != null) { this.limits = true; this.xMin = def.xMin; }
-      if (def.xMax != null) { this.limits = true; this.xMax = def.xMax; }
-      if (def.yMin != null) { this.limits = true; this.yMin = def.yMin; }
-      if (def.yMax != null) { this.limits = true; this.yMax = def.yMax; }
+      if (def.xMin != null) { this.setMinX(def.xMin); }
+      if (def.xMax != null) { this.setMaxX(def.xMax); }
+      if (def.yMin != null) { this.setMinY(def.yMin); }
+      if (def.yMax != null) { this.setMaxY(def.yMax); }
     }
 
     local_normalAt(p)
@@ -265,7 +314,7 @@
       this.isSphere = true;
     }
 
-    fixAABB()
+    updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
       this.aabb.min = ray.Point(-1,-1,-1);
@@ -592,7 +641,7 @@
       this.isCube = true;
     }
 
-    fixAABB()
+    updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
       this.aabb.min = ray.Point(-1, -1, -1);
@@ -763,9 +812,30 @@
       this.min = -Infinity;
       this.max = Infinity;
       this.closed = false;
+      this.limits = false;
     }
 
-    fixAABB()
+    setMin(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.min = val;
+    }
+
+    setMax(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.max = val;
+    }
+
+    setClosed(val)
+    {
+      this.setDirty();
+      this.closed = val;
+    }
+
+    updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
       this.aabb.min = ray.Point(-1, this.limits ? this.min : -ray.maxint, -1);
@@ -775,9 +845,9 @@
     fromJSON(def)
     {
       super.fromJSON(def);
-      if (def.min != null) { this.limits = true; this.min = def.min; }
-      if (def.max != null) { this.limits = true; this.max = def.max; }      
-      if (def.closed != null) { this.closed = def.closed ? true : false; }      
+      if (def.min != null) { this.setMin(def.min); }
+      if (def.max != null) { this.setMax(def.max); }      
+      if (def.closed != null) { this.setClosed(def.closed ? true : false); }      
     }
 
     local_normalAt(p)
@@ -797,7 +867,6 @@
 
     local_intersect(r, hits)
     {
-//      let ret = ray.Intersections();
       let a = r.direction.x * r.direction.x + r.direction.z * r.direction.z;
 
       if (ray.isEqual(a, 0) == false) // hit the walls?
@@ -828,8 +897,6 @@
         t = (this.max - r.origin.y) / r.direction.y;
         if (this.check_cap(r, t)) hits.add(ray.Intersection(t, this));
       }
-
-//      return ret;
     }
 
     // tests
@@ -1006,9 +1073,10 @@
       this.min = -Infinity;
       this.max = Infinity;
       this.closed = false;
+      this.limits = false;
     }
 
-    fixAABB()
+    updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
       let extent = Math.max(this.limits ? Math.abs(this.max) : ray.maxint, this.limits ? Math.abs(this.min) : ray.maxint);
@@ -1016,12 +1084,32 @@
       this.aabb.max = ray.Point(extent, this.limits ? this.max : ray.maxint,  extent);
     }
 
+    setMin(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.min = val;
+    }
+
+    setMax(val)
+    {
+      this.setDirty();
+      this.limits = true;
+      this.max = val;
+    }
+
+    setClosed(val)
+    {
+      this.setDirty();
+      this.closed = val;
+    }
+
     fromJSON(def)
     {
       super.fromJSON(def);
-      if (def.min != null) { this.limits = true; this.min = def.min; }
-      if (def.max != null) { this.limits = true; this.max = def.max; }
-      if (def.closed != null) { this.closed = def.closed ? true : false; }
+      if (def.min != null) { this.setMin(def.min); }
+      if (def.max != null) { this.setMax(def.max); }
+      if (def.closed != null) { this.setClosed(def.closed ? true : false); }
     }
 
     local_normalAt(p)
@@ -1191,14 +1279,64 @@
   {
     constructor()
     {
-      this.wireframe = null;
+//      this.wireframe = null;
       this.clear();
+    }
+
+    /*
+    toWorldSpaceFromObject(point, obj)
+    {
+      let ret = point;
+      let o = obj;
+
+      while (o)
+      {
+        ret = o.transform.times(ret);
+        o = o.parent;
+      }
+      return ret.copy();
+    }
+*/
+
+    addAABB(box)
+    {
+      this.addPoint(box.min);
+      this.addPoint(box.max);
+    }
+
+    addPoint(p)
+    {
+      if (!this.min) this.min = p.copy();
+      else this.min.setv(Math.min(this.min.x, p.x), Math.min(this.min.y, p.y), Math.min(this.min.z, p.z));
+
+      if (!this.max) this.max = p.copy();
+      else this.max.setv(Math.max(this.max.x, p.x), Math.max(this.max.y, p.y), Math.max(this.max.z, p.z));
     }
 
     clear()
     {
       this.min = null; // point
       this.max = null; // point
+    }
+
+    containsPoint(p)
+    {
+      if (p.x < this.min.x) return false;
+      if (p.y < this.min.y) return false;
+      if (p.z < this.min.z) return false;
+      if (p.x > this.max.x) return false;
+      if (p.y > this.max.y) return false;
+      if (p.z > this.max.z) return false;
+      return true;
+    }
+
+    containsAABB(aabb)
+    {
+      let p1 = ray.Point(aabb.min.x, aabb.min.y, aabb.min.z);
+      if (!this.containsPoint(p1)) return false;
+      let p2 = ray.Point(aabb.max.x, aabb.max.y, aabb.max.z);
+      if (!this.containsPoint(p2)) return false;
+      return true;
     }
 
     contains(obj)
@@ -1220,6 +1358,28 @@
       if (p2.y > this.max.y) return false;
       if (p2.z > this.max.z) return false;
       return true;
+    }
+
+    getTransformedCopy(m)
+    {
+      let ret = new rAABB();
+      let p1 = ray.Point(this.min.x, this.min.y, this.min.z);
+      let p2 = ray.Point(this.min.x, this.min.y, this.max.z);
+      let p3 = ray.Point(this.min.x, this.max.y, this.min.z);
+      let p4 = ray.Point(this.min.x, this.max.y, this.max.z);
+      let p5 = ray.Point(this.max.x, this.min.y, this.min.z);
+      let p6 = ray.Point(this.max.x, this.min.y, this.max.z);
+      let p7 = ray.Point(this.max.x, this.max.y, this.min.z);
+      let p8 = ray.Point(this.max.x, this.max.y, this.max.z);
+      ret.addPoint(m.times(p1));
+      ret.addPoint(m.times(p2));
+      ret.addPoint(m.times(p3));
+      ret.addPoint(m.times(p4));
+      ret.addPoint(m.times(p5));
+      ret.addPoint(m.times(p6));
+      ret.addPoint(m.times(p7));
+      ret.addPoint(m.times(p8));
+      return ret;
     }
 
     splitX()
@@ -1252,6 +1412,7 @@
       return ret;
     }
 
+    /*
     updateWireframe()
     {
       if (!this.max || !this.min) return;
@@ -1262,18 +1423,19 @@
                                        this.min.z + (this.max.z - this.min.z) / 2.0);
       this.wireframe.setTransform(pos.times(scale));
     }
-
+*/
+    /*
     merge(obj)
     {
       let aabb = obj.getAABB();
-      let p1 = obj.transform.times(ray.Point(aabb.min.x, aabb.min.y, aabb.min.z));
-      let p2 = obj.transform.times(ray.Point(aabb.min.x, aabb.min.y, aabb.max.z));
-      let p3 = obj.transform.times(ray.Point(aabb.min.x, aabb.max.y, aabb.min.z));
-      let p4 = obj.transform.times(ray.Point(aabb.min.x, aabb.max.y, aabb.max.z));
-      let p5 = obj.transform.times(ray.Point(aabb.max.x, aabb.min.y, aabb.min.z));
-      let p6 = obj.transform.times(ray.Point(aabb.max.x, aabb.min.y, aabb.max.z));
-      let p7 = obj.transform.times(ray.Point(aabb.max.x, aabb.max.y, aabb.min.z));
-      let p8 = obj.transform.times(ray.Point(aabb.max.x, aabb.max.y, aabb.max.z));
+      let p1 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.min.y, aabb.min.z), obj);
+      let p2 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.min.y, aabb.max.z), obj);
+      let p3 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.max.y, aabb.min.z), obj);
+      let p4 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.max.y, aabb.max.z), obj);
+      let p5 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.min.y, aabb.min.z), obj);
+      let p6 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.min.y, aabb.max.z), obj);
+      let p7 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.max.y, aabb.min.z), obj);
+      let p8 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.max.y, aabb.max.z), obj);
       let minx = Math.min(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x);
       let miny = Math.min(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y);
       let minz = Math.min(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z);
@@ -1285,6 +1447,7 @@
       if (!this.max) this.max = ray.Point(maxx, maxy, maxz);
       else this.max.setv(Math.max(this.max.x, maxx), Math.max(this.max.y, maxy), Math.max(this.max.z, maxz));
     }
+*/
 
     checkAxis(origin, dir, lmin, lmax)
     {
@@ -1318,6 +1481,343 @@
       if (min <= max) return true;
       return false;
     }
+
+    // tests
+    static test1()
+    {
+      return {
+        name: "Create empty AABB",
+        test: function ()
+        {
+          let b = new rAABB();
+          if (b.min) return false;
+          if (b.max) return false;
+          return true;
+        }
+      };
+    }
+
+    static test2()
+    {
+      return {
+        name: "Add points to an empty AABB",
+        test: function ()
+        {
+          let b = new rAABB();
+          b.addPoint(ray.Point(-5, 2, 0));
+          b.addPoint(ray.Point(7, 0, -3));
+          if (b.min.x != -5) return false;
+          if (b.min.y != 0) return false;
+          if (b.min.z != -3) return false;
+          if (b.max.x != 7) return false;
+          if (b.max.y != 2) return false;
+          if (b.max.z != 0) return false;
+          return true;
+        }
+      };
+    }
+    
+    static test3()
+    {
+      return {
+        name: "Sphere has an AABB",
+        test: function ()
+        {
+          let o = new rSphere();
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-1,-1,-1) ) == false) return false;
+          if (b.max.equals( ray.Point(1,1,1) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test4()
+    {
+      return {
+        name: "Plane has an AABB",
+        test: function ()
+        {
+          let o = new rPlane();
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-ray.maxint,0,-ray.maxint) ) == false) return false;
+          if (b.max.equals( ray.Point(ray.maxint,0,ray.maxint) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test5()
+    {
+      return {
+        name: "Bounded Plane has an AABB",
+        test: function ()
+        {
+          let o = new rPlane();
+          o.setMinX(-10);
+          o.setMaxX(10);
+          o.setMinY(-5);
+          o.setMaxY(5);
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-10,0,-5) ) == false) return false;
+          if (b.max.equals( ray.Point(10,0,5) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test6()
+    {
+      return {
+        name: "Cube has an AABB",
+        test: function ()
+        {
+          let o = new rCube();
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-1,-1,-1) ) == false) return false;
+          if (b.max.equals( ray.Point(1,1,1) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test7()
+    {
+      return {
+        name: "Cylinder has an AABB",
+        test: function ()
+        {
+          let o = new rCylinder();
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-1, -ray.maxint, -1) ) == false) return false;
+          if (b.max.equals( ray.Point(1, ray.maxint, 1) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test8()
+    {
+      return {
+        name: "Bounded Cylinder has an AABB",
+        test: function ()
+        {
+          let o = new rCylinder();
+          o.setMin(-5);
+          o.setMax(3);
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-1, -5, -1) ) == false) return false;
+          if (b.max.equals( ray.Point(1, 3, 1) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test9()
+    {
+      return {
+        name: "Cone has an AABB",
+        test: function ()
+        {
+          let o = new rCone();
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-ray.maxint, -ray.maxint, -ray.maxint) ) == false) return false;
+          if (b.max.equals( ray.Point(ray.maxint, ray.maxint, ray.maxint) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test10()
+    {
+      return {
+        name: "Bounded Cone has an AABB",
+        test: function ()
+        {
+          let o = new rCone();
+          o.setMin(-5);
+          o.setMax(3);
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-5, -5, -5) ) == false) return false;
+          if (b.max.equals( ray.Point(5, 3, 5) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test11()
+    {
+      return {
+        name: "Triangle has an AABB",
+        test: function ()
+        {
+          return false;
+        }
+      };
+    }
+
+    static test12()
+    {
+      return {
+        name: "Add an AABB to an AABB",
+        test: function ()
+        {
+          let b1 = new rAABB();
+          b1.addPoint(ray.Point(-5, 2, 0));
+          b1.addPoint(ray.Point(7, 4, 4));
+          let b2 = new rAABB();
+          b2.addPoint(ray.Point(8, -7, 2));
+          b2.addPoint(ray.Point(14, 2, 8));
+          b1.addAABB(b2);
+          if (b1.min.equals( ray.Point(-5, -7, 0) ) == false) return false;
+          if (b1.max.equals( ray.Point(14, 4, 8) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test13()
+    {
+      return {
+        name: "Check that an AABB contains a point",
+        test: function ()
+        {
+          let b1 = new rAABB();
+          b1.addPoint(ray.Point(5, -2, 0));
+          b1.addPoint(ray.Point(11, 4, 7));
+
+          let points = [
+            ray.Point(5,-2,0), 
+            ray.Point(11,4,7), 
+            ray.Point(8,1,3), 
+            ray.Point(3,0,3), 
+            ray.Point(8,-4,3), 
+            ray.Point(8,1,-1), 
+            ray.Point(13,1,3), 
+            ray.Point(8,5,3), 
+            ray.Point(8,1,8) 
+          ];
+          let results = [true, true, true, false, false, false, false, false, false];
+          for (let i = 0; i < points.length; ++i)
+          {
+            if (b1.containsPoint(points[i]) != results[i]) return false;
+          }
+          return true;
+        }
+      };
+    }
+
+    static test14()
+    {
+      return {
+        name: "Check that an AABB contains an AABB",
+        test: function ()
+        {
+          let b1 = new rAABB();
+          b1.addPoint(ray.Point(5, -2, 0));
+          b1.addPoint(ray.Point(11, 4, 7));
+
+          let b2 = new rAABB();
+          b2.addPoint(ray.Point(5, -2, 0));
+          b2.addPoint(ray.Point(11, 4, 7));
+          if (b1.containsAABB(b2) == false) return false;
+
+          let b3 = new rAABB();
+          b3.addPoint(ray.Point(6,-1,1));
+          b3.addPoint(ray.Point(10,3,6));
+          if (b1.containsAABB(b3) == false) return false;
+
+          let b4 = new rAABB();
+          b4.addPoint(ray.Point(4,-3,-1));
+          b4.addPoint(ray.Point(10,3,6));
+          if (b1.containsAABB(b4) == true) return false;
+
+          let b5 = new rAABB();
+          b5.addPoint(ray.Point(6,-1,1));
+          b5.addPoint(ray.Point(12, 5, 8));
+          if (b1.containsAABB(b5) == true) return false;
+
+          return true;
+        }
+      };
+    }
+
+    static test15()
+    {
+      return {
+        name: "Transform an AABB",
+        test: function ()
+        {
+          let b1 = new rAABB();
+          b1.addPoint(ray.Point(-1,-1,-1));
+          b1.addPoint(ray.Point(1,1,1));
+          let m = ray.Matrix.xRotation(Math.PI/4).times( ray.Matrix.yRotation(Math.PI/4) );
+          let b2 = b1.getTransformedCopy(m);
+
+          let check = new ray.Point(-1.41421, -1.70710, -1.70710);
+          if (b2.min.equals(check) == false) return false;
+          check = new ray.Point(1.41421, 1.70710, 1.70710);
+          if (b2.max.equals(check) == false) return false;
+
+          return true;
+        }
+      };
+    }
+
+    static test16()
+    {
+      return {
+        name: "Get an AABB in parent space",
+        test: function ()
+        {
+          let s = new rSphere();
+          let t = ray.Matrix.translation(1,-3,5).times(ray.Matrix.scale(0.5,2,4));
+          s.setTransform(t);
+
+          let b = s.getParentSpaceAABB();
+          if (b.min.equals( ray.Point(0.5, -5, 1) ) == false) return false;
+          if (b.max.equals( ray.Point(1.5, -1, 9) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test17()
+    {
+      return {
+        name: "A group AABB contains the children",
+        test: function ()
+        {
+          let s = new rSphere();
+          let t = ray.Matrix.translation(2,5,-3).times(ray.Matrix.scale(2,2,2));
+          s.setTransform(t);
+          let c = new rCylinder();
+          let t2 = ray.Matrix.translation(-4,-1,4).times(ray.Matrix.scale(0.5,1,0.5));
+          c.setTransform(t2);
+          c.setMax(2);
+          c.setMin(-2);
+          let g = new rGroup();
+          g.addChild(s);
+          g.addChild(c);
+          let b = g.getAABB();
+          if (b.min.equals( ray.Point(-4.5, -3, -5) ) == false) return false;
+          if (b.max.equals( ray.Point(4, 7, 4.5) ) == false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test18()
+    {
+      return {
+        name: "A CSG AABB contains the children",
+        test: function ()
+        {
+          return false;
+        }
+      };
+    }
+
   }
 
   class rGroup extends rShape
@@ -1327,7 +1827,6 @@
       super();
       this.isGroup = true;
       this.children = {};
-      this.bbdirty = false;
     }
 
     subsumeScore(boxes)
@@ -1346,24 +1845,16 @@
       return ret;
     }
 
-    getAABB()
+    updateAABB()
     {
-      if (!this.aabb)
+      if (!this.aabb) this.aabb = new rAABB();
+
+      for (let c in this.children)
       {
-        this.bbdirty = true;
-        this.aabb = new rAABB();
+        let child = this.children[c];
+        this.aabb.addAABB( child.getParentSpaceAABB() );
       }
-      if (this.bbdirty)
-      {
-        this.bbdirty = false;
-        this.aabb.clear();
-        for (let c in this.children)
-        {
-          let child = this.children[c];
-          this.aabb.merge(child);
-        }
-        this.aabb.updateWireframe();
-      }
+//        this.aabb.updateWireframe();
       return this.aabb;
     }
 
@@ -1407,7 +1898,7 @@
     {
       c.parent = null;
       delete this.children[c.id];
-      this.bbdirty = true;
+      this.setDirty();
     }
 
     addChild(c)
@@ -1418,7 +1909,7 @@
       c.parent = this;
       this.children[c.id] = c;
       c.bakeMaterial();
-      this.bbdirty = true;
+      this.setDirty();
     }
 
     numChildren()
@@ -1652,6 +2143,40 @@
     }
   }
 
+  class rModel extends rShape
+  {
+    constructor()
+    {
+      super();
+      this.isModel = true;
+      this.mesh = null;
+    }
+
+    updateAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      // todo
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+
+      if (def.mesh)
+      {
+          this.mesh = ray.World.meshes[def.mesh];
+      }
+    }
+
+    local_normalAt(p)
+    {
+    }
+
+    local_intersect(r, hits)
+    {
+    }
+  }
+
   var startingID = 12345;
   function generateUUID()
   { 
@@ -1667,6 +2192,7 @@
   ray.classlist.push(rCylinder);
   ray.classlist.push(rCone);
   ray.classlist.push(rGroup);
+  ray.classlist.push(rAABB);
   ray.Cone = rCone;
   ray.Cylinder = rCylinder;
   ray.Cube = rCube;
@@ -1678,4 +2204,5 @@
   ray.Wireframe = rWireframe;
   ray.Hexagon = rHexagon;
   ray.AABB = rAABB;
+  ray.Model = rModel;
 })();
