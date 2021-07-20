@@ -309,7 +309,7 @@
     {
       console.log("Split group: " + group.numChildren() + " children");
 
-      if (group.numChildren() < 4) return;
+      if (group.numChildren() < this.options.regroup) return;
       let box = new ray.AABB();
       box.min = group.getAABB().min.copy();
       box.max = group.getAABB().max.copy();
@@ -509,19 +509,19 @@
       if (data.skip) return null;
       if (data.type == "sphere")
       {
-        let obj = new ray.Sphere();
+        let obj = this.options.wireframes ? new ray.Wireframe() : new ray.Sphere();
         obj.fromJSON(data);
         return obj;
       }
       else if (data.type == "plane")
       {
-        let obj = new ray.Plane();
+        let obj = this.options.wireframes ? new ray.Wireframe(2) : new ray.Plane();
         obj.fromJSON(data);
         return obj;
       }
       else if (data.type == "cube")
       {
-        let obj = new ray.Cube();
+        let obj = this.options.wireframes ? new ray.Wireframe() : new ray.Cube();
         obj.fromJSON(data);
         return obj;
       }
@@ -533,13 +533,13 @@
       }
       else if (data.type == "cylinder")
       {
-        let obj = new ray.Cylinder();
+        let obj = this.options.wireframes ? new ray.Wireframe(1) : new ray.Cylinder();
         obj.fromJSON(data);
         return obj;
       }
       else if (data.type == "cone")
       {
-        let obj = new ray.Cone();
+        let obj = this.options.wireframes ? new ray.Wireframe(3) : new ray.Cone();
         obj.fromJSON(data);
         return obj;
       }
@@ -571,10 +571,6 @@
         if (o)
         {
           this.objects.push(o);
-          if (this.options.wireframes)
-          {
-            this.addWireframes(o);
-          }
         }
       }
     }
@@ -590,20 +586,36 @@
       }
     }
 
-    addWireframes(o)
+    /*
+    addWireframes()
     {
-      if (o && (o.isSphere || o.isCylinder)) 
+      this.wireframes = [];
+
+      for (let i in this.objects)
       {
-        let aabb = new ray.AABB();
-        aabb.merge(o);
-        aabb.updateWireframe();
-          this.objects.push(aabb.wireframe);
+        this.addWireframe(this.objects[i]);
+      }
+
+      for (let i in this.wireframes)
+      {
+        this.objects.push(this.wireframes[i]);
+      }
+    }
+
+    addWireframe(o)
+    {
+      let w = new ray.Wireframe();
+      if (w.setObject(o))
+      {
+          this.wireframes.push(w);        
       }
       if (o.children && this.options.nestedwireframes)
       {
-        for (let i in o.children) this.addWireframes(o.children[i]);
+        for (let i in o.children)
+          this.addWireframe(o.children[i]);
       }
     }
+*/
 
     parseWidgets(data)
     {

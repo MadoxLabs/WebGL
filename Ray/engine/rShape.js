@@ -17,7 +17,7 @@
       this.transpose = null
 
       this.setDirty();
-    }
+    }    
 
     setClean()
     {
@@ -202,7 +202,6 @@
 
     local_intersect(r, hits)
     {
-//      let ret = ray.Intersections();
       if (Math.abs(r.direction.y) < ray.epsilon) return;
 
       let d = (-r.origin.y / r.direction.y);
@@ -215,7 +214,6 @@
         if (this.yMin != null && p.z < this.yMin) return;
       }
       hits.add(ray.Intersection(d, this));
-//      return ret;
     }
 
     static test1()
@@ -560,22 +558,49 @@
 
   class rWireframe extends rShape
   {
-    constructor()
+    constructor(type)
     {
       super();
       this.isWireframe = true;
+      if (type && type.isObject)
+      {
+        this.handleObject(type);
+      }
+      this.type = type ? type : 0;
     }
 
-    fixAABB()
+    updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
       this.aabb.min = ray.Point(-1, -1, -1);
       this.aabb.max = ray.Point(1, 1, 1);
     }
-
+    
     fromJSON(def)
     {
       super.fromJSON(def);
+
+      if (this.type.isObject) return;
+
+      ray.World.options.wireframes = false;
+      let o = ray.World.parseObject(def);
+      this.handleObject(o);
+      ray.World.options.wireframes = true;
+    }
+
+    handleObject(o)
+    {
+      let b = o.getParentSpaceAABB();
+      if (!b.max || !b.min) return;
+      
+      let scale = ray.Matrix.scale((b.max.x - b.min.x) / 2.0, (b.max.y - b.min.y) / 2.0, (b.max.z - b.min.z)/2.0);
+      let pos = ray.Matrix.translation(b.min.x + (b.max.x - b.min.x) / 2.0,
+                                       b.min.y + (b.max.y - b.min.y) / 2.0,
+                                       b.min.z + (b.max.z - b.min.z) / 2.0);
+      this.setTransform(pos.times(scale));
+      if (!this.transform.invertible()) this.setTransform(ray.Identity4x4);
+
+      this.setDirty();
     }
 
     local_normalAt(p)
@@ -616,7 +641,7 @@
       let max = Math.min(x.max, y.max, z.max);
       if (min <= max)
       {
-        let size = 0.02;
+        let size = 0.05;
         let t = r.direction.copy().times(min).plus(r.origin);
         let xedge = Math.abs(Math.abs(t.x) - 1.0) < size;
         let yedge = Math.abs(Math.abs(t.y) - 1.0) < size;
@@ -1279,24 +1304,8 @@
   {
     constructor()
     {
-//      this.wireframe = null;
       this.clear();
     }
-
-    /*
-    toWorldSpaceFromObject(point, obj)
-    {
-      let ret = point;
-      let o = obj;
-
-      while (o)
-      {
-        ret = o.transform.times(ret);
-        o = o.parent;
-      }
-      return ret.copy();
-    }
-*/
 
     addAABB(box)
     {
@@ -1411,43 +1420,6 @@
       ret[1].max = ray.Point(this.max.x, this.max.y, this.max.z);
       return ret;
     }
-
-    /*
-    updateWireframe()
-    {
-      if (!this.max || !this.min) return;
-      if (!this.wireframe) this.wireframe = new rWireframe();
-      let scale = ray.Matrix.scale((this.max.x - this.min.x) / 2.0, (this.max.y - this.min.y) / 2.0, (this.max.z - this.min.z)/2.0);
-      let pos = ray.Matrix.translation(this.min.x + (this.max.x - this.min.x) / 2.0,
-                                       this.min.y + (this.max.y - this.min.y) / 2.0,
-                                       this.min.z + (this.max.z - this.min.z) / 2.0);
-      this.wireframe.setTransform(pos.times(scale));
-    }
-*/
-    /*
-    merge(obj)
-    {
-      let aabb = obj.getAABB();
-      let p1 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.min.y, aabb.min.z), obj);
-      let p2 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.min.y, aabb.max.z), obj);
-      let p3 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.max.y, aabb.min.z), obj);
-      let p4 = this.toWorldSpaceFromObject(ray.Point(aabb.min.x, aabb.max.y, aabb.max.z), obj);
-      let p5 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.min.y, aabb.min.z), obj);
-      let p6 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.min.y, aabb.max.z), obj);
-      let p7 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.max.y, aabb.min.z), obj);
-      let p8 = this.toWorldSpaceFromObject(ray.Point(aabb.max.x, aabb.max.y, aabb.max.z), obj);
-      let minx = Math.min(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x);
-      let miny = Math.min(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y);
-      let minz = Math.min(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z);
-      let maxx = Math.max(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x);
-      let maxy = Math.max(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y);
-      let maxz = Math.max(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z);
-      if (!this.min) this.min = ray.Point(minx, miny, minz);
-      else this.min.setv(Math.min(this.min.x, minx), Math.min(this.min.y, miny), Math.min(this.min.z, minz));
-      if (!this.max) this.max = ray.Point(maxx, maxy, maxz);
-      else this.max.setv(Math.max(this.max.x, maxx), Math.max(this.max.y, maxy), Math.max(this.max.z, maxz));
-    }
-*/
 
     checkAxis(origin, dir, lmin, lmax)
     {
@@ -1854,7 +1826,6 @@
         let child = this.children[c];
         this.aabb.addAABB( child.getParentSpaceAABB() );
       }
-//        this.aabb.updateWireframe();
       return this.aabb;
     }
 
@@ -1870,6 +1841,16 @@
           if (o) this.addChild(o);
         }
       }
+
+      if (ray.World.options.wireframes)
+      {
+        let w = new ray.Wireframe();
+        let b = this.getAABB();
+
+        w.min = b.min.copy();
+        w.max = b.max.copy();        
+        this.addChild(w);
+      }    
     }
 
     local_normalAt(p)
@@ -2124,13 +2105,18 @@
     createEdge()
     {
       let edge = new rCylinder();
-      edge.min = 0;
-      edge.max = 1;
+      edge.setMin(0);
+      edge.setMax(1);
       edge.limits = true;
       edge.setTransform(       ray.Matrix.translation(0, 0, -1)
                         .times(ray.Matrix.yRotation(-1 * Math.PI / 6.0))
                         .times(ray.Matrix.zRotation(-1 * Math.PI / 2.0))
-                        .times(ray.Matrix.scale(0.25, 1, 0.25)));
+                        .times(ray.Matrix.scale(0.25, 1, 0.25))
+      );
+      if (ray.World.options.wireframes )
+      {
+        edge = new ray.Wireframe(edge);
+      }                    
       return edge;
     }
 
@@ -2139,6 +2125,12 @@
       let corner = new rSphere();
       corner.setTransform(       ray.Matrix.translation(0, 0, -1)
                           .times(ray.Matrix.scale(0.25, 0.25, 0.25)));
+
+      if (ray.World.options.wireframes )
+      {
+        corner = new ray.Wireframe(corner);
+      }                    
+
       return corner;
     }
   }
