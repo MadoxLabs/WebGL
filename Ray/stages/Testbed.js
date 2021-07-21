@@ -268,14 +268,13 @@ function loadscene(n)
             }
           ],
           "objects": [
-{ "type": "sphere" }
+            { "type": "sphere" }
           ]
         }
 `;
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
-//      this.thread = 1;
 
       document.getElementById("surface").addEventListener("click", function (event)
       {
@@ -305,15 +304,13 @@ function loadscene(n)
       this.shuffle(this.rows);
 
       this.setupDef = {};
-//      ray.World.loadFromJSON(this.setupDef);
 
-//      if (ray.World.options.threaded)
-    // set up threads
+      // set up threads
       {
         // workers setup
         let obj = this;
-        this.workers = new Array(4);
-        this.buffers = new Array(4);
+        this.workers = new Array(this.load);
+        this.buffers = new Array(this.load);
         for (let i = 0; i < this.load; ++i)
         {
           this.buffers[i] = new Uint8ClampedArray(this.size * 4);
@@ -321,8 +318,8 @@ function loadscene(n)
           this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
         }
       }
-//      else
-    // setup non threaded
+
+      // setup non threaded for clicking
       {
         this.buffer = new Uint8ClampedArray(this.size * 4);
       }
@@ -340,7 +337,13 @@ function loadscene(n)
       if (ray.World.options.threaded)
       {
         for (let i = 0; i < this.load; ++i)
+        {
+          for (let m in ray.World.meshes)
+          {
+            this.workers[i].postMessage({ 'cmd': 'mesh', 'id': i, 'name': ray.World.meshes[m].name, 'json': ray.World.meshes[m].meshdata });            
+          }
           this.workers[i].postMessage({ 'cmd': 'setup', 'id': i, 'definition': this.setupDef });
+        }
       }
       // begin!
       this.kill = false;

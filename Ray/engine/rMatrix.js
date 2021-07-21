@@ -226,6 +226,56 @@
       return ret;
     }
 
+    static fromYawPitchRoll(yaw, pitch, roll)
+    {
+      let out = ray.Identity4x4.copy();
+
+//      var q = quat.create();
+//      quat.fromYawPitchRoll(q, yaw, pitch, roll);
+      let x = ((Math.cos((yaw * 0.5)) * Math.sin((pitch * 0.5))) * Math.cos((roll * 0.5))) + ((Math.sin((yaw * 0.5)) * Math.cos((pitch * 0.5))) * Math.sin((roll * 0.5)));
+      let y = ((Math.sin((yaw * 0.5)) * Math.cos((pitch * 0.5))) * Math.cos((roll * 0.5))) - ((Math.cos((yaw * 0.5)) * Math.sin((pitch * 0.5))) * Math.sin((roll * 0.5)));
+      let z = ((Math.cos((yaw * 0.5)) * Math.cos((pitch * 0.5))) * Math.sin((roll * 0.5))) - ((Math.sin((yaw * 0.5)) * Math.sin((pitch * 0.5))) * Math.cos((roll * 0.5)));
+      let w = ((Math.cos((yaw * 0.5)) * Math.cos((pitch * 0.5))) * Math.cos((roll * 0.5))) + ((Math.sin((yaw * 0.5)) * Math.sin((pitch * 0.5))) * Math.sin((roll * 0.5)));
+
+//      mat4.fromQuat(out, q);    
+//      var x = q[0], y = q[1], z = q[2], w = q[3],
+      let x2 = x + x,
+      y2 = y + y,
+      z2 = z + z,
+
+      xx = x * x2,
+      yx = y * x2,
+      yy = y * y2,
+      zx = z * x2,
+      zy = z * y2,
+      zz = z * z2,
+      wx = w * x2,
+      wy = w * y2,
+      wz = w * z2;
+
+      out.data[0] = 1 - yy - zz;
+      out.data[1] = yx + wz;
+      out.data[2] = zx - wy;
+      out.data[3] = 0;
+
+      out.data[4] = yx - wz;
+      out.data[5] = 1 - xx - zz;
+      out.data[6] = zy + wx;
+      out.data[7] = 0;
+
+      out.data[8] = zx + wy;
+      out.data[9] = zy - wx;
+      out.data[10] = 1 - xx - yy;
+      out.data[11] = 0;
+
+      out.data[12] = 0;
+      out.data[13] = 0;
+      out.data[14] = 0;
+      out.data[15] = 1;
+
+      return out;
+    }
+
     static xRotation(r)
     {
       let c = Math.cos(r);

@@ -153,7 +153,8 @@
     {
       return makeTouple(v.y * t.z - v.z * t.y,
                          v.z * t.x - v.x * t.z,
-                         v.x * t.y - v.y * t.x);
+                         v.x * t.y - v.y * t.x,
+                         0.0);
     }
 
     static reflect(v, n)

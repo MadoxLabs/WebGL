@@ -6,7 +6,8 @@
     {
       ray.World.loadingCB();
     }
-    setTimeout(loadCheck, 10);
+    else 
+      setTimeout(loadCheck, 10);
   }
 
   class rWorld
@@ -19,6 +20,8 @@
     reset()
     {
       this.loadingCB = null;
+      this.loading = 0;
+      
       this.patterns = {}; // just a cache
       this.materials = {}; // just a cache
       this.transforms = {}; // just a cache
@@ -376,15 +379,15 @@
       if (json.widgets) this.parseWidgets(json.widgets);
       if (json.objects) this.parseObjects(json.objects);
       if (json.cameras) this.parseCameras(json.cameras);
-      if (cb && json.meshes) this.parseMeshes(json.meshes);
+      if ((ray.worker || cb) && json.meshes) this.parseMeshes(json.meshes);
 
       if (this.options.regroup) this.regroup();
 
-      if (this.loading)
+      if (cb)
       {
-        setTimeout(loadCheck, 10);
+        if (this.loading) setTimeout(loadCheck, 10);
+        else cb();  
       }
-      else if (cb) cb();
     }
     
     parseCameras(data)
@@ -555,6 +558,12 @@
         obj.fromJSON(data);
         return obj;
       }
+      else if (data.type == "triangle")
+      {
+        let obj = new ray.Triangle();
+        obj.fromJSON(data);
+        return obj;
+      }
       else if (data.type == "model")
       {
         let obj = new ray.Model();
@@ -577,6 +586,7 @@
 
     parseMeshes(data)
     {
+      if (!ray.worker) ray.World.incrLoading(); // artificial +1 here so that we dont drop to 0 before this function ends
       for (let i in data)
       {
         if (data[i].skip || !data[i].name || !data[i].file) return null;
@@ -584,38 +594,8 @@
         let obj = new ray.Mesh(data[i].name, data[i].file);
         this.meshes[obj.name] = obj;
       }
+      if (!ray.worker) ray.World.decrLoading();
     }
-
-    /*
-    addWireframes()
-    {
-      this.wireframes = [];
-
-      for (let i in this.objects)
-      {
-        this.addWireframe(this.objects[i]);
-      }
-
-      for (let i in this.wireframes)
-      {
-        this.objects.push(this.wireframes[i]);
-      }
-    }
-
-    addWireframe(o)
-    {
-      let w = new ray.Wireframe();
-      if (w.setObject(o))
-      {
-          this.wireframes.push(w);        
-      }
-      if (o.children && this.options.nestedwireframes)
-      {
-        for (let i in o.children)
-          this.addWireframe(o.children[i]);
-      }
-    }
-*/
 
     parseWidgets(data)
     {
@@ -635,11 +615,13 @@
     incrLoading()
     {
       this.loading += 1;
+      console.log("Models to load: "+this.loading);
     }
 
     decrLoading()
     {
       this.loading -= 1;
+      console.log("Models to load: "+this.loading);
     }
 
     loadingError(name)

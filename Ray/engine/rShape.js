@@ -2135,6 +2135,79 @@
     }
   }
 
+  class rTriangle extends rShape
+  {
+    constructor()
+    {
+      super();
+      this.isTriangle = true;
+      this.points = [];
+      this.vertNormals = [];
+      this.uvs = [];
+      this.normal = null;
+    }
+
+    updateAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      for (let i in this.points)
+      {
+        this.aabb.addPoint(this.points[i]);
+      }
+    }
+
+    addPoint(p)
+    {
+      this.points.push(p);
+      this.normal = null;
+      this.setDirty();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.points)
+      {
+        for (let p in def.points)
+        {
+          this.points.push( new ray.Point(def.points[p][0], def.points[p][1], def.points[p][2]) );
+        }
+      }
+    }
+
+    local_normalAt(p)
+    {
+      if (!this.normal)
+      {
+        this.e1 = ray.Touple.subtract(this.points[1], this.points[0]);
+        this.e2 = ray.Touple.subtract(this.points[2], this.points[0]);
+        this.normal = ray.Touple.cross(this.e2, this.e1).normalize().copy();
+      }
+      return this.normal.copy();  
+    }
+
+    local_intersect(r, hits)
+    {      
+      this.local_normalAt();
+
+      let cross = ray.Touple.cross(r.direction, this.e2);
+      let det = this.e1.dot(cross);
+      if (!det || Math.abs(det) < ray.epsilon) return; // miss
+
+      let f = 1.0/det;
+      let p1ToOrigin = ray.Touple.subtract(r.origin, this.points[0]);
+      let u = f * p1ToOrigin.dot(cross);
+      if (u < 0 || u > 1) return; // miss
+
+      let cross2 = ray.Touple.cross(p1ToOrigin, this.e1);
+      let v = f * r.direction.dot(cross2);
+      if (v < 0 || (u + v) > 1) return; // miss
+
+      let t = f * this.e2.dot(cross2);
+      hits.add(ray.Intersection(t, this));
+    }
+  }
+
   class rModel extends rShape
   {
     constructor()
@@ -2185,6 +2258,7 @@
   ray.classlist.push(rCone);
   ray.classlist.push(rGroup);
   ray.classlist.push(rAABB);
+  ray.classlist.push(rTriangle);
   ray.Cone = rCone;
   ray.Cylinder = rCylinder;
   ray.Cube = rCube;
@@ -2197,4 +2271,5 @@
   ray.Hexagon = rHexagon;
   ray.AABB = rAABB;
   ray.Model = rModel;
+  ray.Triangle = rTriangle;
 })();

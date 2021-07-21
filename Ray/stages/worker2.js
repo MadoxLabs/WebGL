@@ -21,6 +21,7 @@ importScripts("../NoiseLib/math.js",
               "../engine/rCanvas.js",
               "../engine/rMatrix.js",
               "../engine/rWorld.js",
+              "../engine/rMesh.js",
               "../engine/rRay.js");
 
 let buffer = null;
@@ -29,7 +30,8 @@ class Renderer
 {
   constructor(id)
   {
-    this.id = id;
+    this.id = id+1;
+    ray.worker = id+1;
   }
 
   setup(def)
@@ -53,13 +55,20 @@ function messagehandler(e)
   var data = e.data;
   switch (data.cmd)
   {
+    case 'mesh':
+      if (!renderer) renderer = new Renderer(data.id);
+      console.log("WORKER "+renderer.id+" got mesh "+data.name);
+      if (!ray.World.meshdata) ray.World.meshdata = {};
+      ray.World.meshdata[data.name] = data.json;
+      break;
     case 'setup':
-      renderer = new Renderer(data.id);
+      if (!renderer) renderer = new Renderer(data.id);
+      console.log("WORKER "+renderer.id+" loading");
       renderer.setup(data.definition);
       break;
     case 'render':
       renderer.render(data.y, data.buffer);
-      postMessage({ id: renderer.id, y: data.y, buffer: data.buffer }, [data.buffer.buffer]);
+      postMessage({ id: renderer.id-1, y: data.y, buffer: data.buffer }, [data.buffer.buffer]);
       break;
   }
 }
