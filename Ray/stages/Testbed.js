@@ -242,35 +242,41 @@ function loadscene(n)
       document.getElementById("stages").innerHTML = this.template;
       document.getElementById("render").obj = this;
       document.getElementById("code").value = `
-        {
-          "renderOptions": {
-            "antialias": 0,
-            "maxReflections": 10
-          },
-          "cameras": [
-            {
-              "name": "main",
-              "width": 400,
-              "height": 400,
-              "fov": 1.2566,
-              "from": [0, 0, -5],
-              "to": [0, 1, 0],
-              "up": [0, 1, 0]
-            }
-          ],
-          "lights": [
-            {
-              "type": "pointlight",
-              "position": [-10, 10, -10],
-              "intensityDiffuse": 1.1,
-              "intensityAmbient": 0.4,
-              "colour": [1, 1, 1]
-            }
-          ],
-          "objects": [
-            { "type": "sphere" }
-          ]
-        }
+
+      {
+        "renderOptions": {
+          "antialias": 0,
+          "maxReflections": 10,
+          "regroup": 50
+        },
+        "cameras": [
+          {
+            "name": "main",
+            "width": 400,
+            "height": 400,
+            "fov": 1.2566,
+            "from": [0, 0, -5],
+            "to": [0, 1, 0],
+            "up": [-1, 0, 0]
+          }
+        ],
+        "lights": [
+          {
+            "type": "pointlight",
+            "position": [-10, 10, -10],
+            "intensityDiffuse": 1.1,
+            "intensityAmbient": 0.4,
+            "colour": [1, 1, 1]
+          }
+        ],
+        "meshes": [
+          { "name": "head", "file": "/WebGL/Ray/assets/head.png"}
+        ],
+        "objects": [
+          { "type": "model", "mesh": "head" }
+        ]
+      }
+
 `;
 
       this.canvas = new ray.Canvas();
