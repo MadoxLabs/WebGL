@@ -126,6 +126,7 @@
 
             subobj.addChild(t);
           }
+          ray.World.split(subobj);
 
           let translate = ray.Matrix.translation(model.translation[0], model.translation[1], model.translation[2]);
           let scale = ray.Matrix.scale(model.scale[0], model.scale[1], model.scale[2]);
@@ -135,11 +136,18 @@
           trans = ray.Matrix.multiply(translate, trans);
           subobj.setTransform(trans);
           
+          subobj.aabb = new ray.AABB();
+          subobj.aabb.min = ray.Point( model.boundingbox.min[0], model.boundingbox.min[1], model.boundingbox.min[2] );
+          subobj.aabb.max = ray.Point( model.boundingbox.max[0], model.boundingbox.max[1], model.boundingbox.max[2] );
+
           obj.addChild(subobj);
         }
 
-        // TODO remove this
-        ray.World.objects.push(obj);
+        obj.aabb = new ray.AABB();
+        obj.aabb.min = ray.Point( data.boundingbox.min[0], data.boundingbox.min[1], data.boundingbox.min[2] );
+        obj.aabb.max = ray.Point( data.boundingbox.max[0], data.boundingbox.max[1], data.boundingbox.max[2] );
+
+        this.mesh = obj;
       }
 
       // attributes: POS, TEX0, NORM (what else?) - existance of data.

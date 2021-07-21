@@ -38,7 +38,7 @@
         maxReflections: 5,
         wireframes: false,
         nestedwireframes: false,
-        regroup: false
+        regroup: 200
       }
 
       this.modeCaustics = false;
@@ -376,10 +376,10 @@
       if (json.patterns) this.parsePatterns(json.patterns);
       if (json.materials) this.parseMaterials(json.materials);
       if (json.lights) this.parseLights(json.lights);
-      if (json.widgets) this.parseWidgets(json.widgets);
-      if (json.objects) this.parseObjects(json.objects);
       if (json.cameras) this.parseCameras(json.cameras);
+      if (json.widgets) this.parseWidgets(json.widgets);
       if ((ray.worker || cb) && json.meshes) this.parseMeshes(json.meshes);
+      if (json.objects) this.parseObjects(json.objects);
 
       if (this.options.regroup) this.regroup();
 

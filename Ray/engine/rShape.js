@@ -2220,7 +2220,7 @@
     updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
-      // todo
+      this.aabb.addAABB( this.mesh.getAABB() );
     }
 
     fromJSON(def)
@@ -2230,6 +2230,7 @@
       if (def.mesh)
       {
           this.mesh = ray.World.meshes[def.mesh];
+          if (this.mesh) this.mesh = this.mesh.mesh;
       }
     }
 
@@ -2239,6 +2240,9 @@
 
     local_intersect(r, hits)
     {
+      if (this.getAABB().intersects(r) == false) return;
+
+      this.mesh.intersect(r, hits);
     }
   }
 
