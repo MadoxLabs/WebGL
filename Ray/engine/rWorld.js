@@ -38,7 +38,7 @@
         maxReflections: 5,
         wireframes: false,
         nestedwireframes: false,
-        regroup: 200
+        regroup: 50
       }
 
       this.modeCaustics = false;
