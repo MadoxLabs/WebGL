@@ -38,7 +38,8 @@
         maxReflections: 5,
         wireframes: false,
         nestedwireframes: false,
-        regroup: 50
+        regroup: 50,
+        smoothing: true
       }
 
       this.modeCaustics = false;
@@ -416,6 +417,7 @@
       if (data.wireframes != null) this.options.wireframes = data.wireframes;
       if (data.nestedwireframes != null) this.options.nestedwireframes = data.nestedwireframes;
       if (data.regroup != null) this.options.regroup = data.regroup;
+      if (data.smoothing != null) this.options.smoothing = data.smoothing;
       if (data.caustics != null)
       {
         this.modeCaustics = data.caustics;

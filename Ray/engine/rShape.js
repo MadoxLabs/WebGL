@@ -70,12 +70,12 @@
       this.setDirty();
     }
 
-    normalAt(p)
+    normalAt(p, hit)
     {
       if (this.dirty) this.clean();
 
       let localPoint = p.copy().worldToObject(this);
-      let normal = this.local_normalAt(localPoint);
+      let normal = this.local_normalAt(localPoint, hit);
       return normal.vectorToWorld(this);
     }
 
@@ -131,7 +131,7 @@
       super();
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       return ray.Vector(p.x, p.y, p.z);
     }
@@ -195,7 +195,7 @@
       if (def.yMax != null) { this.setMaxY(def.yMax); }
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       return this.normal.copy();
     }
@@ -324,7 +324,7 @@
       super.fromJSON(def);
     }
 
-    local_normalAt(p)
+    local_normalAt(p,hit)
     {
       return p.minus(ray.Origin);
     }
@@ -603,7 +603,7 @@
       this.setDirty();
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       let max = Math.max(Math.abs(p.x), Math.abs(p.y), Math.abs(p.z));
       if (max == Math.abs(p.x)) return ray.Vector(p.x, 0, 0);
@@ -678,7 +678,7 @@
       super.fromJSON(def);
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       let max = Math.max(Math.abs(p.x), Math.abs(p.y), Math.abs(p.z));
       if (max == Math.abs(p.x)) return ray.Vector(p.x, 0, 0);
@@ -875,7 +875,7 @@
       if (def.closed != null) { this.setClosed(def.closed ? true : false); }      
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       let d = p.x * p.x + p.z * p.z;
       if (d < 1.0 && p.y >= (this.max - ray.epsilon)) return ray.Vector(0, 1, 0);
@@ -1137,7 +1137,7 @@
       if (def.closed != null) { this.setClosed(def.closed ? true : false); }
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       let d = p.x * p.x + p.z * p.z;
       if (d < this.max*this.max && p.y >= (this.max - ray.epsilon)) return ray.Vector(0, 1, 0);
@@ -1853,7 +1853,7 @@
       }    
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
     }
 
@@ -1861,10 +1861,10 @@
     {
       if (this.getAABB().intersects(r) == false) return;
 
-      for (let c in this.children)
+//      for (let c in this.children)
+      for (let c = 0; c < this.keys.length; ++c)
       {
-        let child = this.children[c];
-        child.intersect(r, hits);
+        this.children[this.keys[c]].intersect(r, hits);
       }
     }
 
@@ -1891,6 +1891,8 @@
       this.children[c.id] = c;
       c.bakeMaterial();
       this.setDirty();
+
+      this.keys = Object.keys(this.children);
     }
 
     numChildren()
@@ -2144,7 +2146,7 @@
       this.points = [];
       this.vertNormals = [];
       this.uvs = [];
-      this.normal = null;
+      this.normal = null;  // face normal
     }
 
     updateAABB()
@@ -2175,13 +2177,20 @@
       }
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
       if (!this.normal)
       {
         this.e1 = ray.Touple.subtract(this.points[1], this.points[0]);
         this.e2 = ray.Touple.subtract(this.points[2], this.points[0]);
         this.normal = ray.Touple.cross(this.e2, this.e1).normalize().copy();
+      }
+
+      if (hit && hit.hasUV && this.vertNormals.length > 0)
+      {
+        return         this.vertNormals[1].copy().times(hit.u)
+                .plus( this.vertNormals[2].copy().times(hit.v) )
+                .plus( this.vertNormals[0].copy().times(1 - hit.u - hit.v) );
       }
       return this.normal.copy();  
     }
@@ -2204,7 +2213,7 @@
       if (v < 0 || (u + v) > 1) return; // miss
 
       let t = f * this.e2.dot(cross2);
-      hits.add(ray.Intersection(t, this));
+      hits.add(ray.Intersection(t, this, u, v));
     }
   }
 
@@ -2234,7 +2243,7 @@
       }
     }
 
-    local_normalAt(p)
+    local_normalAt(p, hit)
     {
     }
 

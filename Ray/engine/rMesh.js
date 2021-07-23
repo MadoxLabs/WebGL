@@ -113,7 +113,7 @@
                                           mesh.vertexs[offset + j + 1], 0) );
                 j += 2;                                        
               }
-              if ('NORM' in data.attributes)
+              if (ray.World.options.smoothing && ('NORM' in data.attributes))
               {
                 t.vertNormals.push( new ray.Point(mesh.vertexs[offset + j + 0],
                                                   mesh.vertexs[offset + j + 1],

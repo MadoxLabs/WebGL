@@ -299,13 +299,25 @@
 
   class rIntersection
   {
-    constructor(len, obj)
+    constructor(len, obj, u, v)
     {
       this.id = ray.getUUID();
       this.length = len;
       this.object = obj;
-//      if (obj.isObject == false) throw "obj is not an object";
       this.isIntersection = true;
+      this.hasUV = false;
+
+      if (arguments.length == 4)
+      {
+        this.setUV(u,v);
+      }
+    }
+
+    setUV(u,v)
+    {
+      this.u = u;
+      this.v = v;
+      this.hasUV = true;
     }
 
     precompute(r, points)
@@ -316,7 +328,7 @@
       ret.length = this.length;
       ret.object = this.object;
       ret.point = r.position(ret.length);
-      ret.normal = this.object.normalAt(ret.point);
+      ret.normal = this.object.normalAt(ret.point, this);
       ret.eye = r.direction.copy().negate();
       if (ret.normal.dot(ret.eye) < 0)
       {
@@ -680,10 +692,10 @@
     if (ray.usePool) return pool.getRay(o, d);
     return new rRay(o, d);
   }
-  function makeIntersection(len, obj)
+  function makeIntersection(len, obj, u, v)
   {
     ray.counts.intersection += 1;
-    return new rIntersection(len, obj);
+    return new rIntersection(len, obj, u, v);
   }
   function makeIntersections()
   {
@@ -695,7 +707,7 @@
   ray.classlist.push(rIntersection);
   ray.classlist.push(rIntersections);
   ray.Ray = function (o, d) { return makeRay(o, d); }
-  ray.Intersection = function (l, o) { return makeIntersection(l, o); };
+  ray.Intersection = function (l, o, u, v) { return makeIntersection(l, o, u, v); };
   ray.Intersections = function () { return makeIntersections(); };
 
 })();
