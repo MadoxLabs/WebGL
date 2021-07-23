@@ -110,30 +110,100 @@ function bake(name, mesh)
   var vertexs = [];
   var indexes = [];
 
-  var vertexstring = [];  // the stringified vertex list uniq to cull duplicate verts
+  // first build a list of all the normals by vertex index.
+  // some vertexes have multiple normals that need merging
+  var normalsets = {  };  
   var index = 0;
-  var normal = 0;
+  var normalIndex = 0;
+  do {
+    var vertIndex = parseFloat(mesh.indexes[index]);
+    if (!normalsets[vertIndex])
+    {
+      normalsets[vertIndex] = { merged: [], sets: [] };
+    }
+    var normal = [];
+    if (mesh.mapping == 0)
+    {
+      normal.push(parseFloat(mesh.normals[normalIndex]));
+      normal.push(parseFloat(mesh.normals[normalIndex + 1]));
+      normal.push(parseFloat(mesh.normals[normalIndex + 2]));
+    }
+    else
+    {
+      normal.push(parseFloat(mesh.normals[vertIndex]));
+      normal.push(parseFloat(mesh.normals[vertIndex + 1]));
+      normal.push(parseFloat(mesh.normals[vertIndex + 2]));
+    }
+    normalsets[vertIndex].sets.push(normal);
+    index += 1;
+    normalIndex += 3;
+  } while (index != mesh.indexes.length);
+  
+  // go through all the normal sets and merge them to get a true vertex normal
+  for (let n in normalsets)
+  {
+    let x = 0, y = 0, z = 0;
+    for (let s = 0; s < normalsets[n].sets.length; ++s)
+    {
+      x += normalsets[n].sets[s][0];
+      y += normalsets[n].sets[s][1];
+      z += normalsets[n].sets[s][2];
+    }
+    x /= normalsets[n].sets.length;
+    y /= normalsets[n].sets.length;
+    z /= normalsets[n].sets.length;
+    let mag = Math.sqrt(x*x + y*y + z*z);
+    normalsets[n].merged[0] = x / mag;
+    normalsets[n].merged[1] = y / mag;
+    normalsets[n].merged[2] = z / mag;
+  }
+
+  // as we bake the verts, compare the normal to the vert's merged normal
+  // if its less than a threshold off, (30 degrees?), use the merged one
+  var vertexstring = [];  // the stringified vertex list uniq to cull duplicate verts
+  index = 0;
+  normal = 0;
+  let mCount = 0, nCount = 0;
   do {
     var vert = []
-    var v = mesh.indexes[index] * 3;
+    var v = parseFloat(mesh.indexes[index]) * 3;
     vert.push(mesh.vertexs[v]);
     vert.push(mesh.vertexs[v + 1]);
     vert.push(mesh.vertexs[v + 2]);
     var v2 = mesh.uvindex[index] * 2;
     vert.push(mesh.uv[v2]);
     vert.push(mesh.uv[v2 + 1]);
+
+    let tmpNormal = [];
     if (mesh.mapping == 0)
     {
-      vert.push(mesh.normals[normal]);
-      vert.push(mesh.normals[normal + 1]);
-      vert.push(mesh.normals[normal + 2]);
+      tmpNormal.push(parseFloat(mesh.normals[normal]));
+      tmpNormal.push(parseFloat(mesh.normals[normal + 1]));
+      tmpNormal.push(parseFloat(mesh.normals[normal + 2]));
     }
     else
     {
-      vert.push(mesh.normals[v]);
-      vert.push(mesh.normals[v + 1]);
-      vert.push(mesh.normals[v + 2]);
+      tmpNormal.push(parseFloat(mesh.normals[v]));
+      tmpNormal.push(parseFloat(mesh.normals[v + 1]));
+      tmpNormal.push(parseFloat(mesh.normals[v + 2]));
     }
+    let merged = normalsets[ parseFloat(mesh.indexes[index]) ].merged;
+    let dot = merged[0]*tmpNormal[0] + merged[1]*tmpNormal[1] + merged[2]*tmpNormal[2];
+    if (Math.acos(dot) < 0.52)
+    {
+      mCount++;
+      vert.push(merged[0]);
+      vert.push(merged[1]);
+      vert.push(merged[2]);
+    }
+    else
+    {
+      nCount++;
+      vert.push(tmpNormal[0]);
+      vert.push(tmpNormal[1]);
+      vert.push(tmpNormal[2]);
+    }
+
     index += 1;
     normal += 3;
     vertexstring.push(JSON.stringify(vert));
@@ -142,6 +212,7 @@ function bake(name, mesh)
   // how many are the same?
   var uniq = vertexstring.unique();
   log("Processing " + name + ". Creating index for " + vertexstring.length + " verts. Result is " + uniq.length + " unique verts");
+  log("Smoothed normals: " + mCount + ". Normal normals: " + nCount);
   // convert this to an actual vertex list
   var vertexobj = [];
   for (var i = 0; i < uniq.length; ++i) vertexobj.push(JSON.parse(uniq[i]));
