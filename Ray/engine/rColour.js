@@ -189,6 +189,29 @@
     }
   }
 
+  class rLightAmbient
+  {
+    constructor(c)
+    {
+      this.colour = c;
+      this.intensityAmbient = 1.0;
+      this.isLight = true;
+    }
+
+    fromJSON(def)
+    {
+      if (null != def.colour) this.colour = ray.RGBColour(def.colour[0], def.colour[1], def.colour[2]);
+      if (null != def.intensityAmbient) this.intensityAmbient = def.intensityAmbient;
+    }
+
+    equals(l)
+    {
+      if (!l) return false;
+      if (this.colour.equals(l.colour) == false) return false;
+      return true;
+    }
+  }
+
   class rLightPoint
   {
     constructor(p, c)
@@ -880,6 +903,7 @@
 
   ray.classlist.push(rColour);
   ray.classlist.push(rLightPoint);
+  ray.classlist.push(rLightAmbient);
   ray.classlist.push(rMaterial);
   ray.classlist.push(rPatternStripe);
   ray.classlist.push(rPatternGradient);
@@ -887,6 +911,7 @@
   ray.classlist.push(rPatternChecker);
   ray.Material = rMaterial;
   ray.LightPoint = rLightPoint;
+  ray.LightAmbient = rLightAmbient;
   ray.RGBColour = function (r, g, b) { return makeColour(r, g, b); }
   ray.Colour = rColour;
   ray.PatternSolid = rPatternSolid;

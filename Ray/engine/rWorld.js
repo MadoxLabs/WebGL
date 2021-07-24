@@ -506,6 +506,14 @@
           obj.fromJSON(data[i]);
           this.lights.push(obj);
         }
+        if (data[i].type == "ambient")
+        {
+          let c = ray.White;
+          if (null != data[i].colour) c = ray.RGBColour(data[i].colour[0], data[i].colour[1], data[i].colour[2]);
+          let obj = new ray.LightAmbient(c);
+          obj.fromJSON(data[i]);
+          this.lights.push(obj);
+        }
       }
     }
 

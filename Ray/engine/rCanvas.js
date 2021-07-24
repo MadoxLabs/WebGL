@@ -151,6 +151,12 @@
       if (shadowed == null) shadowed = 0;
       let effectiveColour = ray.Colour.multiply(material.colourAt(point, object), light.colour);
       let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
+
+      if (!light.position)
+      {
+        return ambient;
+      }
+
       let toLight = ray.Touple.subtract(light.position, point);
       let distance = toLight.magnitude();
       let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
@@ -194,6 +200,8 @@
       if (!depth) return 0;
 
       let light = ray.World.lights[lightIndex];
+      if (!light.position) return 0;  // ambient light shines everywhere. no shadow
+
       let direction = ray.Touple.subtract(light.position, p);
       let distance = direction.magnitude();
       direction.normalize();
