@@ -1,9 +1,44 @@
-function loadscene(n)
+(function ()
 {
-  if (n == 1) 
-  {
-    document.getElementById("code").value = `
 
+  class Testbed
+  {
+    constructor()
+    {
+      this.name = "Testbed";
+      this.size = 400;
+      this.scenes = {};
+
+      this.template = `
+<p>Rendering testbed for creating test scenes on the fly</p>
+<table><tr><td>
+<div><canvas id='surface' width="400" height="400"></div>
+</td><td>
+<textarea cols='50' rows='20' id="code"></textarea>
+<br>
+<button id="render" onClick="obj.transform()">Render</button>
+<br>
+<input id="sceneName" maxlength="20"/>
+<input type="button" id="sceneSave" onClick="obj.saveScene()" value="Save Scene"></input><br>
+<select id="sceneList"></select>
+<input type="button" id="sceneLoad" onClick="obj.loadScene()" value="Load Scene"></input>
+<input type="button" id="sceneDelete" onClick="obj.deleteScene()" value="Delete Scene"></input>
+</td></tr></table>`;
+      this.load = navigator.hardwareConcurrency;
+
+      // load all the save games
+      if (localStorage.getItem("RayTracer") !== null)
+      {
+        var saveData = JSON.parse(localStorage["RayTracer"]);
+        if (saveData)
+        {
+          for (var s in saveData["scenes"]) this.scenes[s] = saveData["scenes"][s];
+        }
+      }
+
+      if (!this.scenes["Default"])
+      {
+        let code = `
         {
           "renderOptions": {
             "antialias": 0,
@@ -15,207 +50,87 @@ function loadscene(n)
               "width": 400,
               "height": 400,
               "fov": 1.2566,
-              "from": [0, 3, -3],
-              "to": [0, 1, 0],
+              "from": [0, 0, -5],
+              "to": [0, 0, 0],
               "up": [0, 1, 0]
             }
           ],
           "lights": [
             {
-              "type": "pointlight",
-              "position": [0, 5, -1],
-              "intensityDiffuse": 0.5,
-              "intensityAmbient": 0.2,
-              "colour": [1, 1, 1]
+              "type": "ambient",
+              "intensityAmbient": 1.0,
+              "colour": [1, 1, 0]
             },
             {
               "type": "pointlight",
-              "position": [0, 2, -15],
-              "intensityDiffuse": 1,
-              "intensityAmbient": 0.7,
+              "position": [-10, 10, -10],
+              "intensityDiffuse": 1.0,
+              "intensityAmbient": 0.1,
               "colour": [1, 1, 1]
             }
           ],
-"materials" :[
-            {
-              "name": "glass",
-              "ambient": 0,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.9,
-              "transmit": 0.7,
-              "refraction": 1.5,
-              "colour": [0.2, 0.2, 0.2]
-            },
-           {
-              "name": "air",
-              "ambient": 0,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.9,
-              "transmit": 1,
-              "refraction": 1.0,
-              "colour": [0.2, 0.2, 0.2]
-            }
-],
-"transforms": [
-{ "name": "air", "series" : [{"type": "S", "value" : [0.98,0.98,0.98]}] }, 
-{ "name": "floor", "series" : [{"type": "T", "value" : [0,-1,0]}] }, 
-{ "name": "left", "series" : [{"type": "T", "value" : [-2.2,0,0]}] }, 
-{ "name": "back", "series" : [{"type": "T", "value" : [0,0,2]}] }, 
-{ "name": "right", "series" : [{"type": "T", "value" : [2.2,0,0]}] }
-],
           "objects": [
-{ "type": "plane", "transform": "floor"},
-{ "type": "sphere", "transform": "right" },
-{ "type": "sphere", "transform": "left" },
-{ "skip": true, "type": "sphere", "transform": "back" },
-{ "type": "sphere", "material": "glass" },
-{ "type": "sphere", "transform": "air" , "material": "air" }
+            { "type": "sphere" }
           ]
         }
-`;
-  }
-
-  if (n == 2) 
-  {
-    document.getElementById("code").value = `
-
-        {
-          "renderOptions": {
-            "antialias": 0,
-            "maxReflections": 10, "caustics": false
-          },
-          "cameras": [
-            {
-              "name": "main",
-              "width": 400,
-              "height": 400,
-              "fov": 1.2566,
-              "from": [0, 3, -3],
-              "to": [0, 1, 0],
-              "up": [0, 1, 0]
-            }
-          ],
-          "lights": [
-            {
-              "type": "pointlight",
-              "position": [0, 5, -1],
-              "intensityDiffuse": 0.5,
-              "intensityAmbient": 0.2,
-              "colour": [1, 1, 1]
-            }
-          ],
-"materials" :[
-            {
-              "name": "glass",
-              "ambient": 0,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.9,
-              "transmit": 0.7,
-              "refraction": 1.5,
-              "colour": [0.2, 0.2, 0.2]
-            },
-           {
-              "name": "air",
-              "ambient": 0,
-              "diffuse": 0.4,
-              "shininess": 300,
-              "specular": 0.9,
-              "reflective": 0.9,
-              "transparency": 0.9,
-              "transmit": 1,
-              "refraction": 1.0,
-              "colour": [0.2, 0.2, 0.2]
-            }
-],
-"transforms": [
-{ "name": "air", "series" : [{"type": "S", "value" : [0.98,0.98,0.98]}] }, 
-{ "name": "floor", "series" : [{"type": "T", "value" : [0,-1,0]}] }, 
-{ "name": "left", "series" : [{"type": "T", "value" : [-2.2,0,0]}] }, 
-{ "name": "back", "series" : [{"type": "T", "value" : [0,0,2]}] }, 
-{ "name": "right", "series" : [{"type": "T", "value" : [2.2,0,0]}] }
-],
-          "objects": [
-{ "type": "plane", "transform": "floor"},
-{ "type": "cylinder", "material": "glass", "min": -1, "max": 1, "closed": true}
-          ]
-        }
-`;
-  }
-
-  if (n == 3) 
-  {
-    document.getElementById("code").value = `
-    {
-      "renderOptions": {
-        "antialias": 0,
-"wireframes": true,
-"nestedwireframes": true,
-        "maxReflections": 10
-      },
-      "cameras": [
-        {
-          "name": "main",
-          "width": 400,
-          "height": 400,
-          "fov": 1.2566,
-          "from": [0, 0, -3],
-          "to": [0, 0, 0],
-          "up": [0, 1, 0]
-        }
-      ],
-      "lights": [
-        {
-          "type": "pointlight",
-          "position": [-10, 10, -10],
-          "intensityDiffuse": 1.1,
-          "intensityAmbient": 0.4,
-          "colour": [1, 1, 1]
-        }
-      ],
-"transforms": [
-{ "name": "turn", "series" : [{"type": "Rx", "value" : 1.57}] }
-],
-      "objects": [
-{ "type": "hexagon", "transform": "turn" }
-      ]
+          `;
+        this.saveSceneAs("Default", code);
+      }
     }
-`;
-  }
 
-}
-
-(function ()
-{
-
-  class Testbed
-  {
-    constructor()
+    saveScene()
     {
-      this.name = "Testbed";
-      this.size = 400;
+      var widget = document.getElementById("sceneName");
+      this.saveSceneAs(widget.value, document.getElementById("code").value);
+    }
 
-      this.template = `
-<p>Rendering testbed for creating test scenes on the fly</p>
-<table><tr><td>
-<div><canvas id='surface' width="400" height="400"></div>
-</td><td>
-<textarea cols='50' rows='20' id="code"></textarea>
-<br>
-<button id="render" onClick="obj.transform()">Render</button>
-<input type="button" id="scene1" onClick="loadscene(1)" value="Load Scene 1"></input>
-<input type="button" id="scene2" onClick="loadscene(2)" value="Load Scene 2"></input>
-<input type="button" id="scene3" onClick="loadscene(3)" value="Load Scene 3"></input>
-</td></tr></table>`;
-      this.load = navigator.hardwareConcurrency;
+    saveSceneAs(name, code)
+    {
+      this.scenes[name] = code;
+      let save = {};
+      save.scenes = this.scenes;
+      localStorage["RayTracer"] = JSON.stringify(save);
+
+      this.updateSceneList();
+    }
+
+    loadScene()
+    {
+      var e = document.getElementById("sceneList");
+      document.getElementById("code").value = this.scenes[e.options[e.selectedIndex].text];
+
+      var widget = document.getElementById("sceneName");
+      widget.value = e.options[e.selectedIndex].text;
+    }
+
+    deleteScene()
+    {
+      var e = document.getElementById("sceneList");
+      let name = this.scenes[e.options[e.selectedIndex].text];
+      this.scenes[name] = null;
+      delete this.scenes[name];
+
+      let save = {};
+      save.scenes = this.scenes;
+      localStorage["RayTracer"] = JSON.stringify(save);
+
+      this.updateSceneList();
+    }
+
+    updateSceneList()
+    {
+      var widget = document.getElementById("sceneList");
+      if (!widget) return;
+      // blank it out
+      for (var j = widget.options.length - 1; j >= 0; j--) widget.remove(j);
+      // create new options for the data
+      for (var v in Object.keys(this.scenes))
+      {
+        var opt = document.createElement('option');
+        opt.value = Object.keys(this.scenes)[v];
+        opt.innerHTML = Object.keys(this.scenes)[v];
+        widget.appendChild(opt);
+      }      
     }
 
     shuffle(arr)
@@ -241,43 +156,13 @@ function loadscene(n)
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
       document.getElementById("render").obj = this;
-      document.getElementById("code").value = `
+      document.getElementById("sceneDelete").obj = this;
+      document.getElementById("sceneSave").obj = this;
+      document.getElementById("sceneLoad").obj = this;
+      document.getElementById("code").value = "";
 
-      {
-        "renderOptions": {
-          "antialias": 0,
-          "maxReflections": 10,
-          "regroup": 50
-        },
-        "cameras": [
-          {
-            "name": "main",
-            "width": 400,
-            "height": 400,
-            "fov": 1.2566,
-            "from": [0, 0, -5],
-            "to": [0, 1, 0],
-            "up": [-1, 0, 0]
-          }
-        ],
-        "lights": [
-          {
-            "type": "pointlight",
-            "position": [-10, 10, -10],
-            "intensityDiffuse": 1.1,
-            "intensityAmbient": 0.4,
-            "colour": [1, 1, 1]
-          }
-        ],
-        "meshes": [
-          { "name": "head", "file": "/WebGL/Ray/assets/head.png"}
-        ],
-        "objects": [
-          { "type": "model", "mesh": "head" }
-        ]
-      }
-
-`;
+      this.updateSceneList();
+      document.getElementById("code").value = this.scenes["Default"];
 
       this.canvas = new ray.Canvas();
       this.canvas.fromElement("surface");
