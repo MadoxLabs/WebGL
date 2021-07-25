@@ -83,9 +83,28 @@
         let obj = new ray.Group();
 
         let group = data.groups[g];
+
+        // get the material
+        let mat = new ray.Material();
+        mat.ambient = group.AmbientFactor[0];
+        mat.diffuse = group.DiffuseFactor[0];
+        mat.specular = group.SpecularFactor[0];
+        mat.shininess = group.Shininess[0];
+        mat.colour = ray.RGBColour(group.DiffuseColor[0],group.DiffuseColor[1],group.DiffuseColor[2]);
+        mat.reflective = group.ReflectionFactor[0];
+        mat.transparency = 1.0 - group.TransparentColor[0];
+        mat.transmit = mat.transparency;
+        mat.refraction = 1.0; // TODO
+        mat.name = group.name;
+        ray.World.materials[mat.name] = mat;
+
+        // parse meshes
         for (let m in group.models)
         {
           let subobj = new ray.Group();
+          subobj.material = mat;
+          subobj.materialSelf = mat;
+          subobj.blending = "self";
 
           let model = group.models[m];
           let mesh = model.mesh;
@@ -123,7 +142,6 @@
               offset += step;
             }
             t.setDirty();
-
             subobj.addChild(t);
           }
           ray.World.split(subobj);

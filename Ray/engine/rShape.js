@@ -121,6 +121,8 @@
         this.material.clone(this.materialSelf);
         this.material.pattern = new ray.PatternBlend(this.materialSelf.pattern, this.parent.material.pattern);
       }
+      // its baked. lock it
+      this.blending = "baked";
     }
   }
 
