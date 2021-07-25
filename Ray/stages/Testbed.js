@@ -16,7 +16,8 @@
 </td><td>
 <textarea cols='50' rows='20' id="code"></textarea>
 <br>
-<button id="render" onClick="obj.transform()">Render</button>
+<button id="render" onClick="obj.transform(false)">Render</button>
+<button id="renderCaustics" onClick="obj.transform(true)">Render With Caustics</button>
 <br>
 <input id="sceneName" maxlength="20"/>
 <input type="button" id="sceneSave" onClick="obj.saveScene()" value="Save Scene"></input><br>
@@ -156,6 +157,7 @@
       this.kill = false;
       document.getElementById("stages").innerHTML = this.template;
       document.getElementById("render").obj = this;
+      document.getElementById("renderCaustics").obj = this;
       document.getElementById("sceneDelete").obj = this;
       document.getElementById("sceneSave").obj = this;
       document.getElementById("sceneLoad").obj = this;
@@ -210,7 +212,7 @@
         }
       }
 
-      // setup non threaded for clicking
+      // setup non threaded for clicking, and caustics!
       {
         this.buffer = new Uint8ClampedArray(this.size * 4);
       }
@@ -219,10 +221,10 @@
     begin()
     {
       let self = this;
-      ray.World.loadFromJSON(this.setupDef, function() { self.begin2(); } );
+      ray.World.loadFromJSONWithMeshes(this.setupDef, function() { self.onLoadedCallback(); } );
     }
 
-    begin2()
+    onLoadedCallback()
     {
       ray.World.cameras["main"].canvas = this.canvas;
       if (ray.World.options.threaded)
@@ -244,10 +246,30 @@
       for (let i = 0; i < this.load; ++i) this.renderRow(i);
     }
 
-    transform()
+    transform(withCaustics)
     {     
       this.setupDef = JSON.parse(document.getElementById("code").value);
       this.restart = true;
+
+      if (!withCaustics)
+      {
+        this.autoCaustics = false;
+        this.setupDef.renderOptions.caustics = false;  
+      }
+      else
+      {
+        if (!this.autoCaustics)
+        {
+          // set it up for pass 2
+          this.autoCaustics = withCaustics;
+        }
+        else
+        {
+          this.autoCaustics = false;
+          this.setupDef.renderOptions.caustics = true;  
+        }
+      }
+
       if (!this.renderY || this.renderY >= this.size) this.begin();
     }
 
@@ -261,12 +283,16 @@
         let seconds = Math.floor((ms / 1000.0) * 100) / 100;
         ray.App.setMessage("Elapsed time: " + seconds + " seconds. " + mspp + " ms/pixel");
 
-        if (this.restart) this.begin();
-
         if (this.kill && ray.World.options.threaded)
         {
           for (let i = 0; i < this.load; ++i)
             this.workers[i].terminate();
+        }
+
+        if (this.restart) this.begin();
+        else if (this.autoCaustics)
+        {
+          this.transform(true);
         }
 
         return;

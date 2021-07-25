@@ -55,6 +55,9 @@ function messagehandler(e)
   var data = e.data;
   switch (data.cmd)
   {
+    case 'caustics':
+      ray.World.causticMode(true);
+      break;    
     case 'mesh':
       if (!renderer) renderer = new Renderer(data.id);
       console.log("WORKER "+renderer.id+" got mesh "+data.name);
