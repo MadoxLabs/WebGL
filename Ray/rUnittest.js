@@ -32,7 +32,7 @@
       this.success = 0;
     }
 
-    runSuite(s)
+    runSuite(s, onlyFails)
     {
       let ret = [];
       let suite = this.suites[s];
@@ -40,24 +40,27 @@
       {
         let test = suite[s]();
         this.total += 1;
-        ret.push(test.name);
         let result = false;
         try
         {
           result = test.test();
           if (result) this.success += 1;
-        } catch (e) { ret.push(" - crash: " + e); }
-        ret.push(" - " + result)
+          if (!onlyFails || !result)
+          {
+            ret.push(test.name);
+            ret.push(" - " + result);
+          }
+        } catch (e) { ret.push(test.name); ret.push(" - crash: " + e); }
       }
       return ret;
     }
 
-    run()
+    run(onlyFails)
     {
       let ret = [];
       for (let s in this.suites)
       {
-        let lines = this.runSuite(s);
+        let lines = this.runSuite(s, onlyFails);
         ret = [].concat( ret, lines );
       }
 

@@ -64,20 +64,21 @@
       out.innerHTML = ret;
     }
 
-    runTest(test)
+    runTest(test, onlyFails)
     {
       this.tester.prepare();
 
       let output = [];
       if (test == 0)
       {
-        output = this.tester.run();
+        output = this.tester.run(onlyFails);
       } else {
-        output = this.tester.runSuite(test-1);
+        output = this.tester.runSuite(test-1, onlyFails);
       }
 
       let buf = "<div class='mxText'>Test Results: " + this.tester.total + " Total, " + this.tester.success + " Success, " + (this.tester.total - this.tester.success) + " Fail";
-      buf += " <button onclick='ray.App.runTest("+test+")'>Run Again</button></div > ";
+      buf += " <button onclick='ray.App.runTest("+test+")'>Run Again</button>";
+      buf += " <button onclick='ray.App.runTest("+test+", true)'>Show Fails</button></div > ";
       buf += "<table class=\"blueTable\"><tbody><tr>";
       for (let i in output)
         buf += "<tr><td>"+output[i]+"</td></tr>";
