@@ -594,6 +594,12 @@
         obj.fromJSON(data);
         return obj;
       }
+      else if (data.type == "csg")
+      {
+        let obj = new ray.CSG();
+        obj.fromJSON(data);
+        return obj;
+      }
     }
 
     parseObjects(data)

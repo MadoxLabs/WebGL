@@ -19,6 +19,11 @@
       this.setDirty();
     }    
 
+    contains(obj)
+    {
+      return this.id == obj.id;
+    }
+
     setClean()
     {
       this.dirty = false;
@@ -1801,6 +1806,22 @@
       super();
       this.isGroup = true;
       this.children = {};
+      this.containsCache = {};
+    }
+
+    contains(obj)
+    {
+      let v = this.containsCache[obj.id];
+      if (v === undefined)
+      {
+        for (let i in this.children)
+        {
+          v = this.children[i].contains(obj);
+          if (v) break;
+        }
+        this.containsCache[obj.id] = v;        
+      }
+      return v;
     }
 
     subsumeScore(boxes)
@@ -2267,6 +2288,284 @@
     }
   }
 
+  class rCSG extends rShape
+  {
+    constructor()
+    {
+      super();
+      this.isCSG = true;
+
+      this.containsCache = {};
+    }
+
+    contains(obj)
+    {
+      let v = this.containsCache[obj.id];
+      if (v === undefined)
+      {
+        v = this.left.contains(obj) || this.right.contains(obj);
+        this.containsCache[obj.id] = v;        
+      }
+      return v;
+    }
+
+    updateAABB()
+    {
+      if (!this.aabb) this.aabb = new rAABB();
+      if (this.left) this.aabb.addAABB( this.left.getParentSpaceAABB() );
+      if (this.right && this.op == 1) this.aabb.addAABB( this.right.getParentSpaceAABB() );
+    }
+
+    setOp(name)
+    {
+      if (name == "union") this.op = 1;
+      else if (name == "intersect") this.op = 2;
+      else if (name == "difference") this.op = 3;
+      this.dirty = true;
+    }
+
+    setLeft(name)
+    {
+      let o = name.isObject ? name : ray.World.getWidget(name);
+      if (o) 
+      {
+        this.left = o;
+        this.left.parent = this;
+        this.dirty = true;
+      }
+    }
+
+    setRight(name)
+    {
+      let o = name.isObject ? name : ray.World.getWidget(name);
+      if (o) 
+      {
+        this.right = o;
+        this.right.parent = this;
+        this.dirty = true;
+      }
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.op != null) this.setOp(def.op);
+      if (def.left != null) this.setLeft(def.left);
+      if (def.right != null) this.setRight(def.right);
+    }
+
+    intersectionAllowed(op, leftHit, insideLeft, insideRight)
+    {
+      if (op == 1) // union
+      {
+        return ((leftHit && !insideRight) || (!leftHit && !insideLeft));
+      }
+      if (op == 2) // intersect
+      {
+        return ((leftHit && insideRight) || (!leftHit && insideLeft));
+      }
+      if (op == 3) // difference
+      {
+        return ((leftHit && !insideRight) || (!leftHit && insideLeft));
+      }
+      return false;
+    }
+
+    filterIntersections(list)
+    {
+      let result = new ray.Intersections();
+
+      let insideLeft = false;
+      let insideRight = false;
+      let leftHit = false;
+      for (let i = 0; i < list.num; ++i)
+      {
+        leftHit = this.left.contains(list.list[i].object);
+        if (this.intersectionAllowed(this.op, leftHit, insideLeft, insideRight))
+        {
+          result.add(list.list[i]);          
+        }
+        if (leftHit)
+          insideLeft = !insideLeft;        
+        else
+          insideRight = !insideRight;
+      }
+      return result;
+    }
+
+    local_normalAt(p, hit)
+    {
+
+    }
+
+    local_intersect(r, hits)
+    {
+      let points = ray.Intersections();
+      this.left.intersect(r, points);
+      this.right.intersect(r, points);
+      hits.add( this.filterIntersections(points) );
+    }
+
+    // tests
+    static test1()
+    {
+      return {
+        name: "Create a CSG",
+        test: function ()
+        {
+          let s = new rSphere();
+          let c = new rCube();
+          let o = new rCSG();
+          o.setLeft(s);
+          o.setRight(c);
+          o.setOp("union");
+
+          if (o.op != 1) return false;
+          if (o.left != s) return false;
+          if (o.right != c) return false;
+          if (s.parent != o) return false;
+          if (c.parent != o) return false;
+          return true;
+        }
+      };
+    }
+
+    static test2()
+    {
+      return {
+        name: "Testing CSG intersection rules",
+        test: function ()
+        {
+          let o = new rCSG();
+          if (o.intersectionAllowed(1, true,  true,  true)  != false) return false;
+          if (o.intersectionAllowed(1, true,  true,  false) != true) return false;
+          if (o.intersectionAllowed(1, true,  false, true)  != false) return false;
+          if (o.intersectionAllowed(1, true,  false, false) != true) return false;
+          if (o.intersectionAllowed(1, false, true,  true)  != false) return false;
+          if (o.intersectionAllowed(1, false, true,  false) != false) return false;
+          if (o.intersectionAllowed(1, false, false, true)  != true) return false;
+          if (o.intersectionAllowed(1, false, false, false) != true) return false;
+
+          if (o.intersectionAllowed(2, true,  true,  true)  != true) return false;
+          if (o.intersectionAllowed(2, true,  true,  false) != false) return false;
+          if (o.intersectionAllowed(2, true,  false, true)  != true) return false;
+          if (o.intersectionAllowed(2, true,  false, false) != false) return false;
+          if (o.intersectionAllowed(2, false, true,  true)  != true) return false;
+          if (o.intersectionAllowed(2, false, true,  false) != true) return false;
+          if (o.intersectionAllowed(2, false, false, true)  != false) return false;
+          if (o.intersectionAllowed(2, false, false, false) != false) return false;
+
+          if (o.intersectionAllowed(3, true,  true,  true)  != false) return false;
+          if (o.intersectionAllowed(3, true,  true,  false) != true) return false;
+          if (o.intersectionAllowed(3, true,  false, true)  != false) return false;
+          if (o.intersectionAllowed(3, true,  false, false) != true) return false;
+          if (o.intersectionAllowed(3, false, true,  true)  != true) return false;
+          if (o.intersectionAllowed(3, false, true,  false) != true) return false;
+          if (o.intersectionAllowed(3, false, false, true)  != false) return false;
+          if (o.intersectionAllowed(3, false, false, false) != false) return false;
+          return true;
+        }
+      };
+    }
+
+    static test3()
+    {
+      return {
+        name: "Create a CSG",
+        test: function ()
+        {
+          let s = new rSphere();
+          let c = new rCube();
+          let o = new rCSG();
+          o.setLeft(s);
+          o.setRight(c);
+
+          let xs = ray.Intersections();
+          xs.add( ray.Intersection(1, s) );
+          xs.add( ray.Intersection(2, c) );
+          xs.add( ray.Intersection(3, s) );
+          xs.add( ray.Intersection(4, c) );
+
+          o.setOp("union");
+          let result = o.filterIntersections(xs);
+          if (result.num != 2) return false;
+          if (result.list[0].length != 1) return false;
+          if (result.list[1].length != 4) return false;
+
+          o.setOp("intersect");
+          result = o.filterIntersections(xs);
+          if (result.num != 2) return false;
+          if (result.list[0].length != 2) return false;
+          if (result.list[1].length != 3) return false;
+
+          o.setOp("difference");
+          result = o.filterIntersections(xs);
+          if (result.num != 2) return false;
+          if (result.list[0].length != 1) return false;
+          if (result.list[1].length != 2) return false;
+
+          return true;
+        }
+      };
+    }
+
+    static test4()
+    {
+      return {
+        name: "Ray misses a CSG",
+        test: function ()
+        {
+          let s = new rSphere();
+          let c = new rCube();
+          let obj = new rCSG();
+          obj.setLeft(s);
+          obj.setRight(c);
+          obj.setOp("union");
+
+          let o = new ray.Point(0, 2, -5);
+          let d = new ray.Vector(0, 0, 1);
+          let r = new ray.Ray(o.copy(), d.copy());
+
+          let xs = ray.Intersections();
+          obj.local_intersect(r, xs);
+          if (xs.num > 0) return false;
+          return true;
+        }
+      };
+    }
+
+    static test5()
+    {
+      return {
+        name: "Ray hits a CSG",
+        test: function ()
+        {
+          let s = new rSphere();
+          let c = new rSphere();
+          c.transform = ray.Matrix.translation(0, 0, 0.5);
+          let obj = new rCSG();
+          obj.setLeft(s);
+          obj.setRight(c);
+          obj.setOp("union");
+
+          let o = new ray.Point(0, 0, -5);
+          let d = new ray.Vector(0, 0, 1);
+          let r = new ray.Ray(o.copy(), d.copy());
+
+          let xs = ray.Intersections();
+          obj.local_intersect(r, xs);
+          if (xs.num != 2) return false;
+          if (xs.list[0].length != 4) return false;
+          if (xs.list[0].object != s) return false;
+          if (xs.list[1].length != 6.5) return false;
+          if (xs.list[1].object != c) return false;
+          return true;
+        }
+      };
+    }
+
+  }
+
   var startingID = 12345;
   function generateUUID()
   { 
@@ -2284,6 +2583,7 @@
   ray.classlist.push(rGroup);
   ray.classlist.push(rAABB);
   ray.classlist.push(rTriangle);
+  ray.classlist.push(rCSG);
   ray.Cone = rCone;
   ray.Cylinder = rCylinder;
   ray.Cube = rCube;
@@ -2297,4 +2597,5 @@
   ray.AABB = rAABB;
   ray.Model = rModel;
   ray.Triangle = rTriangle;
+  ray.CSG = rCSG;
 })();

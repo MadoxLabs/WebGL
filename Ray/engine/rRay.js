@@ -513,7 +513,7 @@
       this.list = new Array(40);
       this.max = 40;
       this.num = 0;
-      this.sorted = false;
+//      this.sorted = false;
       this.isIntersections = true;
     }
 
