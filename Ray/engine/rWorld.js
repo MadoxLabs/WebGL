@@ -2,9 +2,9 @@
 {
   function loadCheck()
   {
-    if (ray.World.loading <= 0)
+    if (ray.World.loadingData.count <= 0)
     {
-      ray.World.loadingCB();
+      ray.World.loadFromJSON(ray.World.loadingData.json);
     }
     else 
       setTimeout(loadCheck, 10);
@@ -19,8 +19,10 @@
 
     reset()
     {
-      this.loadingCB = null;
-      this.loading = 0;
+      this.loadingData = { };
+      this.loadingData.callback = null;
+      this.loadingData.count = 0;
+      this.loadingData.json = null;
       
       this.patterns = {}; // just a cache
       this.materials = {}; // just a cache
@@ -94,6 +96,7 @@
           for (let i = 0; i < this.objects.length; ++i)
           {
             let origin = this.lights[l].position;
+            if (!origin) continue;
 
             for (let t = 0; t < 10; ++t)
             {
@@ -303,6 +306,7 @@
       }
       this.objects = [];
       this.objects.push(topgroup);
+      console.log("Splitting groups");
       this.split(topgroup);
       // put all top level objects in a group.
       // set them all to self
@@ -311,14 +315,11 @@
 
     split(group)
     {
-      console.log("Split group: " + group.numChildren() + " children");
-
       if (group.numChildren() < this.options.regroup) return;
       let box = new ray.AABB();
       box.min = group.getAABB().min.copy();
       box.max = group.getAABB().max.copy();
       let size = { x: box.max.x - box.min.x, y: box.max.y - box.min.y, z: box.max.z - box.min.z };
-      console.log(" size: " + size.x + " x " + size.y + " x " + size.z);
       let sub = { x: box.splitX(), y: box.splitY(), z: box.splitZ() };
       let score = { x: group.subsumeScore(sub.x), y: group.subsumeScore(sub.y), z: group.subsumeScore(sub.z) };
       let child = null;
@@ -343,14 +344,13 @@
         else
           child = score.x;
       }
-      if (!child) { console.log(" no split"); return; }
+      if (!child) { return; }
       let left = new ray.Group();
       let right = new ray.Group();
       for (let i in child.list[0]) left.addChild(child.list[0][i]);
       for (let i in child.list[1]) right.addChild(child.list[1][i]);
       group.addChild(left);
       group.addChild(right);
-      console.log(" subgroup children: " + left.numChildren() + ", " + right.numChildren());
 
       this.split(left);
       this.split(right);
@@ -368,10 +368,28 @@
 
     //--------------------
     // PARSE
-    loadFromJSON(json, cb)
+    loadFromJSONWithMeshes(json, cb)
     {
       this.reset();
-      this.loadingCB = cb;
+      
+      // if we have meshes to load, load then async and then call loadFromJSON.
+      // call the cb when done
+      this.loadingData.callback = cb;
+      if (cb && json.meshes) this.parseMeshes(json.meshes);
+
+      // if there were meshes, lets wait for them, else continue to loadFromJSON
+      if (this.loadingData.count) 
+      {
+        this.loadingData.json = json;
+        setTimeout(loadCheck, 10);
+      }
+      else this.loadFromJSON(json);  
+    }
+
+    // workers only call this! meshes are preloaded
+    loadFromJSON(json)
+    {
+      if (ray.worker) this.reset();
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
       if (json.transforms) this.parseTransforms(json.transforms);
       if (json.patterns) this.parsePatterns(json.patterns);
@@ -379,16 +397,12 @@
       if (json.lights) this.parseLights(json.lights);
       if (json.cameras) this.parseCameras(json.cameras);
       if (json.widgets) this.parseWidgets(json.widgets);
-      if ((ray.worker || cb) && json.meshes) this.parseMeshes(json.meshes);
+      if (ray.worker && json.meshes) this.parseMeshes(json.meshes);
       if (json.objects) this.parseObjects(json.objects);
 
       if (this.options.regroup) this.regroup();
 
-      if (cb)
-      {
-        if (this.loading) setTimeout(loadCheck, 10);
-        else cb();  
-      }
+      if (this.loadingData.callback) this.loadingData.callback();      
     }
     
     parseCameras(data)
@@ -624,14 +638,14 @@
 
     incrLoading()
     {
-      this.loading += 1;
-      console.log("Models to load: "+this.loading);
+      this.loadingData.count += 1;
+      console.log("Models to load: "+this.loadingData.count);
     }
 
     decrLoading()
     {
-      this.loading -= 1;
-      console.log("Models to load: "+this.loading);
+      this.loadingData.count -= 1;
+      console.log("Models to load: "+this.loadingData.count);
     }
 
     loadingError(name)

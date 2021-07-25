@@ -91,10 +91,10 @@
         mat.specular = group.SpecularFactor[0];
         mat.shininess = group.Shininess[0];
         mat.colour = ray.RGBColour(group.DiffuseColor[0],group.DiffuseColor[1],group.DiffuseColor[2]);
-        mat.reflective = group.ReflectionFactor[0];
-        mat.transparency = 1.0 - group.TransparentColor[0];
+        mat.reflective = group.ReflectionFactor ? group.ReflectionFactor[0] : 0;
+        mat.transparency = group.TransparencyFactor ? group.TransparencyFactor[0] : 0;
         mat.transmit = mat.transparency;
-        mat.refraction = 1.0; // TODO
+        mat.refraction = group.refraction ? group.refraction[0] : 1;
         mat.name = group.name;
         ray.World.materials[mat.name] = mat;
 

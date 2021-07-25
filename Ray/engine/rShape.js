@@ -2231,7 +2231,14 @@
     updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
-      this.aabb.addAABB( this.mesh.getAABB() );
+      if (this.mesh)
+      {
+        this.aabb.addAABB( this.mesh.getAABB() );
+      }
+      else
+      {
+        console.log("no mesh!");
+      }
     }
 
     fromJSON(def)
@@ -2240,8 +2247,11 @@
 
       if (def.mesh)
       {
-          this.mesh = ray.World.meshes[def.mesh];
-          if (this.mesh) this.mesh = this.mesh.mesh;
+        let mesh = ray.World.meshes[def.mesh];
+        if (mesh && mesh.mesh) 
+        {
+          this.mesh = mesh.mesh;
+        }
       }
     }
 
