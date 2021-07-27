@@ -196,6 +196,7 @@
       this.colour = c;
       this.intensityAmbient = 1.0;
       this.isLight = true;
+      this.attenuation = [1.0, 0.0, 0.0];
     }
 
     fromJSON(def)

@@ -1,0 +1,96 @@
+renderOptions
+- shadowDepth
+- lighting bool
+- antialias 0,1,2
+- shadowing bool
+- jigglePoints bool
+- maxReflections
+- threaded (interal)
+- wireframes bool
+- regroup (max group size)
+- smoothing bool
+transforms
+- name
+- series (array)
+-- type T S Rx Ry Rz SH
+-- value (float for R, vector for rest)
+patterns
+- name
+- type solid, stripe, gradient, ring, checker, blend, perlin
+- transform (name or transform def)
+- colour (rgb, solid)
+- colour (pattern name, perlin)
+- colours (array of pattern name or rgb, stripe, ring, checker)
+- colour1 (array of pattern name or rgb, gradient, blend)
+- colour2 (array of pattern name or rgb, gradient, blend)
+- seed (perlin)
+materials
+- name
+- shininess
+- ambient
+- diffuse
+- reflective (0 for no reflection)
+- transparency (0 for opaque)
+- transmit (transparency, used for better shadows)
+- refraction
+- specular
+- colour (xyz)
+- pattern (name or a pattern def)
+lights
+- type (pointlight, ambient)
+- colour (rgb)
+- position (point) (pointlight)
+- intensityAmbient  (pointlight)
+- intensityDiffuse  (pointlight)
+- attentuation (array of 3 float)  (pointlight)
+cameras
+- name
+- width
+- height
+- fov
+- from (point)
+- to (point)
+- up (point)
+widgets
+( same as objects, these are not rendered. used as references by group, csg )
+meshes 
+( not rendered, used as references by model )
+- skip bool
+- name
+- file
+objects
+- skip bool
+- type (see below)
+- blending (self parent blend)
+- shadow (bool)
+- material (name of material or def)
+- transform (name of transform or def)
+plane
+- xMin
+- xMax
+- yMin
+- yMax
+sphere
+cube
+cylinder
+- min
+- max
+- closed (bool)
+cone
+- min
+- max
+- closed (bool)
+group
+- children (array of widget name)
+hexagon
+triangle
+- points (array of points)
+model
+- mesh (name of mesh)
+csg
+- op (union, intersect, difference)
+- left (widget name)
+- right (widget name)
+
+
+
