@@ -194,7 +194,7 @@
       this.rows = new Array(this.size);
       for (let i = 0; i < this.size; ++i)
         this.rows[i] = i;
-      this.shuffle(this.rows);
+//      this.shuffle(this.rows);
 
       this.setupDef = {};
 
@@ -277,6 +277,9 @@
     {
       if (this.renderY >= this.size)
       {
+        this.renderY++;
+        if (this.renderY != this.size + this.load) return;
+
         this.end = performance.now();
         let ms = (this.end - this.start);
         let mspp = Math.floor((ms / (this.size * this.size)) * 1000) / 1000;
@@ -300,7 +303,9 @@
 
       ray.App.setMessage("Rendering row " + this.renderY);
       if (ray.World.options.threaded)
+      {
         this.workers[id].postMessage({ cmd: 'render', y: this.rows[this.renderY], buffer: this.buffers[id] }, [this.buffers[id].buffer]);
+      }
       else
       {
         ray.usePool = false;
@@ -324,10 +329,12 @@
 
     receivePixels(msg)
     {
-      this.buffers[msg.data.id] = msg.data.buffer;
-      this.canvas.bltData(this.buffers[msg.data.id], 0, msg.data.y);
+      let id = msg.data.id;
+
+      this.buffers[id] = msg.data.buffer;
+      this.canvas.bltData(this.buffers[id], 0, msg.data.y);
       this.canvas.draw();
-      this.renderRow(msg.data.id);
+      this.renderRow(id);
     }
   }
 

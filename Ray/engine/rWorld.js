@@ -421,6 +421,12 @@
 
     parseRenderOptions(data)
     {
+      if (data.caustics != null)
+      {
+        this.modeCaustics = data.caustics;
+        this.minCaustics = data.minCaustics;
+        this.options.threaded = !data.caustics;
+      }
       if (data.shadowDepth != null) ray.Render.shadowDepth = ((data.shadowDepth < 1) ? 1 : data.shadowDepth);
       if (data.lighting != null) this.options.lighting = data.lighting;
       if (data.antialias != null) this.options.antialias = data.antialias;
@@ -432,12 +438,6 @@
       if (data.nestedwireframes != null) this.options.nestedwireframes = data.nestedwireframes;
       if (data.regroup != null) this.options.regroup = data.regroup;
       if (data.smoothing != null) this.options.smoothing = data.smoothing;
-      if (data.caustics != null)
-      {
-        this.modeCaustics = data.caustics;
-        this.minCaustics = data.minCaustics;
-        this.options.threaded = !data.caustics;
-      }
     }
 
     parseTransforms(data)

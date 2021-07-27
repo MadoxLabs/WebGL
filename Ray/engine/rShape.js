@@ -1885,7 +1885,7 @@
       if (this.getAABB().intersects(r) == false) return;
 
 //      for (let c in this.children)
-      for (let c = 0; c < this.keys.length; ++c)
+      for (let c = 0; c < this.keyslength; ++c)
       {
         this.children[this.keys[c]].intersect(r, hits);
       }
@@ -1916,6 +1916,7 @@
       this.setDirty();
 
       this.keys = Object.keys(this.children);
+      this.keyslength = this.keys.length;
     }
 
     numChildren()
@@ -2202,10 +2203,9 @@
 
     local_normalAt(p, hit)
     {
+      this.fixData();
       if (!this.normal)
       {
-        this.e1 = ray.Touple.subtract(this.points[1], this.points[0]);
-        this.e2 = ray.Touple.subtract(this.points[2], this.points[0]);
         this.normal = ray.Touple.cross(this.e2, this.e1).normalize().copy();
       }
 
@@ -2218,9 +2218,15 @@
       return this.normal.copy();  
     }
 
+    fixData()
+    {
+      if (!this.e1) this.e1 = ray.Touple.subtract(this.points[1], this.points[0]);
+      if (!this.e2) this.e2 = ray.Touple.subtract(this.points[2], this.points[0]);
+    }
+
     local_intersect(r, hits)
     {      
-      this.local_normalAt();
+      this.fixData();
 
       let cross = ray.Touple.cross(r.direction, this.e2);
       let det = this.e1.dot(cross);

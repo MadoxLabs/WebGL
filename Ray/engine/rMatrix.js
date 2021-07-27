@@ -68,7 +68,6 @@
       }
       else if (m.isTouple && 4 == this.width)
       {
-        let index = 0;
         tmpTouple0 = this.data[0] * m.x
                            + this.data[1] * m.y
                            + this.data[2] * m.z
