@@ -303,7 +303,7 @@
     regroup()
     {
       if (this.objects.length < this.options.regroup) return;
-      
+
       let topgroup = new ray.Group();
       for (let i in this.objects)
       {
@@ -593,6 +593,14 @@
           if (null != json.position) p = ray.Point(json.position[0], json.position[1], json.position[2]);
           if (null != json.colour) c = ray.RGBColour(json.colour[0], json.colour[1], json.colour[2]);
           obj = new ray.LightPoint(p, c);
+        }
+        if (json.type == "arealight")
+        {
+          let p = ray.Origin;
+          let c = ray.White;
+          if (null != json.position) p = ray.Point(json.position[0], json.position[1], json.position[2]);
+          if (null != json.colour) c = ray.RGBColour(json.colour[0], json.colour[1], json.colour[2]);
+          obj = new ray.LightArea(p, c);
         }
         if (json.type == "ambient")
         {

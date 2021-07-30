@@ -260,6 +260,39 @@
 
   }
 
+  class rLightArea extends rLightPoint
+  {
+    constructor(p, c)
+    {
+      super(p, c);
+      this.uvec = ray.Vector(1.0,0,0);
+      this.vvec = ray.Vector(0,0,1.0);
+      this.usteps = 1;
+      this.vsteps = 1;
+
+      this.isAreaLight = true;
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (null != def.usteps) this.usteps = def.usteps;
+      if (null != def.vsteps) this.vsteps = def.vsteps;
+      this.samples = this.vsteps * this.usteps;
+      if (null != def.uvec) this.uvec = ray.Vector(def.uvec[0]/this.usteps, def.uvec[1]/this.usteps, def.uvec[2]/this.usteps);
+      if (null != def.vvec) this.vvec = ray.Vector(def.vvec[0]/this.vsteps, def.vvec[1]/this.vsteps, def.vvec[2]/this.vsteps);      
+
+      this.corner = this.position.copy();
+      this.position.plus( this.uvec.copy().times(this.usteps/2.0) );
+      this.position.plus( this.vvec.copy().times(this.vsteps/2.0) );
+    }
+
+    pointOnLight(u, v)
+    {
+      return this.corner.copy().plus(this.uvec.copy().times(u+0.5)).plus(this.vvec.copy().times(v+0.5));
+    }
+  }
+
   class rMaterial
   {
     constructor()
@@ -912,6 +945,7 @@
   ray.classlist.push(rPatternChecker);
   ray.Material = rMaterial;
   ray.LightPoint = rLightPoint;
+  ray.LightArea = rLightArea;
   ray.LightAmbient = rLightAmbient;
   ray.RGBColour = function (r, g, b) { return makeColour(r, g, b); }
   ray.Colour = rColour;

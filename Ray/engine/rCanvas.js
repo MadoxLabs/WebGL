@@ -158,9 +158,9 @@
       this.shadowDepth = 5;
     }
 
-    lighting(material, object, light, point, eye, normal, shadowed)
+    lighting(material, object, light, point, eye, normal, intensity)
     {
-      if (shadowed == null) shadowed = 0;
+      if (intensity == null) intensity = 1;
       let effectiveColour = ray.Colour.multiply(material.colourAt(point, object), light.colour);
       let ambient = ray.Colour.multiply(effectiveColour, light.intensityAmbient).times(material.ambient);
 
@@ -173,7 +173,7 @@
       let distance = toLight.magnitude();
       let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
 
-      if (shadowed == 1)
+      if (intensity == 0)
       {
         return ambient.times(1.0 / attenuation);
       }
@@ -191,7 +191,7 @@
         }
         else
         {
-          diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal).times(1-shadowed);
+          diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal).times(intensity);
           let reflect = ray.Touple.reflect(toLight.negate(), normal);
           let reflectDotEye = reflect.dot(eye);
           if (reflectDotEye <= 0)
@@ -199,22 +199,44 @@
           else
           {
             let factor = Math.pow(reflectDotEye, material.shininess);
-            specular = ray.Colour.multiply(light.colour, material.specular).times(factor).times(1-shadowed);
+            specular = ray.Colour.multiply(light.colour, material.specular).times(factor).times(intensity);
           }
         }
         return ambient.plus(diffuse).plus(specular).times(1.0 / attenuation);
       }
     }
     
-    isShadowed(p, lightIndex, depth)
+    intensityAt(p, lightIndex)
+    {
+      let light = ray.World.lights[lightIndex];
+      if (!light.position) return 1;  // ambient light shines everywhere. no shadow
+
+      if (light.isAreaLight)
+      {
+        let total = 0;
+        for (let v = 0; v < light.vsteps; ++v)
+        {
+          for (let u = 0; u < light.usteps; ++u)
+          {
+            let position = light.pointOnLight(u, v);
+            total +=  1.0 - this.isShadowed(p, position);
+          }
+        }
+        return total / light.samples;
+      }
+
+      else if (light.isLight)
+      {
+        return 1.0 - this.isShadowed(p, light.position);
+      }
+    }
+
+    isShadowed(p, lightposition, depth)
     {
       if (depth == null) depth = this.shadowDepth;
       if (!depth) return 0;
 
-      let light = ray.World.lights[lightIndex];
-      if (!light.position) return 0;  // ambient light shines everywhere. no shadow
-
-      let direction = ray.Touple.subtract(light.position, p);
+      let direction = ray.Touple.subtract(lightposition, p);
       let distance = direction.magnitude();
       direction.normalize();
       let r = ray.Ray(p, direction);
@@ -233,7 +255,7 @@
             if (hit2)
             {
               let comp2 = hit2.precompute(r2, points2);
-              return this.isShadowed(comp2.overPoint, lightIndex, depth - 1) * (1 - hit.object.material.transmit);
+              return this.isShadowed(comp2.overPoint, lightposition, depth - 1) * (1 - hit.object.material.transmit);
             }
           }
         }
@@ -294,12 +316,12 @@
         let reflect = this.getReflectionFor(comp, depth);
         let refract = this.getRefractionFor(comp, depth);
 
-        let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, 0, this.shadowDepth) : 0;
-        let colour = ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[0], comp.overPoint, comp.eye, comp.normal, shadow);
+        let intensity = ray.World.options.shadowing ? this.intensityAt(comp.overPoint, 0) : 1;
+        let colour = ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[0], comp.overPoint, comp.eye, comp.normal, intensity);
         for (let l = 1; l < ray.World.lights.length; ++l)
         {
-          let shadow = ray.World.options.shadowing ? this.isShadowed(comp.overPoint, l, this.shadowDepth) : 0;
-          colour.plus(ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[l], comp.overPoint, comp.eye, comp.normal, shadow));
+          intensity = ray.World.options.shadowing ? this.intensityAt(comp.overPoint, l) : 1;
+          colour.plus(ray.Render.lighting(comp.object.material, comp.object, ray.World.lights[l], comp.overPoint, comp.eye, comp.normal, intensity));
         }
 
         if (comp.object.material.reflective > 0 && comp.object.material.transparency > 0)
