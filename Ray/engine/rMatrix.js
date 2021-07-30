@@ -7,23 +7,79 @@
       this.width = w;
       this.height = h;
       this.size = w * h;
-      this.data = d;
+
+      this.d0  = 0;
+      this.d1  = 0;
+      this.d2  = 0;
+      this.d3  = 0;
+      this.d4  = 0;
+      this.d5  = 0;
+      this.d6  = 0;
+      this.d7  = 0;
+      this.d8  = 0;
+      this.d9  = 0;
+      this.d10 = 0;
+      this.d11 = 0;
+      this.d12 = 0;
+      this.d13 = 0;
+      this.d14 = 0;
+      this.d15 = 0;  
+      if (d.length == 4)
+      {
+        this.d0  = d[0]  ? d[0] : 0;
+        this.d1  = d[1]  ? d[1] : 0;
+        this.d4  = d[2]  ? d[2] : 0;
+        this.d5  = d[3]  ? d[3] : 0;  
+      }
+      else if (d.length == 9)
+      {
+        this.d0  = d[0]  ? d[0] : 0;
+        this.d1  = d[1]  ? d[1] : 0;
+        this.d2  = d[2]  ? d[2] : 0;
+        this.d4  = d[3]  ? d[3] : 0;
+        this.d5  = d[4]  ? d[4] : 0;  
+        this.d6  = d[5]  ? d[5] : 0;
+        this.d8  = d[6]  ? d[6] : 0;
+        this.d9  = d[7]  ? d[7] : 0;  
+        this.d10  = d[8]  ? d[8] : 0;
+      }
+      else 
+      {
+        this.d0  = d[0]  ? d[0] : 0;
+        this.d1  = d[1]  ? d[1] : 0;
+        this.d2  = d[2]  ? d[2] : 0;
+        this.d3  = d[3]  ? d[3] : 0;
+        this.d4  = d[4]  ? d[4] : 0;
+        this.d5  = d[5]  ? d[5] : 0;
+        this.d6  = d[6]  ? d[6] : 0;
+        this.d7  = d[7]  ? d[7] : 0;
+        this.d8  = d[8]  ? d[8] : 0;
+        this.d9  = d[9]  ? d[9] : 0;
+        this.d10 = d[10] ? d[10] : 0;
+        this.d11 = d[11] ? d[11] : 0;
+        this.d12 = d[12] ? d[12] : 0;
+        this.d13 = d[13] ? d[13] : 0;
+        this.d14 = d[14] ? d[14] : 0;
+        this.d15 = d[15] ? d[15] : 0;  
+      }
       this.isMatrix = true;
     }
 
     copy()
     {
-      return ray.rawMatrix(this.width, this.height, this.data.slice(0));
+      return ray.rawMatrix(this.width, this.height, [this.d0, this.d1, this.d2, this.d3, this.d4, this.d5, this.d6, this.d7, this.d8, this.d9, this.d10, this.d11, this.d12, this.d13, this.d14, this.d15]);
     }
 
     get(r, c)
     {
-      return this.data[this.width * r + c];
+      let elem = "d"+(4 * r + c);
+      return this[elem];
     }
 
     set(r, c, n)
     {
-      this.data[this.width * r + c] = n;
+      let elem = "d"+(4 * r + c);
+      this[elem] = n;
       return this;
     }
 
@@ -31,80 +87,184 @@
     {
       if (!m) return false;
       if (this.size != m.size) return false;
-      for (let i = 0; i < this.size; ++i)
-        if (!ray.isEqual(this.data[i], m.data[i])) return false;
+      if (!ray.isEqual(this.d0, m.d0)) return false;
+      if (!ray.isEqual(this.d1, m.d1)) return false;
+      if (!ray.isEqual(this.d2, m.d2)) return false;
+      if (!ray.isEqual(this.d3, m.d3)) return false;
+      if (this.size == 2) return true;
+      if (!ray.isEqual(this.d4, m.d4)) return false;
+      if (!ray.isEqual(this.d5, m.d5)) return false;
+      if (!ray.isEqual(this.d6, m.d6)) return false;
+      if (!ray.isEqual(this.d7, m.d7)) return false;
+      if (!ray.isEqual(this.d8, m.d8)) return false;
+      if (this.size == 3) return true;
+      if (!ray.isEqual(this.d9, m.d9)) return false;
+      if (!ray.isEqual(this.d10, m.d10)) return false;
+      if (!ray.isEqual(this.d11, m.d11)) return false;
+      if (!ray.isEqual(this.d12, m.d12)) return false;
+      if (!ray.isEqual(this.d13, m.d13)) return false;
+      if (!ray.isEqual(this.d14, m.d14)) return false;
+      if (!ray.isEqual(this.d15, m.d15)) return false;
       return true;
     }
 
-    _times(m)
+    // this is for M x M
+    timesM(m)
     {
+      if (this.size != m.size) return null;
       let tmpMatrix = tmps[this.width];
-      let index = 0;
 
-      let rstride = 0;
-      for (let r = 0; r < this.height; ++r)
-      {
-        for (let c = 0; c < this.width; ++c)
-        {
-          let v = this.data[rstride]     * m.data[c]
-                + this.data[rstride + 1] * m.data[this.width+c]
-                + this.data[rstride + 2] * m.data[this.width+this.width+c]
-                + this.data[rstride + 3] * m.data[this.width+this.width+this.width+c];
-          tmpMatrix.data[index++] = v;
-        }
-        rstride += this.width;
-      }
-      let tmp = this.data;
-      this.data = tmpMatrix.data;
-      tmpMatrix.data = tmp;
+      tmpMatrix.d0 = this.d0 * m.d0 
+      + this.d1 * m.d4 
+      + this.d2 * m.d8 
+      + this.d3 * m.d12; 
+      tmpMatrix.d1 = this.d0 * m.d1 
+      + this.d1 * m.d5 
+      + this.d2 * m.d9 
+      + this.d3 * m.d13; 
+      tmpMatrix.d2 = this.d0 * m.d2 
+      + this.d1 * m.d6 
+      + this.d2 * m.d10 
+      + this.d3 * m.d14; 
+      tmpMatrix.d3 = this.d0 * m.d3 
+      + this.d1 * m.d7 
+      + this.d2 * m.d11 
+      + this.d3 * m.d15; 
+
+      tmpMatrix.d4 = this.d4 * m.d0 
+      + this.d5 * m.d4 
+      + this.d6 * m.d8 
+      + this.d7 * m.d12; 
+      tmpMatrix.d5 = this.d4 * m.d1 
+      + this.d5 * m.d5 
+      + this.d6 * m.d9 
+      + this.d7 * m.d13; 
+      tmpMatrix.d6 = this.d4 * m.d2 
+      + this.d5 * m.d6 
+      + this.d6 * m.d10 
+      + this.d7 * m.d14; 
+      tmpMatrix.d7 = this.d4 * m.d3 
+      + this.d5 * m.d7 
+      + this.d6 * m.d11 
+      + this.d7 * m.d15; 
+
+      tmpMatrix.d8 = this.d8 * m.d0 
+      + this.d9 * m.d4 
+      + this.d10 * m.d8 
+      + this.d11 * m.d12; 
+      tmpMatrix.d9 = this.d8 * m.d1 
+      + this.d9 * m.d5 
+      + this.d10 * m.d9 
+      + this.d11 * m.d13; 
+      tmpMatrix.d10 = this.d8 * m.d2 
+      + this.d9 * m.d6 
+      + this.d10 * m.d10 
+      + this.d11 * m.d14; 
+      tmpMatrix.d11 = this.d8 * m.d3 
+      + this.d9 * m.d7 
+      + this.d10 * m.d11 
+      + this.d11 * m.d15; 
+
+      tmpMatrix.d12 = this.d12 * m.d0 
+      + this.d13 * m.d4 
+      + this.d14 * m.d8 
+      + this.d15 * m.d12; 
+      tmpMatrix.d13 = this.d12 * m.d1 
+      + this.d13 * m.d5 
+      + this.d14 * m.d9 
+      + this.d15 * m.d13; 
+      tmpMatrix.d14 = this.d12 * m.d2 
+      + this.d13 * m.d6 
+      + this.d14 * m.d10 
+      + this.d15 * m.d14; 
+      tmpMatrix.d15 = this.d12 * m.d3 
+      + this.d13 * m.d7 
+      + this.d14 * m.d11 
+      + this.d15 * m.d15; 
+
+      this.d0 = tmpMatrix.d0;
+      this.d1 = tmpMatrix.d1;
+      this.d2 = tmpMatrix.d2;
+      this.d3 = tmpMatrix.d3;
+      this.d4 = tmpMatrix.d4;
+      this.d5 = tmpMatrix.d5;
+      this.d6 = tmpMatrix.d6;
+      this.d7 = tmpMatrix.d7;
+      this.d8 = tmpMatrix.d8;
+      this.d9 = tmpMatrix.d9;
+      this.d10 = tmpMatrix.d10;
+      this.d11 = tmpMatrix.d11;
+      this.d12 = tmpMatrix.d12;
+      this.d13 = tmpMatrix.d13;
+      this.d14 = tmpMatrix.d14;
+      this.d15 = tmpMatrix.d15;
+
       return this;
     }
 
+    // this is for M x V
     times(m)
     {
-      if (this.size == m.size)
+      if (m.isTouple && 4 == this.width)
       {
-        return this._times(m);
+        tmpTouple0 = this.d0 * m.x
+                   + this.d1 * m.y
+                   + this.d2 * m.z
+                   + this.d3 * m.w;
+        tmpTouple1 = this.d4 * m.x
+                   + this.d5 * m.y
+                   + this.d6 * m.z
+                   + this.d7 * m.w;
+        tmpTouple2 = this.d8 * m.x
+                   + this.d9 * m.y
+                   + this.d10 * m.z
+                   + this.d11 * m.w;
+        tmpTouple3 = this.d12 * m.x
+                   + this.d13 * m.y
+                   + this.d14 * m.z
+                   + this.d15 * m.w;
+        return ray.rawTouple(tmpTouple0, tmpTouple1, tmpTouple2, tmpTouple3);  
       }
-      else if (m.isTouple && 4 == this.width)
-      {
-        tmpTouple0 = this.data[0] * m.x
-                           + this.data[1] * m.y
-                           + this.data[2] * m.z
-                           + this.data[3] * m.w;
-        tmpTouple1 = this.data[4] * m.x
-                           + this.data[5] * m.y
-                           + this.data[6] * m.z
-                           + this.data[7] * m.w;
-        tmpTouple2 = this.data[8] * m.x
-                           + this.data[9] * m.y
-                           + this.data[10] * m.z
-                           + this.data[11] * m.w;
-        tmpTouple3 = this.data[12] * m.x
-                           + this.data[13] * m.y
-                           + this.data[14] * m.z
-                           + this.data[15] * m.w;
-        return ray.rawTouple(tmpTouple0, tmpTouple1, tmpTouple2, tmpTouple3);
-      }
+      else debugger;
     }
 
     transpose()
     {
       let tmpMatrix = tmps[this.width];
-      let index = 0;
 
-      for (let c = 0; c < this.width; ++c)
-      {
-        let rstride = 0;
-        for (let r = 0; r < this.height; ++r)
-        {
-          tmpMatrix.data[index++] = this.data[rstride + c];
-          rstride += this.width;
-        }
-      }
-      let tmp = this.data;
-      this.data = tmpMatrix.data;
-      tmpMatrix.data = tmp;
+      tmpMatrix.d0 = this.d0;
+      tmpMatrix.d1 = this.d4;
+      tmpMatrix.d2 = this.d8;
+      tmpMatrix.d3 = this.d12;
+      tmpMatrix.d4 = this.d1;
+      tmpMatrix.d5 = this.d5;
+      tmpMatrix.d6 = this.d9;
+      tmpMatrix.d7 = this.d13;
+      tmpMatrix.d8 = this.d2;
+      tmpMatrix.d9 = this.d6;
+      tmpMatrix.d10 = this.d10;
+      tmpMatrix.d11 = this.d14;
+      tmpMatrix.d12 = this.d3;
+      tmpMatrix.d13 = this.d7;
+      tmpMatrix.d14 = this.d11;
+      tmpMatrix.d15 = this.d15;
+
+      this.d0 = tmpMatrix.d0;
+      this.d1 = tmpMatrix.d1;
+      this.d2 = tmpMatrix.d2;
+      this.d3 = tmpMatrix.d3;
+      this.d4 = tmpMatrix.d4;
+      this.d5 = tmpMatrix.d5;
+      this.d6 = tmpMatrix.d6;
+      this.d7 = tmpMatrix.d7;
+      this.d8 = tmpMatrix.d8;
+      this.d9 = tmpMatrix.d9;
+      this.d10 = tmpMatrix.d10;
+      this.d11 = tmpMatrix.d11;
+      this.d12 = tmpMatrix.d12;
+      this.d13 = tmpMatrix.d13;
+      this.d14 = tmpMatrix.d14;
+      this.d15 = tmpMatrix.d15;
       return this;
     }
 
@@ -112,36 +272,155 @@
     {
       if (this.size == 4) 
       {
-        return this.data[0] * this.data[3] - this.data[1] * this.data[2];
+        return this.d0 * this.d5 - this.d1 * this.d4;
       }
 
       let det = 0;
-      for (let c = 0; c < this.height; ++c)
-        det += this.data[c] * this.cofactor(0, c);
+      det += this.d0 * this.cofactor(0,0);      
+      det += this.d1 * this.cofactor(0,1);
+      if (this.width >= 3)
+        det += this.d2 * this.cofactor(0,2);
+      if (this.width == 4)
+        det += this.d3 * this.cofactor(0,3);
       return det;
     }
 
     submatrix(badr, badc)
     {
       let tmpMatrix = tmps[this.width-1];
-      let index = 0;
-      let rstride = 0;
-      for (let r = 0; r < this.height; ++r) 
+
+      if (!tmpMatrix || !this) debugger;
+      if (badr == 0)
       {
-        for (let c = 0; c < this.width; ++c) 
-        {
-          if (r == badr) continue;
-          if (c == badc) continue;
-          tmpMatrix.data[index++] = this.data[rstride + c];
-        }
-        rstride += this.width;
+        tmpMatrix.d0 = this.d4;
+        tmpMatrix.d1 = this.d5;
+        tmpMatrix.d2 = this.d6;
+        tmpMatrix.d3 = this.d7;          
+        tmpMatrix.d4 = this.d8;
+        tmpMatrix.d5 = this.d9;
+        tmpMatrix.d6 = this.d10;
+        tmpMatrix.d7 = this.d11;          
+        tmpMatrix.d8 = this.d12;
+        tmpMatrix.d9 = this.d13;
+        tmpMatrix.d10 = this.d14;
+        tmpMatrix.d11 = this.d15;          
+        tmpMatrix.d12 = 0;
+        tmpMatrix.d13 = 0;
+        tmpMatrix.d14 = 0;
+        tmpMatrix.d15 = 0;          
       }
-      let ret = tmpMatrix.copy();
-      let tmp = ret.data;
-      ret.data = tmpMatrix.data;
-      tmpMatrix.data = tmp;
-      return ret;
-    }
+      else if (badr == 1)
+      {
+        tmpMatrix.d0 = this.d0;
+        tmpMatrix.d1 = this.d1;
+        tmpMatrix.d2 = this.d2;
+        tmpMatrix.d3 = this.d3;          
+        tmpMatrix.d4 = this.d8;
+        tmpMatrix.d5 = this.d9;
+        tmpMatrix.d6 = this.d10;
+        tmpMatrix.d7 = this.d11;          
+        tmpMatrix.d8 = this.d12;
+        tmpMatrix.d9 = this.d13;
+        tmpMatrix.d10 = this.d14;
+        tmpMatrix.d11 = this.d15;          
+        tmpMatrix.d12 = 0;
+        tmpMatrix.d13 = 0;
+        tmpMatrix.d14 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+      else if (badr == 2)
+      {
+        tmpMatrix.d0 = this.d0;
+        tmpMatrix.d1 = this.d1;
+        tmpMatrix.d2 = this.d2;
+        tmpMatrix.d3 = this.d3;          
+        tmpMatrix.d4 = this.d4;
+        tmpMatrix.d5 = this.d5;
+        tmpMatrix.d6 = this.d6;
+        tmpMatrix.d7 = this.d7;          
+        tmpMatrix.d8 = this.d12;
+        tmpMatrix.d9 = this.d13;
+        tmpMatrix.d10 = this.d14;
+        tmpMatrix.d11 = this.d15;          
+        tmpMatrix.d12 = 0;
+        tmpMatrix.d13 = 0;
+        tmpMatrix.d14 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+      else if (badr == 3)
+      {
+        tmpMatrix.d0 = this.d0;
+        tmpMatrix.d1 = this.d1;
+        tmpMatrix.d2 = this.d2;
+        tmpMatrix.d3 = this.d3;          
+        tmpMatrix.d4 = this.d4;
+        tmpMatrix.d5 = this.d5;
+        tmpMatrix.d6 = this.d6;
+        tmpMatrix.d7 = this.d7;          
+        tmpMatrix.d8 = this.d8;
+        tmpMatrix.d9 = this.d9;
+        tmpMatrix.d10 = this.d10;
+        tmpMatrix.d11 = this.d11;          
+        tmpMatrix.d12 = 0;
+        tmpMatrix.d13 = 0;
+        tmpMatrix.d14 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+      if (badc == 0)
+      {
+        tmpMatrix.d0  = tmpMatrix.d1;
+        tmpMatrix.d4  = tmpMatrix.d5;
+        tmpMatrix.d8  = tmpMatrix.d9;
+        tmpMatrix.d12 = tmpMatrix.d13;          
+        tmpMatrix.d1  = tmpMatrix.d2;
+        tmpMatrix.d5  = tmpMatrix.d6;
+        tmpMatrix.d9  = tmpMatrix.d10;
+        tmpMatrix.d13 = tmpMatrix.d14;          
+        tmpMatrix.d2  = tmpMatrix.d3;
+        tmpMatrix.d6  = tmpMatrix.d7;
+        tmpMatrix.d10 = tmpMatrix.d11;
+        tmpMatrix.d14 = tmpMatrix.d15;          
+        tmpMatrix.d3  = 0;
+        tmpMatrix.d7  = 0;
+        tmpMatrix.d11 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+      else if (badc == 1)
+      {
+        tmpMatrix.d1  = tmpMatrix.d2;
+        tmpMatrix.d5  = tmpMatrix.d6;
+        tmpMatrix.d9  = tmpMatrix.d10;
+        tmpMatrix.d13 = tmpMatrix.d14;          
+        tmpMatrix.d2  = tmpMatrix.d3;
+        tmpMatrix.d6  = tmpMatrix.d7;
+        tmpMatrix.d10 = tmpMatrix.d11;
+        tmpMatrix.d14 = tmpMatrix.d15;          
+        tmpMatrix.d3  = 0;
+        tmpMatrix.d7  = 0;
+        tmpMatrix.d11 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+      else if (badc == 2)
+      {
+        tmpMatrix.d2  = tmpMatrix.d3;
+        tmpMatrix.d6  = tmpMatrix.d7;
+        tmpMatrix.d10 = tmpMatrix.d11;
+        tmpMatrix.d14 = tmpMatrix.d15;          
+        tmpMatrix.d3  = 0;
+        tmpMatrix.d7  = 0;
+        tmpMatrix.d11 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+      else if (badc == 3)
+      {
+        tmpMatrix.d3  = 0;
+        tmpMatrix.d7  = 0;
+        tmpMatrix.d11 = 0;
+        tmpMatrix.d15 = 0;          
+      }
+
+      return tmpMatrix.copy();
+     }
 
     invertible()
     {
@@ -166,19 +445,45 @@
       if (!this.invertible()) return null; //throw "not invertible";
 
       let tmpMatrix = tmps[this.width];
-      let index = 0;
       let det = this.determinant();
 
-      for (let c = 0; c < this.width; ++c)
-        for (let r = 0; r < this.height; ++r)
-        {
-          let val = this.cofactor(r, c);
-          tmpMatrix.data[index++] = (val / det);
-        }
+      tmpMatrix.d0 = this.cofactor(0,0) / det;
+      tmpMatrix.d1 = this.cofactor(1,0) / det;
+      tmpMatrix.d2 = this.cofactor(2,0) / det;
+      tmpMatrix.d3 = this.cofactor(3,0) / det;
 
-      let tmp = this.data;
-      this.data = tmpMatrix.data;
-      tmpMatrix.data = tmp;
+      tmpMatrix.d4 = this.cofactor(0,1) / det;
+      tmpMatrix.d5 = this.cofactor(1,1) / det;
+      tmpMatrix.d6 = this.cofactor(2,1) / det;
+      tmpMatrix.d7 = this.cofactor(3,1) / det;
+
+      tmpMatrix.d8 =  this.cofactor(0,2) / det;
+      tmpMatrix.d9 =  this.cofactor(1,2) / det;
+      tmpMatrix.d10 = this.cofactor(2,2) / det;
+      tmpMatrix.d11 = this.cofactor(3,2) / det;
+
+      tmpMatrix.d12 = this.cofactor(0,3) / det;
+      tmpMatrix.d13 = this.cofactor(1,3) / det;
+      tmpMatrix.d14 = this.cofactor(2,3) / det;
+      tmpMatrix.d15 = this.cofactor(3,3) / det;
+
+      this.d0 = tmpMatrix.d0;
+      this.d1 = tmpMatrix.d1;
+      this.d2 = tmpMatrix.d2;
+      this.d3 = tmpMatrix.d3;
+      this.d4 = tmpMatrix.d4;
+      this.d5 = tmpMatrix.d5;
+      this.d6 = tmpMatrix.d6;
+      this.d7 = tmpMatrix.d7;
+      this.d8 = tmpMatrix.d8;
+      this.d9 = tmpMatrix.d9;
+      this.d10 = tmpMatrix.d10;
+      this.d11 = tmpMatrix.d11;
+      this.d12 = tmpMatrix.d12;
+      this.d13 = tmpMatrix.d13;
+      this.d14 = tmpMatrix.d14;
+      this.d15 = tmpMatrix.d15;
+
       return this;
     }
 
@@ -186,19 +491,19 @@
     {
       if (m2.isTouple) return m1.times(m2);
 
-      let ret = ray.rawMatrix(m1.width, m1.height, m1.data.slice());
-      return ret.times(m2);
+      let ret = m1.copy();
+      return ret.timesM(m2);
     }
 
     static transpose(m1)
     {
-      let ret = ray.rawMatrix(m1.width, m1.height, m1.data.slice());
+      let ret = m1.copy();
       return ret.transpose();
     }
 
     static inverse(m)
     {
-      let ret = ray.rawMatrix(m.width, m.height, m.data.slice());
+      let ret = m.copy();
       return ret.invert();
     }
 
@@ -210,18 +515,18 @@
     static translation(x, y, z)
     {
       let ret = ray.Identity4x4.copy();
-      ret.data[3]  = x;
-      ret.data[7]  = y;
-      ret.data[11] = z;
+      ret.d3  = x;
+      ret.d7  = y;
+      ret.d11 = z;
       return ret;
     }
 
     static scale(x, y, z)
     {
       let ret = ray.Identity4x4.copy();
-      ret.data[0] = x;
-      ret.data[5] = y;
-      ret.data[10] = z;
+      ret.d0 = x;
+      ret.d5 = y;
+      ret.d10 = z;
       return ret;
     }
 
@@ -252,25 +557,25 @@
       wy = w * y2,
       wz = w * z2;
 
-      out.data[0] = 1 - yy - zz;
-      out.data[1] = yx + wz;
-      out.data[2] = zx - wy;
-      out.data[3] = 0;
+      out.d0 = 1 - yy - zz;
+      out.d1 = yx + wz;
+      out.d2 = zx - wy;
+      out.d3 = 0;
 
-      out.data[4] = yx - wz;
-      out.data[5] = 1 - xx - zz;
-      out.data[6] = zy + wx;
-      out.data[7] = 0;
+      out.d4 = yx - wz;
+      out.d5 = 1 - xx - zz;
+      out.d6 = zy + wx;
+      out.d7 = 0;
 
-      out.data[8] = zx + wy;
-      out.data[9] = zy - wx;
-      out.data[10] = 1 - xx - yy;
-      out.data[11] = 0;
+      out.d8 = zx + wy;
+      out.d9 = zy - wx;
+      out.d10 = 1 - xx - yy;
+      out.d11 = 0;
 
-      out.data[12] = 0;
-      out.data[13] = 0;
-      out.data[14] = 0;
-      out.data[15] = 1;
+      out.d12 = 0;
+      out.d13 = 0;
+      out.d14 = 0;
+      out.d15 = 1;
 
       return out;
     }
@@ -280,10 +585,10 @@
       let c = Math.cos(r);
       let s = Math.sin(r);
       let ret = ray.Identity4x4.copy();
-      ret.data[5] = c;
-      ret.data[6] = -s;
-      ret.data[9] = s;
-      ret.data[10] = c;
+      ret.d5 = c;
+      ret.d6 = -s;
+      ret.d9 = s;
+      ret.d10 = c;
       return ret;
     }
 
@@ -292,10 +597,10 @@
       let c = Math.cos(r);
       let s = Math.sin(r);
       let ret = ray.Identity4x4.copy();
-      ret.data[0] = c;
-      ret.data[2] = s;
-      ret.data[8] = -s;
-      ret.data[10] = c;
+      ret.d0 = c;
+      ret.d2 = s;
+      ret.d8 = -s;
+      ret.d10 = c;
       return ret;
     }
 
@@ -304,22 +609,22 @@
       let c = Math.cos(r);
       let s = Math.sin(r);
       let ret = ray.Identity4x4.copy();
-      ret.data[0] = c;
-      ret.data[1] = -s;
-      ret.data[4] = s;
-      ret.data[5] = c;
+      ret.d0 = c;
+      ret.d1 = -s;
+      ret.d4 = s;
+      ret.d5 = c;
       return ret;
     }
 
     static shearing(Xy, Xz, Yx, Yz, Zx, Zy)
     {
       let ret = ray.Identity4x4.copy();
-      ret.data[1] = Xy;
-      ret.data[2] = Xz;
-      ret.data[4] = Yx;
-      ret.data[6] = Yz;
-      ret.data[8] = Zx;
-      ret.data[9] = Zy;
+      ret.d1 = Xy;
+      ret.d2 = Xz;
+      ret.d4 = Yx;
+      ret.d6 = Yz;
+      ret.d8 = Zx;
+      ret.d9 = Zy;
       return ret;
     }
 
@@ -415,7 +720,7 @@
           let ret = rMatrix.multiply(m1, m2);
           if (!ret.equals(check)) return false;
 
-          m1.times(m2);
+          m1.timesM(m2);
           if (!m1.equals(check)) return false;
           return true;
         }
@@ -683,7 +988,7 @@
           let A = new ray.Matrix4x4([3, -9, 7, 3, 3, -8, 2, -9, -4, 4, 4, 1, -6, 5, -1, 1]);
           let B = new ray.Matrix4x4([8, 2, 2, 2, 3, -1, 7, 0, 7, 0, 5, 4, 6, -2, 0, 5]);
           let C = ray.Matrix.multiply(A, B);
-          C.times(B.invert())
+          C.timesM(B.invert())
           if (C.equals(A) == false) return false;
           return true;
         }
@@ -1012,7 +1317,7 @@
           let A = ray.Matrix.xRotation(Math.PI / 2.0);
           let B = ray.Matrix.scale(5, 5, 5);
           let C = ray.Matrix.translation(10, 5, 7);
-          let T = C.times(B.times(A));
+          let T = C.timesM(B.timesM(A));
           let check = ray.Point(15, 0, 7);
           if (T.times(p).equals(check) == false) return false;
           return true;

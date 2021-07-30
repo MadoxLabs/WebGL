@@ -604,7 +604,7 @@
       let pos = ray.Matrix.translation(b.min.x + (b.max.x - b.min.x) / 2.0,
                                        b.min.y + (b.max.y - b.min.y) / 2.0,
                                        b.min.z + (b.max.z - b.min.z) / 2.0);
-      this.setTransform(pos.times(scale));
+      this.setTransform(pos.timesM(scale));
       if (!this.transform.invertible()) this.setTransform(ray.Identity4x4);
 
       this.setDirty();
@@ -1730,7 +1730,7 @@
           let b1 = new rAABB();
           b1.addPoint(ray.Point(-1,-1,-1));
           b1.addPoint(ray.Point(1,1,1));
-          let m = ray.Matrix.xRotation(Math.PI/4).times( ray.Matrix.yRotation(Math.PI/4) );
+          let m = ray.Matrix.xRotation(Math.PI/4).timesM( ray.Matrix.yRotation(Math.PI/4) );
           let b2 = b1.getTransformedCopy(m);
 
           let check = new ray.Point(-1.41421, -1.70710, -1.70710);
@@ -1750,7 +1750,7 @@
         test: function ()
         {
           let s = new rSphere();
-          let t = ray.Matrix.translation(1,-3,5).times(ray.Matrix.scale(0.5,2,4));
+          let t = ray.Matrix.translation(1,-3,5).timesM(ray.Matrix.scale(0.5,2,4));
           s.setTransform(t);
 
           let b = s.getParentSpaceAABB();
@@ -1768,10 +1768,10 @@
         test: function ()
         {
           let s = new rSphere();
-          let t = ray.Matrix.translation(2,5,-3).times(ray.Matrix.scale(2,2,2));
+          let t = ray.Matrix.translation(2,5,-3).timesM(ray.Matrix.scale(2,2,2));
           s.setTransform(t);
           let c = new rCylinder();
-          let t2 = ray.Matrix.translation(-4,-1,4).times(ray.Matrix.scale(0.5,1,0.5));
+          let t2 = ray.Matrix.translation(-4,-1,4).timesM(ray.Matrix.scale(0.5,1,0.5));
           c.setTransform(t2);
           c.setMax(2);
           c.setMin(-2);
@@ -2135,9 +2135,9 @@
       edge.setMax(1);
       edge.limits = true;
       edge.setTransform(       ray.Matrix.translation(0, 0, -1)
-                        .times(ray.Matrix.yRotation(-1 * Math.PI / 6.0))
-                        .times(ray.Matrix.zRotation(-1 * Math.PI / 2.0))
-                        .times(ray.Matrix.scale(0.25, 1, 0.25))
+                        .timesM(ray.Matrix.yRotation(-1 * Math.PI / 6.0))
+                        .timesM(ray.Matrix.zRotation(-1 * Math.PI / 2.0))
+                        .timesM(ray.Matrix.scale(0.25, 1, 0.25))
       );
       if (ray.World.options.wireframes )
       {
@@ -2150,7 +2150,7 @@
     {
       let corner = new rSphere();
       corner.setTransform(       ray.Matrix.translation(0, 0, -1)
-                          .times(ray.Matrix.scale(0.25, 0.25, 0.25)));
+                          .timesM(ray.Matrix.scale(0.25, 0.25, 0.25)));
 
       if (ray.World.options.wireframes )
       {
@@ -2337,6 +2337,7 @@
       {
         this.left = o;
         this.left.parent = this;
+        o.bakeMaterial();
         this.dirty = true;
       }
     }
@@ -2348,6 +2349,7 @@
       {
         this.right = o;
         this.right.parent = this;
+        o.bakeMaterial();
         this.dirty = true;
       }
     }
