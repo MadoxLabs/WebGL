@@ -302,6 +302,8 @@
 
     regroup()
     {
+      if (this.objects.length < this.options.regroup) return;
+      
       let topgroup = new ray.Group();
       for (let i in this.objects)
       {
