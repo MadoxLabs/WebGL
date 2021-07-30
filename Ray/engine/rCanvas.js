@@ -27,7 +27,19 @@
       this.context = this.canvas.getContext("2d");
 
       this.clear();
-      this.map = this.context.getImageData(0, 0, this.width, this.height);
+//      this.map = this.context.getImageData(0, 0, this.width, this.height);
+    }
+
+    resizeTo(w,h)
+    {
+      if (w*h != this.canvas.width*this.canvas.height)
+      {
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this.width = w;
+        this.height = h;
+        this.clear();
+      }
     }
 
     bltData(data, x, y)
