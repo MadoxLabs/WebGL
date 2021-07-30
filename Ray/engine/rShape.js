@@ -1630,7 +1630,14 @@
         name: "Triangle has an AABB",
         test: function ()
         {
-          return false;
+          let o = new rTriangle();
+          o.addPoint( ray.Point(-5, -5, -5) );
+          o.addPoint( ray.Point( 5, -5, -5) );
+          o.addPoint( ray.Point( 5, -5,  5) );
+          let b = o.getAABB();
+          if (b.min.equals( ray.Point(-5, -5, -5) ) == false) return false;
+          if (b.max.equals( ray.Point(5, -5, 5) ) == false) return false;
+          return true;
         }
       };
     }
@@ -1792,8 +1799,22 @@
         name: "A CSG AABB contains the children",
         test: function ()
         {
-          return false;
-        }
+          let s = new rSphere();
+          let t = ray.Matrix.translation(2,5,-3).timesM(ray.Matrix.scale(2,2,2));
+          s.setTransform(t);
+          let c = new rCylinder();
+          let t2 = ray.Matrix.translation(-4,-1,4).timesM(ray.Matrix.scale(0.5,1,0.5));
+          c.setTransform(t2);
+          c.setMax(2);
+          c.setMin(-2);
+          let g = new rCSG();
+          g.setLeft(s);
+          g.setRight(c);
+          g.setOp("union");
+          let b = g.getAABB();
+          if (b.min.equals( ray.Point(-4.5, -3, -5) ) == false) return false;
+          if (b.max.equals( ray.Point(4, 7, 4.5) ) == false) return false;
+          return true;        }
       };
     }
 
