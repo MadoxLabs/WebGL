@@ -17,6 +17,7 @@
       this.reset();
     }
 
+//#region Rendering
     reset()
     {
       this.loadingData = { };
@@ -205,7 +206,9 @@
       let comp = hit.precompute(r, points);
       return ray.Render.getColourFor(comp, depth);
     }
+//#endregion Rendering
 
+//#region Caustics
     //------------------
     // CAUSTIC
 
@@ -291,7 +294,9 @@
         }
       }
     }
+//#endregion Caustics
 
+//#region Regroup
     //--------------------
     // REGROUP
 
@@ -365,7 +370,9 @@
       // leave obj that dont fit in parent
       // recurse group 1 and 2 (if above max obj)
     }
+//#endregion Regroup
 
+//#region Parse
     //--------------------
     // PARSE
     loadFromJSONWithMeshes(json, cb)
@@ -404,17 +411,70 @@
 
       if (this.loadingData.callback) this.loadingData.callback();      
     }
-    
+
+    handleBase(orig, cache)
+    {
+      let json = JSON.parse(JSON.stringify(orig));
+//      let json = {...orig};
+      while(true)
+      {
+        let base = cache[json.base];
+        if (!base) break;
+        if (base.json) base = base.json; // we want the original json, except widgets are already json
+
+        // handle the case with object transforms
+        if (base.transform)
+        {
+          // resolve base transform into an array
+          // resolve json transform into an array
+          let jsonT = json.transform ? json.transform : [];
+          if (typeof jsonT == "string" && ray.World.transforms[jsonT]) { jsonT = ray.World.transforms[jsonT].json.series; }
+          else jsonT = jsonT.series;
+          let baseT = base.transform ? base.transform : [];
+          if (typeof baseT == "string" && ray.World.transforms[baseT]) { baseT = ray.World.transforms[baseT].json.series; }
+          else baseT = baseT.series;
+          // concat json, base
+          // set json transform
+          if (typeof json.transform == "string") json.transform = { "series": [] };
+//          json.transform.series = baseT.concat(jsonT);
+          json.transform.series = jsonT.concat(baseT);
+        }
+        if (base.series) //its a transform
+        {
+          // resolve base transform into an array
+          // resolve json transform into an array
+          let jsonT = json ? json : [];
+          if (typeof jsonT == "string" && ray.World.transforms[jsonT]) { jsonT = ray.World.transforms[jsonT].json.series; }
+          else jsonT = jsonT.series;
+          let baseT = base ? base : [];
+          if (typeof baseT == "string" && ray.World.transforms[baseT]) { baseT = ray.World.transforms[baseT].json.series; }
+          else baseT = baseT.series;
+          // concat json, base
+          // set json transform
+          if (typeof json.transform == "string") json = { "series": [] };
+          json.series = baseT.concat(jsonT);
+        }
+        let subbase = base.base;
+        json = {...base, ...json};
+        if (!subbase) break;
+        json.base = subbase;
+      }
+      return json;
+    }
+
     parseCameras(data)
     {
       for (let i in data)
       {
+        let json = this.handleBase(data[i], this.cameras);
+
         if (!data[i].name) continue;
         if (!data[i].width) continue;
         if (!data[i].height) continue;
         if (!data[i].fov) continue;
         let c = new ray.Camera(data[i].width, data[i].height, data[i].fov);
         c.fromJSON(data[i]);
+        c.json = data[i];
         this.cameras[data[i].name] = c;
       }
     }
@@ -449,21 +509,25 @@
       }
     }
 
-    parseTransform(transform)
+    parseTransform(data)
     {
-      let trans = ray.Identity4x4.copy();
-      for (let j in transform.series)
+      let json = this.handleBase(data, this.transforms);
+      let trans = ray.Identity4x4.copy();      
+    
+      for (let j in json.series)
       {
-        let obj = transform.series[j];
-        let M = null;
+        let obj = json.series[j];
+        let M = null;        
         if (obj.type == "T") M = ray.Matrix.translation(obj.value[0], obj.value[1], obj.value[2]);
         else if (obj.type == "S") M = ray.Matrix.scale(obj.value[0], obj.value[1], obj.value[2]);
         else if (obj.type == "Rx") M = ray.Matrix.xRotation(obj.value);
         else if (obj.type == "Ry") M = ray.Matrix.yRotation(obj.value);
         else if (obj.type == "Rz") M = ray.Matrix.zRotation(obj.value);
         else if (obj.type == "SH") M = ray.Matrix.shearing(obj.value[0], obj.value[1], obj.value[2], obj.value[3], obj.value[4], obj.value[5]);
-        if (M) trans.times(M);
-      }
+        if (M) trans.timesM(M);
+      }  
+
+      trans.json = data;
       return trans;
     }
 
@@ -476,10 +540,12 @@
       }
     }
 
-    parseMaterial(data)
+    parseMaterial(json)
     {
+      let data = this.handleBase(json, this.materials);      
       let mat = new ray.Material();
       mat.fromJSON(data);
+      mat.json = json;
       return mat;
     }
 
@@ -492,8 +558,10 @@
       }
     }
 
-    parsePattern(data)
+    parsePattern(json)
     {
+      let data = this.handleBase(json, this.patterns);      
+
       let p = null;
       if (data.type == "solid") p = new ray.PatternSolid();
       else if (data.type == "stripe") p = new ray.PatternStripe();
@@ -502,101 +570,96 @@
       else if (data.type == "checker") p = new ray.PatternChecker();
       else if (data.type == "blend") p = new ray.PatternBlend();
       else if (data.type == "perlin") p = new ray.PatternPerlin();
-      if (p) p.fromJSON(data);
+      if (p) {
+        p.fromJSON(data);
+        p.json = json;
+      }
       return p;
     }
 
     parseLights(data)
     {
+      let obj = null;
       for (let i in data)
       {
-        if (data[i].type == "pointlight")
+        let json = this.handleBase(data[i], this.lights);      
+
+        if (json.type == "pointlight")
         {
           let p = ray.Origin;
           let c = ray.White;
-          if (null != data[i].position) p = ray.Point(data[i].position[0], data[i].position[1], data[i].position[2]);
-          if (null != data[i].colour) c = ray.RGBColour(data[i].colour[0], data[i].colour[1], data[i].colour[2]);
-          let obj = new ray.LightPoint(p, c);
-          obj.fromJSON(data[i]);
-          this.lights.push(obj);
+          if (null != json.position) p = ray.Point(json.position[0], json.position[1], json.position[2]);
+          if (null != json.colour) c = ray.RGBColour(json.colour[0], json.colour[1], json.colour[2]);
+          obj = new ray.LightPoint(p, c);
         }
-        if (data[i].type == "ambient")
+        if (json.type == "ambient")
         {
           let c = ray.White;
-          if (null != data[i].colour) c = ray.RGBColour(data[i].colour[0], data[i].colour[1], data[i].colour[2]);
-          let obj = new ray.LightAmbient(c);
-          obj.fromJSON(data[i]);
-          this.lights.push(obj);
+          if (null != json.colour) c = ray.RGBColour(json.colour[0], json.colour[1], json.colour[2]);
+          obj = new ray.LightAmbient(c);
+        }
+        if (obj)
+        {
+          obj.fromJSON(json);
+          obj.json = data[i];
+          this.lights.push(obj);  
         }
       }
     }
 
-    parseObject(data)
+    parseObject(json)
     {
+      let obj = null;
+      let data = this.handleBase(json, Number.isInteger(json.base) ? this.objects : this.widgets);
+
       if (data.skip) return null;
       if (data.type == "sphere")
       {
-        let obj = this.options.wireframes ? new ray.Wireframe() : new ray.Sphere();
-        obj.fromJSON(data);
-        return obj;
+        obj = this.options.wireframes ? new ray.Wireframe() : new ray.Sphere();
       }
       else if (data.type == "plane")
       {
-        let obj = this.options.wireframes ? new ray.Wireframe(2) : new ray.Plane();
-        obj.fromJSON(data);
-        return obj;
+        obj = this.options.wireframes ? new ray.Wireframe(2) : new ray.Plane();
       }
       else if (data.type == "cube")
       {
-        let obj = this.options.wireframes ? new ray.Wireframe() : new ray.Cube();
-        obj.fromJSON(data);
-        return obj;
+        obj = this.options.wireframes ? new ray.Wireframe() : new ray.Cube();
       }
       else if (data.type == "wireframe")
       {
-        let obj = new ray.Wireframe();
-        obj.fromJSON(data);
-        return obj;
+        obj = new ray.Wireframe();
       }
       else if (data.type == "cylinder")
       {
-        let obj = this.options.wireframes ? new ray.Wireframe(1) : new ray.Cylinder();
-        obj.fromJSON(data);
-        return obj;
+        obj = this.options.wireframes ? new ray.Wireframe(1) : new ray.Cylinder();
       }
       else if (data.type == "cone")
       {
-        let obj = this.options.wireframes ? new ray.Wireframe(3) : new ray.Cone();
-        obj.fromJSON(data);
-        return obj;
+        obj = this.options.wireframes ? new ray.Wireframe(3) : new ray.Cone();
       }
       else if (data.type == "group")
       {
-        let obj = new ray.Group();
-        obj.fromJSON(data);
-        return obj;
+        obj = new ray.Group();
       }
       else if (data.type == "hexagon")
       {
-        let obj = new ray.Hexagon();
-        obj.fromJSON(data);
-        return obj;
+        obj = new ray.Hexagon();
       }
       else if (data.type == "triangle")
       {
-        let obj = new ray.Triangle();
-        obj.fromJSON(data);
-        return obj;
+        obj = new ray.Triangle();
       }
       else if (data.type == "model")
       {
-        let obj = new ray.Model();
-        obj.fromJSON(data);
-        return obj;
+        obj = new ray.Model();
       }
       else if (data.type == "csg")
       {
-        let obj = new ray.CSG();
+        obj = new ray.CSG();
+      }
+      if (obj)
+      {
+        obj.json = json;
         obj.fromJSON(data);
         return obj;
       }
@@ -658,7 +721,9 @@
     {
       console.log("Error loading " + name);
     }
+//#endregion Regroup
 
+//#region Test
     static test1()
     {
       return {
@@ -760,7 +825,7 @@
         }
       };
     }
-
+//#endregion Test
   }
 
   class rCamera
@@ -827,7 +892,7 @@
                                      this.up.x,       this.up.y,       this.up.z,   0,
                                     -this.forward.x, -this.forward.y, -this.forward.z, 0,
                                      0, 0, 0, 1]);
-      this.transform.times(this.translate);    
+      this.transform.timesM(this.translate);    
       this.inverse = ray.Matrix.inverse(this.transform);
       return this.transform;
     }
@@ -987,7 +1052,7 @@
         test: function ()
         {
           let c = new rCamera(201, 101, Math.PI / 2.0);
-          c.setTransform(ray.Matrix.yRotation(Math.PI / 4).times(ray.Matrix.translation(0, -2, 5)));
+          c.setTransform(ray.Matrix.yRotation(Math.PI / 4).timesM(ray.Matrix.translation(0, -2, 5)));
           let r = c.getRayAt(100, 50);
           if (r.origin.equals(ray.Point(0, 2, -5)) == false) return false;
           if (r.direction.equals(ray.Vector(Math.sqrt(2) / 2, 0, -Math.sqrt(2) / 2)) == false) return false;
