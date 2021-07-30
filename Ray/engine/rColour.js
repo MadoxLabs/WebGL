@@ -223,6 +223,9 @@
       this.intensityAmbient = 1.0;
       this.attenuation = [1.0, 0.0, 0.0];
       this.isLight = true;
+      this.usteps = 1;
+      this.vsteps = 1;
+      this.samples = 1;
     }
 
     fromJSON(def)
@@ -240,6 +243,11 @@
       if (this.colour.equals(l.colour) == false) return false;
       if (this.position.equals(l.position) == false) return false;
       return true;
+    }
+
+    pointOnLight(u, v)
+    {
+      return this.position;
     }
 
     static test1()
@@ -276,6 +284,7 @@
     fromJSON(def)
     {
       super.fromJSON(def);
+      if (null != def.jitter) this.jitter = def.jitter;
       if (null != def.usteps) this.usteps = def.usteps;
       if (null != def.vsteps) this.vsteps = def.vsteps;
       this.samples = this.vsteps * this.usteps;
@@ -289,7 +298,9 @@
 
     pointOnLight(u, v)
     {
-      return this.corner.copy().plus(this.uvec.copy().times(u+0.5)).plus(this.vvec.copy().times(v+0.5));
+      let upos = this.jitter? Math.random() : 0.5;
+      let vpos = this.jitter? Math.random() : 0.5;
+      return this.corner.copy().plus(this.uvec.copy().times(u+upos)).plus(this.vvec.copy().times(v+vpos));
     }
   }
 

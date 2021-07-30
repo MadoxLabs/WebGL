@@ -168,42 +168,51 @@
       {
         return ambient;
       }
-
-      let toLight = ray.Touple.subtract(light.position, point);
-      let distance = toLight.magnitude();
-      let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
-
-      if (intensity == 0)
+      
+      let totalColour = new ray.Colour(0,0,0);
+      for (let v = 0; v < light.vsteps; ++v)
       {
-        return ambient.times(1.0 / attenuation);
-      }
-      else
-      {
-        let diffuse = null;
-        let specular = null;
-
-        toLight.normalize();
-        let lightDotNormal = toLight.dot(normal);
-        if (lightDotNormal < 0)
+        for (let u = 0; u < light.usteps; ++u)
         {
-          diffuse = ray.Black;
-          specular = ray.Black;
-        }
-        else
-        {
-          diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal).times(intensity);
-          let reflect = ray.Touple.reflect(toLight.negate(), normal);
-          let reflectDotEye = reflect.dot(eye);
-          if (reflectDotEye <= 0)
-            specular = ray.Black;
+          let toLight = ray.Touple.subtract(light.pointOnLight(u,v), point);
+          let distance = toLight.magnitude();
+          let attenuation = light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance;
+    
+          if (intensity == 0)
+          {
+            totalColour.plus( ambient.times(1.0 / attenuation) );
+          }
           else
           {
-            let factor = Math.pow(reflectDotEye, material.shininess);
-            specular = ray.Colour.multiply(light.colour, material.specular).times(factor).times(intensity);
+            let diffuse = null;
+            let specular = null;
+    
+            toLight.normalize();
+            let lightDotNormal = toLight.dot(normal);
+            if (lightDotNormal < 0)
+            {
+              diffuse = ray.Black;
+              specular = ray.Black;
+            }
+            else
+            {
+              diffuse = ray.Colour.multiply(effectiveColour, light.intensityDiffuse).times(material.diffuse).times(lightDotNormal).times(intensity);
+              let reflect = ray.Touple.reflect(toLight.negate(), normal);
+              let reflectDotEye = reflect.dot(eye);
+              if (reflectDotEye <= 0)
+                specular = ray.Black;
+              else
+              {
+                let factor = Math.pow(reflectDotEye, material.shininess);
+                specular = ray.Colour.multiply(light.colour, material.specular).times(factor).times(intensity);
+              }
+            }
+            totalColour.plus( ambient.copy().plus(diffuse).plus(specular).times(1.0 / attenuation) );
           }
         }
-        return ambient.plus(diffuse).plus(specular).times(1.0 / attenuation);
       }
+      totalColour.times(1.0/light.samples);
+      return totalColour;
     }
     
     intensityAt(p, lightIndex)
@@ -211,24 +220,16 @@
       let light = ray.World.lights[lightIndex];
       if (!light.position) return 1;  // ambient light shines everywhere. no shadow
 
-      if (light.isAreaLight)
+      let total = 0;
+      for (let v = 0; v < light.vsteps; ++v)
       {
-        let total = 0;
-        for (let v = 0; v < light.vsteps; ++v)
+        for (let u = 0; u < light.usteps; ++u)
         {
-          for (let u = 0; u < light.usteps; ++u)
-          {
-            let position = light.pointOnLight(u, v);
-            total +=  1.0 - this.isShadowed(p, position);
-          }
+          let position = light.pointOnLight(u, v);
+          total +=  1.0 - this.isShadowed(p, position);
         }
-        return total / light.samples;
       }
-
-      else if (light.isLight)
-      {
-        return 1.0 - this.isShadowed(p, light.position);
-      }
+      return total / light.samples;
     }
 
     isShadowed(p, lightposition, depth)
