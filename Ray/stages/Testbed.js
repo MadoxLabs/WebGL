@@ -6,7 +6,6 @@
     constructor()
     {
       this.name = "Testbed";
-      this.size = 400;
       this.scenes = {};
 
       this.template = `
@@ -145,7 +144,9 @@
       this.restart = false;
       this.kill = true;
 
-      if (this.renderY >= this.size && this.thread)
+      if (!this.canvas) return;
+
+      if (this.renderY >= this.canvas.height && this.thread)
       {
         for (let i = 0; i < this.load; ++i)
           this.workers[i].terminate();
@@ -190,12 +191,6 @@
         ray.App.setMessage("Colour at pixel (" + x + "," + y + ") = [" + Math.floor(c.redByte) + "," + Math.floor(c.greenByte) + "," + Math.floor(c.blueByte) + "]");
       });
 
-      // scramble rows
-      this.rows = new Array(this.size);
-      for (let i = 0; i < this.size; ++i)
-        this.rows[i] = i;
-//      this.shuffle(this.rows);
-
       this.setupDef = {};
 
       // set up threads
@@ -203,10 +198,8 @@
         // workers setup
         let obj = this;
         this.workers = new Array(this.load);
-        this.buffers = new Array(this.load);
         for (let i = 0; i < this.load; ++i)
         {
-          this.buffers[i] = new Uint8ClampedArray(this.size * 4);
           this.workers[i] = new Worker('stages/worker2.js');
           this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
         }
@@ -214,7 +207,7 @@
 
       // setup non threaded for clicking, and caustics!
       {
-        this.buffer = new Uint8ClampedArray(this.size * 4);
+        this.buffer = new Uint8ClampedArray(this.canvas.width * 4);
       }
     }
 
@@ -226,7 +219,26 @@
 
     onLoadedCallback()
     {
+      // resize canvas?
+      this.canvas.resizeTo(ray.World.cameras["main"].width, ray.World.cameras["main"].height);      
+ 
+      // add to camera      
       ray.World.cameras["main"].canvas = this.canvas;
+ 
+      // prep for rendering     
+      // scramble rows
+      this.rows = new Array(this.canvas.height);
+      for (let i = 0; i < this.canvas.height; ++i)
+        this.rows[i] = i;
+      this.shuffle(this.rows);
+      // worker buffers
+      this.buffers = new Array(this.load);
+      for (let i = 0; i < this.load; ++i)
+      {
+        this.buffers[i] = new Uint8ClampedArray(this.canvas.width * 4);
+      }
+
+      // init workers
       if (ray.World.options.threaded)
       {
         for (let i = 0; i < this.load; ++i)
@@ -270,19 +282,19 @@
         }
       }
 
-      if (!this.renderY || this.renderY >= this.size) this.begin();
+      if (!this.renderY || this.renderY >= this.canvas.height) this.begin();
     }
 
     renderRow(id)
     {
-      if (this.renderY >= this.size)
+      if (this.renderY >= this.canvas.height)
       {
         this.renderY++;
-        if (this.renderY != this.size + this.load) return;
+        if (this.renderY != this.canvas.height + this.load) return;
 
         this.end = performance.now();
         let ms = (this.end - this.start);
-        let mspp = Math.floor((ms / (this.size * this.size)) * 1000) / 1000;
+        let mspp = Math.floor((ms / (this.canvas.height * this.canvas.width)) * 1000) / 1000;
         let seconds = Math.floor((ms / 1000.0) * 100) / 100;
         ray.App.setMessage("Elapsed time: " + seconds + " seconds. " + mspp + " ms/pixel");
 
