@@ -521,7 +521,7 @@
     
     colourAt(u, v, face)
     {
-      return this.faces[face].colourAt(u, v);
+      return this.faces[face].colourAt(u, 1-v);
     }
   }
 
