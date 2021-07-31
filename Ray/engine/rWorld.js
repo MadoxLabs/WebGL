@@ -474,6 +474,8 @@
         let obj = null;
 
         if (json.type == "checker") obj = new ray.TextureChecker();
+        if (json.type == "test") obj = new ray.TextureTest();
+        if (json.type == "cube") obj = new ray.TextureCube();
 
         if (obj)
         {

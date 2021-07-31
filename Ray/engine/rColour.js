@@ -490,6 +490,79 @@
     }
   }
   
+  class rTextureCube extends rTexture
+  {
+    constructor()
+    {
+      super();
+      this.faces = {};
+    }
+
+    getTexture(data)
+    {
+      if (data)
+      {
+        if (typeof data == "string" && ray.World.textures[data]) return ray.World.textures[data];
+        if (typeof data == "object") return ray.World.parseTexture(data);
+      }
+      return null; 
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.up    ) this.faces[2] = this.getTexture(def.up    );
+      if (def.down  ) this.faces[3] = this.getTexture(def.down  );
+      if (def.left  ) this.faces[1] = this.getTexture(def.left  );
+      if (def.right ) this.faces[0] = this.getTexture(def.right );
+      if (def.front ) this.faces[4] = this.getTexture(def.front );
+      if (def.back  ) this.faces[5] = this.getTexture(def.back  );
+    }
+    
+    colourAt(u, v, face)
+    {
+      return this.faces[face].colourAt(u, v);
+    }
+  }
+
+  class rTextureTest extends rTexture
+  {
+    constructor()
+    {
+      super();
+      this.ul = ray.RGBColour(1,0,0);
+      this.ur = ray.RGBColour(1,1,0);
+      this.bl = ray.RGBColour(0,1,0);
+      this.br = ray.RGBColour(0,1,1);
+      this.main = ray.RGBColour(1,1,1);
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.main) this.main = ray.RGBColour(def.main[0], def.main[1], def.main[2]);
+      if (def.ul) this.ul = ray.RGBColour(def.ul[0], def.ul[1], def.ul[2]);
+      if (def.ur) this.ur = ray.RGBColour(def.ur[0], def.ur[1], def.ur[2]);
+      if (def.bl) this.bl = ray.RGBColour(def.bl[0], def.bl[1], def.bl[2]);
+      if (def.br) this.br = ray.RGBColour(def.br[0], def.br[1], def.br[2]);
+    }
+    
+    colourAt(u, v)
+    {
+      if (v > 0.8)
+      {
+        if (u < 0.2) return this.ul;
+        if (u > 0.8) return this.ur;
+      }
+      else if (v < 0.2)
+      {
+        if (u < 0.2) return this.bl;
+        if (u > 0.8) return this.br;
+      }
+      return this.main;
+    }
+  }
+
   class rMapping
   {
     constructor()
@@ -550,6 +623,8 @@
     {
       let u = p.x%1;
       let v = p.z%1;
+      if (u < 0) u = 1.0 + u;
+      if (v < 0) v = 1.0 + v;
       
       return { u, v };
     }
@@ -574,6 +649,68 @@
       let u = 1 - (raw_u + 0.5);
       let v = p.y%1;    
       return { u, v };
+    }
+  }
+
+  class rCubeMap extends rMapping
+  {
+    constructor()
+    {
+      super();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+    }
+    
+    determineFace(p)
+    {
+      let x = Math.abs(p.x);
+      let y = Math.abs(p.y);
+      let z = Math.abs(p.z);
+      let coord = Math.max(x,y,z);
+      if (coord == p.x) return 0; // right
+      if (coord == -p.x) return 1; // left
+      if (coord == p.y) return 2; // up
+      if (coord == -p.y) return 3; // down
+      if (coord == p.z) return 4; // front
+      return 5; // back
+    }
+
+    getUV(p)
+    {
+      let face = this.determineFace(p);
+      if (face == 0) { // right
+        let u = ((1 - p.z) % 2.0) / 2.0
+        let v = ((p.y + 1) % 2.0) / 2.0
+        return { u, v, face };
+      }
+      if (face == 1) { // left
+        let u = ((p.z + 1) % 2.0) / 2.0
+        let v = ((p.y + 1) % 2.0) / 2.0
+        return { u, v, face };
+      }
+      if (face == 2) { // up
+        let u = ((p.x + 1) % 2.0) / 2.0
+        let v = ((1 - p.z) % 2.0) / 2.0
+        return { u, v, face };
+      }
+      if (face == 3) { // down
+        let u = ((p.x + 1) % 2.0) / 2.0
+        let v = ((p.z + 1) % 2.0) / 2.0
+        return { u, v, face };
+      }
+      else if (face == 4) { // front
+        let u = ((p.x + 1) % 2.0) / 2.0
+        let v = ((p.y + 1) % 2.0) / 2.0
+        return { u, v, face };
+      }
+      else { // back
+        let u = ((1 - p.x) % 2.0) / 2.0
+        let v = ((p.y + 1) % 2.0) / 2.0
+        return { u, v, face };
+      }
     }
   }
 
@@ -667,8 +804,8 @@
 
     resolve(p)
     {
-      let {u, v} = this.mapping.getUV(p);
-      return this.texture.colourAt(u, v);
+      let {u, v, face} = this.mapping.getUV(p);
+      return this.texture.colourAt(u, v, face);
     }
 
     fromJSON(def)
@@ -677,6 +814,7 @@
       if (def.mapping == "spherical") this.mapping = new ray.SphericalMap();
       else if (def.mapping == "planar") this.mapping = new ray.PlanarMap();
       else if (def.mapping == "cylindrical") this.mapping = new ray.CylindricalMap();
+      else if (def.mapping == "cube") this.mapping = new ray.CubeMap();
       if (def.texture)
       {
         if (typeof def.texture == "string" && ray.World.textures[def.texture]) this.texture = ray.World.textures[def.texture];
@@ -1141,9 +1279,12 @@
   ray.PatternMapped = rPatternMapped;
 
   ray.TextureChecker = rTextureChecker;
+  ray.TextureTest = rTextureTest;
+  ray.TextureCube = rTextureCube;
   ray.SphericalMap = rSphericalMap;
   ray.PlanarMap = rPlanarMap;
   ray.CylindricalMap = rCylindricalMap;
+  ray.CubeMap = rCubeMap;
 
   ray.White = new rColour(1, 1, 1);
   ray.White.plus = null;
