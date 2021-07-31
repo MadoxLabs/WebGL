@@ -31,6 +31,7 @@
       this.objects = [];
       this.widgets = {};  // non rendering group children
       this.meshes = {}; 
+      this.textures = {}; 
       this.lights = [];
       this.cameras = {};
       this.options = {
@@ -401,6 +402,7 @@
       if (ray.worker) this.reset();
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
       if (json.transforms) this.parseTransforms(json.transforms);
+      if (json.textures) this.parseTextures(json.textures);
       if (json.patterns) this.parsePatterns(json.patterns);
       if (json.materials) this.parseMaterials(json.materials);
       if (json.lights) this.parseLights(json.lights);
@@ -464,6 +466,24 @@
       return json;
     }
 
+    parseTextures(data)
+    {
+      for (let i in data)
+      {
+        let json = this.handleBase(data[i], this.textures);
+        let obj = null;
+
+        if (json.type == "checker") obj = new ray.TextureChecker();
+
+        if (obj)
+        {
+          obj.fromJSON(json);
+          obj.json = data[i];
+          this.textures[data[i].name] = obj;  
+        }
+      }
+    }
+
     parseCameras(data)
     {
       for (let i in data)
@@ -471,11 +491,11 @@
         let json = this.handleBase(data[i], this.cameras);
 
         if (!data[i].name) continue;
-        if (!data[i].width) continue;
-        if (!data[i].height) continue;
-        if (!data[i].fov) continue;
-        let c = new ray.Camera(data[i].width, data[i].height, data[i].fov);
-        c.fromJSON(data[i]);
+        if (!json.width) continue;
+        if (!json.height) continue;
+        if (!json.fov) continue;
+        let c = new ray.Camera(json.width, json.height, json.fov);
+        c.fromJSON(json);
         c.json = data[i];
         this.cameras[data[i].name] = c;
       }
@@ -572,6 +592,7 @@
       else if (data.type == "checker") p = new ray.PatternChecker();
       else if (data.type == "blend") p = new ray.PatternBlend();
       else if (data.type == "perlin") p = new ray.PatternPerlin();
+      else if (data.type == "map") p = new ray.PatternMapped();
       if (p) {
         p.fromJSON(data);
         p.json = json;

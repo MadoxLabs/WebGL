@@ -106,6 +106,7 @@
         if (typeof def.transform == "string" && ray.World.transforms[def.transform]) { this.transform = ray.World.transforms[def.transform];  this.setDirty(); }
         if (typeof def.transform == "object") { this.transform = ray.World.parseTransform(def.transform); this.setDirty(); }
       }
+      
       this.materialSelf = this.material;
       this.setDirty();
     }

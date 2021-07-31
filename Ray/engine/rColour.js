@@ -436,6 +436,147 @@
     }
   }
 
+  class rTexture
+  {
+    constructor()
+    {
+      this.isTexture = true;
+    }
+
+    fromJSON(def)
+    {
+    }
+
+    colourAt(u, v)
+    {
+      return ray.Colour.Black;
+    }
+  }
+
+  class rTextureChecker extends rTexture
+  {
+    constructor()
+    {
+      super();
+      this.colours = [];
+      for (let i = 0; i < arguments.length; ++i)
+        this.colours.push(arguments[i]);
+      this.width = this.colours.length;
+      this.height = this.colours.length;
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+
+      if (null != def.width) this.width = def.width;
+      if (null != def.height) this.height = def.height;
+
+      if (def.colours && def.colours.length) 
+      {
+        for (let i = 0; i < def.colours.length; ++i)
+        {
+          if (typeof def.colours[i] == "string") this.colours.push(ray.World.patterns[def.colours[i]]);
+          else this.colours.push(makeColour(def.colours[i][0], def.colours[i][1], def.colours[i][2]));
+        }
+      }
+    }
+    
+    colourAt(u, v)
+    {
+      let val = Math.abs(Math.floor(u * this.width) + Math.floor(v * this.height));
+      let ret = this.colours[(Math.floor(val)) % this.colours.length];
+      return ret.copy();
+    }
+  }
+  
+  class rMapping
+  {
+    constructor()
+    {
+      this.isMapping = true;
+    }
+
+    fromJSON(def)
+    {
+    }
+
+    getUV(p)
+    {
+      let u = 0, v = 0;
+      return { u, v };
+    }
+  }
+
+  class rSphericalMap extends rMapping
+  {
+    constructor()
+    {
+      super();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+    }
+    
+    getUV(p)
+    {
+      let theta = Math.atan2(p.x, p.z);
+      let vec = ray.Vector(p.x, p.y, p.z);
+      let radius = vec.magnitude();
+      let phi = Math.acos(p.y / radius);
+      let raw_u = theta / (2 * Math.PI);
+      let u = 1 - (raw_u + 0.5);
+      let v = 1 - phi / Math.PI;
+
+      return { u, v };
+    }
+  }
+
+  class rPlanarMap extends rMapping
+  {
+    constructor()
+    {
+      super();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+    }
+    
+    getUV(p)
+    {
+      let u = p.x%1;
+      let v = p.z%1;
+      
+      return { u, v };
+    }
+  }
+
+  class rCylindricalMap extends rMapping
+  {
+    constructor()
+    {
+      super();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+    }
+    
+    getUV(p)
+    {
+      let theta = Math.atan2(p.x, p.z);
+      let raw_u = theta / (2 * Math.PI);
+      let u = 1 - (raw_u + 0.5);
+      let v = p.y%1;    
+      return { u, v };
+    }
+  }
+
   class rPattern 
   {
     constructor()
@@ -461,11 +602,9 @@
     colourAt(p, obj)
     {
       let point = p.copy();
-      if (obj && obj.isObject)
+      if (obj && obj.isObject) 
       {
         point.worldToObject(obj);
-//        if (obj.dirty) obj.clean();
-//        point = obj.inverse.times(p);
       }
       if (this.dirty) this.clean();
 
@@ -515,6 +654,33 @@
       if (def.colours && def.colours.length == 3) 
       {
         this.colour = makeColour(def.colours[0], def.colours[1], def.colours[2]);
+      }
+    }
+  }
+
+  class rPatternMapped extends rPattern
+  {
+    constructor(c)
+    {
+      super();
+    }
+
+    resolve(p)
+    {
+      let {u, v} = this.mapping.getUV(p);
+      return this.texture.colourAt(u, v);
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.mapping == "spherical") this.mapping = new ray.SphericalMap();
+      else if (def.mapping == "planar") this.mapping = new ray.PlanarMap();
+      else if (def.mapping == "cylindrical") this.mapping = new ray.CylindricalMap();
+      if (def.texture)
+      {
+        if (typeof def.texture == "string" && ray.World.textures[def.texture]) this.texture = ray.World.textures[def.texture];
+        if (typeof def.texture == "object") this.texture = ray.World.parseTexture(def.texture); 
       }
     }
   }
@@ -954,12 +1120,16 @@
   ray.classlist.push(rPatternGradient);
   ray.classlist.push(rPatternRing);
   ray.classlist.push(rPatternChecker);
+  
   ray.Material = rMaterial;
+  
   ray.LightPoint = rLightPoint;
   ray.LightArea = rLightArea;
   ray.LightAmbient = rLightAmbient;
+  
   ray.RGBColour = function (r, g, b) { return makeColour(r, g, b); }
   ray.Colour = rColour;
+  
   ray.PatternSolid = rPatternSolid;
   ray.PatternStripe = rPatternStripe;
   ray.PatternGradient = rPatternGradient;
@@ -968,6 +1138,12 @@
   ray.PatternBlend = rPatternBlend;
   ray.PatternPerlin = rPatternPerlin;
   ray.PatternTest = rPatternTest;
+  ray.PatternMapped = rPatternMapped;
+
+  ray.TextureChecker = rTextureChecker;
+  ray.SphericalMap = rSphericalMap;
+  ray.PlanarMap = rPlanarMap;
+  ray.CylindricalMap = rCylindricalMap;
 
   ray.White = new rColour(1, 1, 1);
   ray.White.plus = null;
