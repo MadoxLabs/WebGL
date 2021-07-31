@@ -466,7 +466,7 @@
           let eye = ray.Vector(0, 0, -1);
           let normal = ray.Vector(0, 0, -1);
           let light = new ray.LightPoint(ray.Point(0, 0, -10), ray.RGBColour(1, 1, 1));
-          let result = ray.Render.lighting(m, s, light, p, eye, normal, true);
+          let result = ray.Render.lighting(m, s, light, p, eye, normal, 0);
           if (result.equals(ray.RGBColour(0.1, 0.1, 0.1)) == false) return false;
           return true;
         }
@@ -522,7 +522,8 @@
           ray.World.reset();
           ray.World.setToDefault();
           let p = ray.Point(0, 10, 0);
-          if (ray.Render.isShadowed(p, 0) == true) return false;
+          let lightpoint = ray.World.lights[0].pointOnLight(0,0);
+          if (ray.Render.isShadowed(p, lightpoint) == true) return false;
           return true;
         }
       };
@@ -537,7 +538,8 @@
           ray.World.reset();
           ray.World.setToDefault();
           let p = ray.Point(10, -10, 10);
-          if (ray.Render.isShadowed(p, 0) == 0) return false;
+          let lightpoint = ray.World.lights[0].pointOnLight(0,0);
+          if (ray.Render.isShadowed(p, lightpoint) == 0) return false;
           return true;
         }
       };
@@ -552,7 +554,8 @@
           ray.World.reset();
           ray.World.setToDefault();
           let p = ray.Point(-20, -20, -20);
-          if (ray.Render.isShadowed(p, 0) == 1) return false;
+          let lightpoint = ray.World.lights[0].pointOnLight(0,0);
+          if (ray.Render.isShadowed(p, lightpoint) == 1) return false;
           return true;
         }
       };
@@ -567,7 +570,8 @@
           ray.World.reset();
           ray.World.setToDefault();
           let p = ray.Point(-2, 2, -2);
-          if (ray.Render.isShadowed(p, 0) == 1) return false;
+          let lightpoint = ray.World.lights[0].pointOnLight(0,0);
+          if (ray.Render.isShadowed(p, lightpoint) == 1) return false;
           return true;
         }
       };

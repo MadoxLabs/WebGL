@@ -204,11 +204,6 @@
           this.workers[i].addEventListener('message', function (e) { obj.receivePixels(e); }, false);
         }
       }
-
-      // setup non threaded for clicking, and caustics!
-      {
-        this.buffer = new Uint8ClampedArray(this.canvas.width * 4);
-      }
     }
 
     begin()
@@ -237,12 +232,24 @@
       {
         this.buffers[i] = new Uint8ClampedArray(this.canvas.width * 4);
       }
+      // setup non threaded for clicking, and caustics!
+      {
+        this.buffer = new Uint8ClampedArray(this.canvas.width * 4);
+      }
 
       // init workers
       if (ray.World.options.threaded)
       {
         for (let i = 0; i < this.load; ++i)
         {
+          for (let m in ray.World.images)
+          {
+            this.workers[i].postMessage({ 'cmd': 'image', 'id': i, 
+                                          'name': ray.World.images[m].name, 
+                                          'width': ray.World.images[m].width,
+                                          'height': ray.World.images[m].height,
+                                          'buffer': ray.World.images[m].buffer });            
+          }
           for (let m in ray.World.meshes)
           {
             this.workers[i].postMessage({ 'cmd': 'mesh', 'id': i, 'name': ray.World.meshes[m].name, 'json': ray.World.meshes[m].meshdata });            

@@ -31,6 +31,7 @@
       this.objects = [];
       this.widgets = {};  // non rendering group children
       this.meshes = {}; 
+      this.images = {}; 
       this.textures = {}; 
       this.lights = [];
       this.cameras = {};
@@ -385,7 +386,10 @@
       // if we have meshes to load, load then async and then call loadFromJSON.
       // call the cb when done
       this.loadingData.callback = cb;
+      if (!ray.worker) ray.World.incrLoading(); // artificial +1 here so that we dont drop to 0 before this function ends
       if (cb && json.meshes) this.parseMeshes(json.meshes);
+      if (cb && json.images) this.parseImages(json.images);
+      if (!ray.worker) ray.World.decrLoading();
 
       // if there were meshes, lets wait for them, else continue to loadFromJSON
       if (this.loadingData.count) 
@@ -402,6 +406,7 @@
       if (ray.worker) this.reset();
       if (json.renderOptions) this.parseRenderOptions(json.renderOptions);
       if (json.transforms) this.parseTransforms(json.transforms);
+      if (ray.worker && json.images) this.parseImages(json.images);
       if (json.textures) this.parseTextures(json.textures);
       if (json.patterns) this.parsePatterns(json.patterns);
       if (json.materials) this.parseMaterials(json.materials);
@@ -419,7 +424,6 @@
     handleBase(orig, cache)
     {
       let json = JSON.parse(JSON.stringify(orig));
-//      let json = {...orig};
       while(true)
       {
         let base = cache[json.base];
@@ -431,16 +435,15 @@
         {
           // resolve base transform into an array
           // resolve json transform into an array
-          let jsonT = json.transform ? json.transform : [];
+          let jsonT = json.transform ? json.transform : { series: [] };
           if (typeof jsonT == "string" && ray.World.transforms[jsonT]) { jsonT = ray.World.transforms[jsonT].json.series; }
           else jsonT = jsonT.series;
-          let baseT = base.transform ? base.transform : [];
+          let baseT = base.transform ? base.transform : { series: [] };
           if (typeof baseT == "string" && ray.World.transforms[baseT]) { baseT = ray.World.transforms[baseT].json.series; }
           else baseT = baseT.series;
           // concat json, base
           // set json transform
-          if (typeof json.transform == "string") json.transform = { "series": [] };
-//          json.transform.series = baseT.concat(jsonT);
+          if (!json.transform || !json.transform.series) json.transform = { series: [] };
           json.transform.series = jsonT.concat(baseT);
         }
         if (base.series) //its a transform
@@ -476,6 +479,7 @@
         if (json.type == "checker") obj = new ray.TextureChecker();
         if (json.type == "test") obj = new ray.TextureTest();
         if (json.type == "cube") obj = new ray.TextureCube();
+        if (json.type == "image") obj = new ray.TextureImage();
 
         if (obj)
         {
@@ -710,9 +714,19 @@
       }
     }
 
+    parseImages(data)
+    {
+      for (let i in data)
+      {
+        if (data[i].skip || !data[i].name || !data[i].file) return null;
+
+        let obj = new ray.Image(data[i].name, data[i].file);
+        this.images[obj.name] = obj;
+      }
+    }
+
     parseMeshes(data)
     {
-      if (!ray.worker) ray.World.incrLoading(); // artificial +1 here so that we dont drop to 0 before this function ends
       for (let i in data)
       {
         if (data[i].skip || !data[i].name || !data[i].file) return null;
@@ -720,7 +734,6 @@
         let obj = new ray.Mesh(data[i].name, data[i].file);
         this.meshes[obj.name] = obj;
       }
-      if (!ray.worker) ray.World.decrLoading();
     }
 
     parseWidgets(data)

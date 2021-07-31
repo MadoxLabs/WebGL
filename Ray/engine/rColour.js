@@ -563,6 +563,30 @@
     }
   }
 
+  class rTextureImage extends rTexture
+  {
+    constructor()
+    {
+      super();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+      if (def.image)
+      {
+        if (typeof def.image == "string" && ray.World.images[def.image]) this.image = ray.World.images[def.image];
+      }
+    }
+    
+    colourAt(u, v)
+    {
+      let x = Math.floor(u * this.image.width);
+      let y = Math.floor(v * this.image.height);
+      return this.image.sample(x, y);
+    }
+  }
+
   class rMapping
   {
     constructor()
@@ -601,7 +625,7 @@
       let phi = Math.acos(p.y / radius);
       let raw_u = theta / (2 * Math.PI);
       let u = 1 - (raw_u + 0.5);
-      let v = 1 - phi / Math.PI;
+      let v =  phi / Math.PI;
 
       return { u, v };
     }
@@ -622,7 +646,7 @@
     getUV(p)
     {
       let u = p.x%1;
-      let v = p.z%1;
+      let v = (1-p.z)%1;
       if (u < 0) u = 1.0 + u;
       if (v < 0) v = 1.0 + v;
       
@@ -647,7 +671,7 @@
       let theta = Math.atan2(p.x, p.z);
       let raw_u = theta / (2 * Math.PI);
       let u = 1 - (raw_u + 0.5);
-      let v = p.y%1;    
+      let v = (1 - p.y)%1;    
       return { u, v };
     }
   }
@@ -1281,6 +1305,7 @@
   ray.TextureChecker = rTextureChecker;
   ray.TextureTest = rTextureTest;
   ray.TextureCube = rTextureCube;
+  ray.TextureImage = rTextureImage;
   ray.SphericalMap = rSphericalMap;
   ray.PlanarMap = rPlanarMap;
   ray.CylindricalMap = rCylindricalMap;

@@ -1,5 +1,61 @@
 ﻿(function ()
 {
+  class rImage
+  {
+    constructor(name, file)
+    {
+      this.name = name;
+      this.file = file;
+      this.isImage = true;
+
+      if (ray.worker)
+      {
+        console.log("WORKER "+ray.worker+" load image "+name);
+        let data = ray.World.imagedata[name];
+        if (data) 
+        {
+          this.width = data.width;
+          this.height = data.height;
+          this.bytes = new Uint8Array(data.buffer);    
+        }
+      }
+      else
+      {
+        var obj = this;
+        this.image = new Image();
+        ray.World.incrLoading();
+        this.image.onload = function () { console.log("loading image - ok"); ray.World.decrLoading(); obj.processDataFromImage(); }
+        this.image.onerror = function () { console.log("loading image - bad"); ray.World.decrLoading(); ray.World.loadingError(obj.name); }
+        this.image.src = file;        
+      }
+    }        
+
+    processDataFromImage()
+    {
+      this.width = this.image.width;
+      this.height = this.image.height;
+
+      // get the bytes
+      var img = document.createElement('canvas');
+      img.width = this.width;
+      img.height = this.height;
+      var context = img.getContext('2d');
+      context.drawImage(this.image, 0, 0);
+      let bytes = context.getImageData(0, 0, img.width, img.height).data;
+
+      // create a shared buffer
+      this.buffer = new SharedArrayBuffer(bytes.length);
+      this.bytes = new Uint8Array(this.buffer);
+      // load it with the bytes
+      this.bytes.set(bytes);
+    }
+
+    sample(x, y)
+    {
+      let offset = ((y * this.width) + x) * 4;
+      return ray.RGBColour(this.bytes[offset]/255, this.bytes[offset+1]/255, this.bytes[offset+2]/255); // ignore alpha
+    }
+  }
 
   class rMesh
   {
@@ -20,9 +76,8 @@
         var mesh = this; 
         this.image = new Image();
         ray.World.incrLoading();
-        this.image.onload = function () { console.log("loading image- ok"); ray.World.decrLoading(); mesh.processMeshPNG(); }
-        this.image.onerror = function () { console.log("loading image - bad"); ray.World.decrLoading(); ray.World.loadingError(mesh.name); }
-        console.log("loading image");
+        this.image.onload = function () { console.log("loading mesh - ok"); ray.World.decrLoading(); mesh.processMeshPNG(); }
+        this.image.onerror = function () { console.log("loading mesh - bad"); ray.World.decrLoading(); ray.World.loadingError(mesh.name); }
         this.image.src = file;        
       }
     }
@@ -183,5 +238,6 @@
   }
 
   ray.Mesh = function (n,f) { return new rMesh(n,f); }
+  ray.Image = function (n,f) { return new rImage(n,f); }
 
 })();

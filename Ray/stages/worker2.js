@@ -58,6 +58,12 @@ function messagehandler(e)
     case 'caustics':
       ray.World.causticMode(true);
       break;    
+    case 'image':
+      if (!renderer) renderer = new Renderer(data.id);
+      console.log("WORKER "+renderer.id+" got image "+data.name);
+      if (!ray.World.imagedata) ray.World.imagedata = {};
+      ray.World.imagedata[data.name] = { width: data.width, height: data.height, buffer: data.buffer };
+      break;
     case 'mesh':
       if (!renderer) renderer = new Renderer(data.id);
       console.log("WORKER "+renderer.id+" got mesh "+data.name);
