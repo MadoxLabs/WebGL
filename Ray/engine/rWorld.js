@@ -189,7 +189,8 @@
     intersect(r)
     {
       let ret = ray.Intersections();
-      for (let i = 0; i < this.objects.length; ++i)
+      let num = this.objects.length;
+      for (let i = 0; i < num; ++i)
       {
         // TODO intersect lights
         this.objects[i].intersect(r, ret);

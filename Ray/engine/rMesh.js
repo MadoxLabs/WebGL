@@ -16,7 +16,7 @@
         {
           this.width = data.width;
           this.height = data.height;
-          this.bytes = new Uint8Array(data.buffer);    
+          this.bytes = data.buffer; //new Uint8Array(data.buffer);    
         }
       }
       else
@@ -44,10 +44,23 @@
       let bytes = context.getImageData(0, 0, img.width, img.height).data;
 
       // create a shared buffer
-      this.buffer = new SharedArrayBuffer(bytes.length);
-      this.bytes = new Uint8Array(this.buffer);
+      if (false)
+      {
+        this.buffer = new SharedArrayBuffer(bytes.length);
+        this.bytes = new Uint8Array(this.buffer);  
+      }
+      else
+      {
+        this.bytes = new Uint8ClampedArray(bytes.length);
+      }
       // load it with the bytes
       this.bytes.set(bytes);
+    }
+
+    getBufferForWorker()
+    {
+      let ret = new Uint8ClampedArray(this.bytes);
+      return ret;
     }
 
     sample(x, y)
@@ -133,16 +146,15 @@
       if ('TEX0' in data.attributes) step += 2;
       if ('NORM' in data.attributes) step += 3;
       
+      let obj = new ray.Group();
       for (let g in data.groups)
       {
-        let obj = new ray.Group();
-
         let group = data.groups[g];
 
         // get the material
         let mat = new ray.Material();
-        mat.ambient = group.AmbientFactor[0];
-        mat.diffuse = group.DiffuseFactor[0];
+        mat.ambient = group.AmbientFactor ? group.AmbientFactor[0] : ( group.AmbientColor ? group.AmbientColor[0] : 1);
+        mat.diffuse = group.DiffuseFactor ? group.DiffuseFactor[0] : 1;
         mat.specular = group.SpecularFactor[0];
         mat.shininess = group.Shininess[0];
         mat.colour = ray.RGBColour(group.DiffuseColor[0],group.DiffuseColor[1],group.DiffuseColor[2]);
@@ -215,13 +227,13 @@
 
           obj.addChild(subobj);
         }
-
-        obj.aabb = new ray.AABB();
-        obj.aabb.min = ray.Point( data.boundingbox.min[0], data.boundingbox.min[1], data.boundingbox.min[2] );
-        obj.aabb.max = ray.Point( data.boundingbox.max[0], data.boundingbox.max[1], data.boundingbox.max[2] );
-
-        this.mesh = obj;
       }
+
+      obj.aabb = new ray.AABB();
+      obj.aabb.min = ray.Point( data.boundingbox.min[0], data.boundingbox.min[1], data.boundingbox.min[2] );
+      obj.aabb.max = ray.Point( data.boundingbox.max[0], data.boundingbox.max[1], data.boundingbox.max[2] );
+
+      this.mesh = obj;
 
       // attributes: POS, TEX0, NORM (what else?) - existance of data.
       // boundingbox: min max arrays of 3 numbers

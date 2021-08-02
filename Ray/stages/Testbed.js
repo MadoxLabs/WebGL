@@ -244,11 +244,12 @@
         {
           for (let m in ray.World.images)
           {
+            let buffer = ray.World.images[m].getBufferForWorker();
             this.workers[i].postMessage({ 'cmd': 'image', 'id': i, 
                                           'name': ray.World.images[m].name, 
                                           'width': ray.World.images[m].width,
                                           'height': ray.World.images[m].height,
-                                          'buffer': ray.World.images[m].buffer });            
+                                          'buffer': buffer }, [buffer.buffer]);            
           }
           for (let m in ray.World.meshes)
           {
