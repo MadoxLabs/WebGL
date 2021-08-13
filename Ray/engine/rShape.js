@@ -19,6 +19,20 @@
       this.setDirty();
     }    
 
+    baseCopy(obj)
+    {
+      obj.id = ray.getUUID();
+      obj.isObject = true;
+      if (!obj.transform) obj.transform = this.transform;
+      obj.material = this.material;
+      obj.shadow = this.shadow;
+      obj.blending = this.blending;
+      obj.inverse = this.inverse;
+      obj.transpose = this.transpose;
+      obj.dirty = true;
+      obj.materialSelf = this.materialSelf;
+    }
+
     contains(obj)
     {
       return this.id == obj.id;
@@ -155,8 +169,22 @@
     constructor()
     {
       super();
+      this.isPlane = true;
       this.normal = ray.Vector(0, 1, 0);
       this.limits = false;
+    }
+
+    copy()
+    {
+      let ret = new ray.Plane();
+      this.baseCopy(ret);
+      ret.normal = this.normal.copy();
+      ret.limits = this.limits;
+      ret.xMin = this.xMin;
+      ret.xMax = this.xMax;
+      ret.yMin = this.yMin;
+      ret.yMax = this.yMax;
+      return ret;
     }
 
     updateAABB()
@@ -318,6 +346,13 @@
     {
       super();
       this.isSphere = true;
+    }
+
+    copy()
+    {
+      let ret = new ray.Sphere();
+      this.baseCopy(ret);
+      return ret;
     }
 
     updateAABB()
@@ -547,6 +582,16 @@
       this.material.refraction = 1.5;
     }
 
+    copy()
+    {
+      let ret = new ray.Sphere();
+      this.baseCopy(ret);
+      this.material = new ray.Material();
+      this.material.transparency = 1.0;
+      this.material.refraction = 1.5;
+      return ret;
+    }
+
     // tests
     static test1()
     {
@@ -575,6 +620,13 @@
         this.handleObject(type);
       }
       this.type = type ? type : 0;
+    }
+
+    copy()
+    {
+      let ret = new ray.Wireframe(this.type);
+      this.baseCopy(ret);
+      return ret;
     }
 
     updateAABB()
@@ -672,6 +724,13 @@
     {
       super();
       this.isCube = true;
+    }
+
+    copy()
+    {
+      let ret = new ray.Cube();
+      this.baseCopy(ret);
+      return ret;
     }
 
     updateAABB()
@@ -846,6 +905,17 @@
       this.max = Infinity;
       this.closed = false;
       this.limits = false;
+    }
+
+    copy()
+    {
+      let ret = new ray.Cylinder();
+      this.baseCopy(ret);
+      ret.min = this.min;
+      ret.max = this.max;
+      ret.closed = this.closed;
+      ret.limits = this.limits;
+      return ret;
     }
 
     setMin(val)
@@ -1107,6 +1177,17 @@
       this.max = Infinity;
       this.closed = false;
       this.limits = false;
+    }
+
+    copy()
+    {
+      let ret = new ray.Cone();
+      this.baseCopy(ret);
+      ret.min = this.min;
+      ret.max = this.max;
+      ret.closed = this.closed;
+      ret.limits = this.limits;
+      return ret;
     }
 
     updateAABB()
@@ -1831,6 +1912,18 @@
       this.containsCache = {};
     }
 
+    copy()
+    {
+      let ret = new ray.Group();
+      this.baseCopy(ret);
+
+      for (let c in this.children)
+      {
+        ret.addChild(this.children[c].copy());
+      }
+      return ret;
+    }
+
     contains(obj)
     {
       let v = this.containsCache[obj.id];
@@ -2195,6 +2288,26 @@
       this.normal = null;  // face normal
     }
 
+    copy()
+    {
+      let ret = new ray.Triangle();
+      this.baseCopy(ret);
+      for (let p in this.points)
+      {
+        ret.addPoint(this.points[p].copy());
+      }
+      for (let p in this.vertNormals)
+      {
+        ret.vertNormals.push(this.vertNormals[p].copy());
+      }
+      for (let p in this.uvs)
+      {
+        ret.uvs.push(this.uvs[p].copy());
+      }
+      if (this.normal) ret.normal = this.normal.copy();
+      return ret;
+    }
+
     updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
@@ -2277,6 +2390,15 @@
       this.mesh = null;
     }
 
+    copy()
+    {
+      let ret = new ray.Model();
+      this.baseCopy(ret);
+      ret.mesh = this.mesh.copy();
+      ret.mesh.parent = this;
+      return ret;
+    }
+
     updateAABB()
     {
       if (!this.aabb) this.aabb = new rAABB();
@@ -2299,7 +2421,9 @@
         let mesh = ray.World.meshes[def.mesh];
         if (mesh && mesh.mesh) 
         {
-          this.mesh = mesh.mesh;
+          if (mesh.mesh.parent) this.mesh = mesh.mesh.copy();
+          else                  this.mesh = mesh.mesh;
+          this.mesh.parent = this;
         }
       }
     }
@@ -2311,7 +2435,6 @@
     local_intersect(r, hits)
     {
       if (this.getAABB().intersects(r) == false) return;
-
       this.mesh.intersect(r, hits);
     }
   }
@@ -2324,6 +2447,16 @@
       this.isCSG = true;
 
       this.containsCache = {};
+    }
+
+    copy()
+    {
+      let ret = new ray.CSG();
+      this.baseCopy(ret);
+      ret.op = this.op;
+      ret.setLeft( this.left.copy() );
+      ret.setRight( this.right.copy() );
+      return ret;
     }
 
     contains(obj)

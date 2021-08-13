@@ -676,6 +676,49 @@
     }
   }
 
+  class rBakedMap extends rMapping
+  {
+    constructor()
+    {
+      super();
+    }
+
+    fromJSON(def)
+    {
+      super.fromJSON(def);
+    }
+    
+    getUV(p, obj)
+    {
+      // compute barycentric coords
+      let u = 0; 
+      let v = 0;
+      if (!obj.isTriangle) return;
+      if (obj.uvs.length != 3) return;
+
+       // calculate vectors from point f to vertices p1, p2 and p3:
+      var f1 = ray.Touple.subtract(obj.points[0], p);
+      var f2 = ray.Touple.subtract(obj.points[1], p);
+      var f3 = ray.Touple.subtract(obj.points[2], p);
+      // calculate the areas and factors (order of parameters doesn't matter):
+      var a  = ray.Touple.cross(ray.Touple.subtract(obj.points[0], obj.points[1]), ray.Touple.subtract(obj.points[0], obj.points[2])).magnitude(); // main triangle area a
+      var a1 = ray.Touple.cross(f2, f3).magnitude() / a; // p1's triangle area / a
+      var a2 = ray.Touple.cross(f3, f1).magnitude() / a; // p2's triangle area / a 
+      var a3 = ray.Touple.cross(f1, f2).magnitude() / a; // p3's triangle area / a
+      // find the uv corresponding to point f (uv1/uv2/uv3 are associated to p1/p2/p3):
+      u = obj.uvs[0].x * a1
+        + obj.uvs[1].x * a2
+        + obj.uvs[2].x * a3;
+      v = obj.uvs[0].y * a1
+        + obj.uvs[1].y * a2
+        + obj.uvs[2].y * a3;
+      v = 1-v;
+
+      return { u, v };
+    }
+  }
+
+
   class rCubeMap extends rMapping
   {
     constructor()
@@ -770,7 +813,7 @@
       if (this.dirty) this.clean();
 
       if (this.inverse) point = this.inverse.times(point);
-      return this.resolve(point);
+      return this.resolve(point, obj);
     }
 
     fromJSON(def)
@@ -826,9 +869,9 @@
       super();
     }
 
-    resolve(p)
+    resolve(p, obj)
     {
-      let {u, v, face} = this.mapping.getUV(p);
+      let {u, v, face} = this.mapping.getUV(p, obj);
       return this.texture.colourAt(u, v, face);
     }
 
@@ -839,6 +882,7 @@
       else if (def.mapping == "planar") this.mapping = new ray.PlanarMap();
       else if (def.mapping == "cylindrical") this.mapping = new ray.CylindricalMap();
       else if (def.mapping == "cube") this.mapping = new ray.CubeMap();
+      else if (def.mapping == "baked") this.mapping = new ray.BakedMap();
       if (def.texture)
       {
         if (typeof def.texture == "string" && ray.World.textures[def.texture]) this.texture = ray.World.textures[def.texture];
@@ -1310,6 +1354,7 @@
   ray.PlanarMap = rPlanarMap;
   ray.CylindricalMap = rCylindricalMap;
   ray.CubeMap = rCubeMap;
+  ray.BakedMap = rBakedMap;
 
   ray.White = new rColour(1, 1, 1);
   ray.White.plus = null;

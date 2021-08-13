@@ -201,13 +201,18 @@
 
     cast(r, depth)
     {
-      if (depth == null) depth = this.options.maxReflections;
+      if (depth == null) 
+      {
+        depth = this.options.maxReflections;
+      }
 
       let points = this.intersect(r);
       let hit = points.hit();
       if (!hit) return ray.Black.copy();
       let comp = hit.precompute(r, points);
-      return ray.Render.getColourFor(comp, depth);
+      let ret = ray.Render.getColourFor(comp, depth);
+
+      return ret;
     }
 //#endregion Rendering
 
@@ -474,20 +479,25 @@
     {
       for (let i in data)
       {
-        let json = this.handleBase(data[i], this.textures);
-        let obj = null;
+        this.parseTexture(data[i]);
+      }
+    }
 
-        if (json.type == "checker") obj = new ray.TextureChecker();
-        if (json.type == "test") obj = new ray.TextureTest();
-        if (json.type == "cube") obj = new ray.TextureCube();
-        if (json.type == "image") obj = new ray.TextureImage();
+    parseTexture(data)
+    {
+      let json = this.handleBase(data, this.textures);
+      let obj = null;
 
-        if (obj)
-        {
-          obj.fromJSON(json);
-          obj.json = data[i];
-          this.textures[data[i].name] = obj;  
-        }
+      if (json.type == "checker") obj = new ray.TextureChecker();
+      if (json.type == "test") obj = new ray.TextureTest();
+      if (json.type == "cube") obj = new ray.TextureCube();
+      if (json.type == "image") obj = new ray.TextureImage();
+
+      if (obj)
+      {
+        obj.fromJSON(json);
+        obj.json = data;
+        this.textures[data.name] = obj;  
       }
     }
 

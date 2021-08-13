@@ -133,7 +133,6 @@
       {
         this.vectorToWorld(shape.parent);
       }
-
       return this;
     }
 

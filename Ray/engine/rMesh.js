@@ -165,6 +165,37 @@
         mat.name = group.name;
         ray.World.materials[mat.name] = mat;
 
+        // handle a texture
+        if (group.texture)
+        {
+          // create an image
+          let img = ray.World.images[group.texture];
+          if (!img)
+          {
+            img = new ray.Image(group.texture,  "/Ray/assets/"+group.texture);
+            ray.World.images[group.texture] = img;
+          }
+
+          // create a texture
+          let tex = ray.World.textures[group.texture];
+          if (!tex)
+          {
+            let def = { name: group.texture, type: "image", image: group.texture };
+            ray.World.parseTexture(def);
+            tex = ray.World.textures[group.texture];
+          }
+
+          // create a pattern
+          let pattern = ray.World.patterns[group.name];
+          if (!pattern)
+          {
+            let def = { name: group.name, type: "map", mapping: "baked", "texture": group.texture };
+            pattern = ray.World.parsePattern(def);
+            ray.World.patterns[pattern.name] = pattern;
+          }
+          mat.pattern = pattern;
+        }
+
         // parse meshes
         for (let m in group.models)
         {
@@ -234,6 +265,7 @@
       obj.aabb.max = ray.Point( data.boundingbox.max[0], data.boundingbox.max[1], data.boundingbox.max[2] );
 
       this.mesh = obj;
+      this.mesh.isMeshGroup = true;
 
       // attributes: POS, TEX0, NORM (what else?) - existance of data.
       // boundingbox: min max arrays of 3 numbers

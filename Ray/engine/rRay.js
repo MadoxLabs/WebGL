@@ -330,7 +330,8 @@
       ret.point = r.position(ret.length);
       ret.normal = this.object.normalAt(ret.point, this);
       ret.eye = r.direction.copy().negate();
-      if (ret.normal.dot(ret.eye) < 0)
+      let value = ret.normal.dot(ret.eye);
+      if (value < 0)
       {
         ret.inside = true;
         ret.normal.negate();
@@ -520,7 +521,7 @@
     add(i)
     {
       if (i.isIntersection)
-      {
+      {        
         let index = 0;
         if (this.num > 0)
         {
@@ -553,7 +554,7 @@
     {
       for (let i = 0; i < this.num; ++i)
       {
-        if (this.list[i].length >= 0) return this.list[i];
+        if (this.list[i].length >= ray.epsilon) return this.list[i];
       }
       return null;
     }
@@ -562,7 +563,7 @@
     {
       for (let i = 0; i < this.num; ++i)
       {
-        if (this.list[i].length >= 0 && this.list[i].object.shadow) return this.list[i];
+        if (this.list[i].length >= ray.epsilon && this.list[i].object.shadow) return this.list[i];
       }
       return null;
     }
