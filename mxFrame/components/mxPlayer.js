@@ -18,12 +18,19 @@
 
         addConfig(c)
         {
-            this.config.push(id);
+            this.config.push(c);
         }
 
         removeConfig(cID)
         {
-//            delete this.config[cID];
+            for (let i in this.configs)
+            {
+                if (this.configs[i].id = cID)
+                {
+                    this.config.splice(i, 1);
+                    return;
+                }
+            }
         }
 
         // return any triggered event
@@ -35,7 +42,18 @@
                 this.controller.update();
                 // check for any strokes that are done
                 // fire commands
+                let ret = 0;
+                let pumped = 0;
+                for (let i = this.config.length-1; i >= 0; --i)
+                {
+                    let c = this.coonfig[i];
+                    if ((pumped & c.class) != 0) continue;
+                    ret = c.pump(this.lastState, this.currState);
+                    if (ret) return ret;
+                    pumped = pumped | c.class;
+                }
             }
+            return 0;
         }
     }
 
@@ -59,6 +77,33 @@
             this.lastState = { buttons: [], axes: [] };
             this.currState = { buttons: [], axes: [] };        
             this.grabState();    
+        }
+
+        unchangedDigitalFrom(s)
+        {
+            for (let i in this.buttons)
+            {
+                if (this.buttons[i] != s.buttons[i]) return false;
+            }
+            return true;
+        }
+
+        unchangedAnalogFrom(s)
+        {
+            for (let i in this.axes)
+            {
+                if (this.axes[i] != s.axes[i]) return false;
+            }
+            return true;
+        }
+
+        isButtonDown(buttons)
+        {
+            let ret = true;
+            for (let i in buttons)
+            {
+                if (
+            }
         }
 
         getGamepad()
@@ -129,6 +174,8 @@
             }
             if (power > 0) this.vibrate(power);
         }
+
+
     }
 
     class ControllerKeyboardMouse extends Controller
