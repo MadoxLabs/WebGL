@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>Madoxlabs Test Platfor</title>
+  <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
+  <script>
+    function init()
+    {
+      window.onresize();
+    }
+
+    window.onresize = function()
+    {
+    }
+  </script>
+  <script src="../mxFrame/mxFrame.js"></script>
+</head>
+<body onload="init(); mx.loadApp(['js/app.js'], '../mxFrame', mx.WITH_MXFRAME);">
+
+    <div><canvas id='surface'></div>
+
+</body>
+</html>

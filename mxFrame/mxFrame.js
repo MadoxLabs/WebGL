@@ -26,6 +26,7 @@ function doneLoading() { }
                  "components/mxAssetManager.js",
                  "components/mxCamera.js",
                  "components/mxMouse.js",
+                 "components/mxPlayer.js",
                  "components/mxGame.js"];
   var oculusSrc = ["libs/oculus.lib.js"];
   var touchSrc = ["libs/hammer.lib.js"];

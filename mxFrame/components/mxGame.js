@@ -271,7 +271,7 @@ var gl; // leave this global for quick access
     Game.loadShaderFile(mx.libdir + "/assets/sprite.fx");
     Game.loadTextureFile("mouse", mx.libdir + "/assets/mouse.png", false);
     Game.loadTextureFile("missing", mx.libdir + "/assets/missing.png", true);
-    Game.appInit();
+    if (Game.appInit) Game.appInit();
 
     Game.ready = true;
     Game.lastTime =performance.now();
@@ -408,7 +408,7 @@ var gl; // leave this global for quick access
 
   Game.loadingError = function (name)
   {
-    Game.appLoadingError(name);
+    if (Game.appLoadingError) Game.appLoadingError(name);
     Game.loadingDecr(name);
   }
 
@@ -484,19 +484,20 @@ var gl; // leave this global for quick access
 
   Game.update = function ()
   {
-    Game.appUpdate();
+    mx.PlayerManager.update(Game.time);
+    if (Game.appUpdate) Game.appUpdate();
     Game.camera.update();
   }
 
   Game.draw = function ()
   {
     //  Game.shaderMan.enabledUniforms = {};
-    Game.appDrawAux();
+    if (Game.appDrawAux) Game.appDrawAux();
 
     if (Game.frontbuffer) Game.frontbuffer.engage();
     else gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    gl.clearColor(0.05, 0.05, 0.05, 1.0);
+    gl.clearColor(0.05, 0.05, 0.85, 1.0);
     gl.clearDepth(1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -524,7 +525,7 @@ var gl; // leave this global for quick access
   Game.drawEye = function (eye)
   {
     eye.engage();
-    Game.appDraw(eye);
+    if (Game.appDraw) Game.appDraw(eye);
 
     if (Game.loading > 0) return;
     if (Game.mouse.grabbed) return;
@@ -568,7 +569,7 @@ var gl; // leave this global for quick access
 
   Game.fireMouseEvent = function (type, mouse)
   {
-    Game.appHandleMouseEvent(type, mouse);
+    if (Game.appHandleMouseEvent) Game.appHandleMouseEvent(type, mouse);
   }
 
   function handleSizeChange()
@@ -600,13 +601,13 @@ var gl; // leave this global for quick access
     //if ([189].indexOf(event.keyCode) > -1) { wtf.trace.reset(); wtf.trace.start(options); }
     //if ([187].indexOf(event.keyCode) > -1) { wtf.trace.snapshot(); wtf.trace.stop(); }
 
-    Game.appHandleKeyDown(event);
+    if (Game.appHandleKeyDown) Game.appHandleKeyDown(event);
   }
 
   function handleKeyUp(event)
   {
     if (event.target.type) return;
-    Game.appHandleKeyUp(event);
+    if (Game.appHandleKeyUp) Game.appHandleKeyUp(event);
   }
 
 
