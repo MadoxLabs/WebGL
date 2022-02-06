@@ -14,7 +14,7 @@
             this.events = [];
         }
 
-        addCommand(c)
+        addConfig(c)
         {
             this.configs.push(c);
         }
@@ -25,7 +25,7 @@
         }
     }
 
-    class CommandConfigGroup
+    class CommandConfig
     {
         constructor(n, i, t, c)
         {

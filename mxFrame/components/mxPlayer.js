@@ -13,17 +13,17 @@
         {
             this.id = id;
             this.controller = null;
-            this.commands = {};
+            this.config = [];         // CommandConfig object LIFO
         }
 
-        addCommand(c)
+        addConfig(c)
         {
-            this.commands[c.id] = id;
+            this.config.push(id);
         }
 
-        removeCommand(cID)
+        removeConfig(cID)
         {
-            delete this.commands[cID];
+//            delete this.config[cID];
         }
 
         // return any triggered event
@@ -250,7 +250,7 @@
             p.controller = c;
             c.player = p;
             // assign the commands for this controller
-            for (let i in this.configs[c.type]) p.addCommand(this.configs[c.type][i]);
+            for (let i in this.configs[c.type]) p.addConfig(this.configs[c.type][i]);
         }
 
         assignConfigToPlayer(pID, cID)
@@ -259,7 +259,7 @@
             if (!p || !p.controller) return;
             let c = this.configs[p.controller.type][cID];
             if (!c) return;
-            p.addCommand(c);
+            p.addConfig(c);
         }
 
         assignConfigToAll(cID)
@@ -270,7 +270,7 @@
                 if (!p || !p.controller) continue;
                 let c = this.configs[p.controller.type][cID];
                 if (!c) continue;
-                p.addCommand(c);    
+                p.addConfig(c);    
             }
         }
 
@@ -278,7 +278,7 @@
         {
             let p = this.players[pID];
             if (!p || !p.controller) return;
-            p.removeCommand(cID);
+            p.removeConfig(cID);
         }
 
         removeConfigFromAll(cID)
@@ -287,7 +287,7 @@
             {
                 let p = this.players[pID];
                 if (!p || !p.controller) continue;
-                p.removeCommand(cID);
+                p.removeConfig(cID);
             }
         }
 
