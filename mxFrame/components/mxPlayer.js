@@ -13,11 +13,29 @@
         {
             this.id = id;
             this.controller = null;
+            this.commands = {};
         }
 
+        addCommand(c)
+        {
+            this.commands[c.id] = id;
+        }
+
+        removeCommand(cID)
+        {
+            delete this.commands[cID];
+        }
+
+        // return any triggered event
         update()
         {
-            if (this.controller) this.controller.update();
+            if (this.controller) 
+            {
+                // update input state
+                this.controller.update();
+                // check for any strokes that are done
+                // fire commands
+            }
         }
     }
 
@@ -127,6 +145,7 @@
 
         }
     }
+
     // player manager detect players that connect/disconnect and what the controller is
     //  one player can be mouse/keyboard/touchscreen
     //  multiple players can be gamepads
@@ -134,11 +153,16 @@
     {
         constructor()
         {
-            this.lastUpdate = 0;
-            this.updateFreq = 50; // ms
+            // handles polling the controller states
+            this.lastUpdate = 0;  // time of last controller poll
+            this.updateFreq = 50; // time between controller polls
+            // unique id for players, increment for each connection
             this.nextPlayerID = 1;
-            this.players = {};      // listof all players
+            // data
+            this.players = {};      // map of all players
             this.controllers = {};  // map to find what player is on what controller
+            this.configs = {};      // map of configs for each controller - { type : { id : config } }
+            this.events = {};       // map of events that can be triggered - { id : event }
             this.init();
         }
 
@@ -148,7 +172,26 @@
             window.addEventListener("gamepadconnected", function(e) { obj.onPlayerConnected(e); });
             window.addEventListener("gamepaddisconnected", function(e) { obj.onPlayerDisconnected(e); });
             this.detectMouseKeyboard();
-            console.log(this);
+            this.configs[ControllerType.Gamepad] = {};
+            this.configs[ControllerType.KeyboardMouse] = {};
+            this.configs[ControllerType.Touch] = {};
+            this.configs[ControllerType.Unknown] = {};
+        }
+
+        addConfigGroup(g)
+        {
+            for (let i in g.configs) this.addConfig(g.configs[i]);
+            for (let i in g.events) this.addEvent(g.events[i]);
+        }
+
+        addConfig(c)
+        {
+            this.configs[c.type][c.id] = c;
+        }
+
+        addEvent(e)
+        {
+            this.events[e.id] = e;
         }
 
         detectMouseKeyboard()
@@ -160,6 +203,7 @@
                 this.controllers[c.id] = c;
                 this.players[p.id] = p;
                 this.assignPlayer(p,c);
+                if (mx.Game.handlePlayerConnected) mx.Game.handlePlayerConnected(p);
             }
         }
 
@@ -179,7 +223,7 @@
             this.players[p.id] = p;
             this.assignPlayer(p,c);
 
-            console.log(this);
+            if (mx.Game.handlePlayerConnected) mx.Game.handlePlayerConnected(p);
         }
 
         onPlayerDisconnected(e)
@@ -187,10 +231,15 @@
             console.log("Gamepad disconnected at index %d: %s.", e.gamepad.index, e.gamepad.id);
             let c = this.controllers[e.gamepad.index];
 
-            if (c && c.player) delete this.players[c.player.id];
-            delete this.controllers[c.id];
-
-            console.log(this);
+            if (c && c.player) 
+            {
+                if (c.player)
+                {
+                    delete this.players[c.player.id];
+                    if (mx.Game.handlePlayerDisconnected) mx.Game.handlePlayerDisconnected(c.player);    
+                }
+                delete this.controllers[c.id];
+            }
         }
         
         assignPlayer(p, c)
@@ -200,6 +249,46 @@
             if (c.player) c.player.controller = null;
             p.controller = c;
             c.player = p;
+            // assign the commands for this controller
+            for (let i in this.configs[c.type]) p.addCommand(this.configs[c.type][i]);
+        }
+
+        assignConfigToPlayer(pID, cID)
+        {
+            let p = this.players[pID];
+            if (!p || !p.controller) return;
+            let c = this.configs[p.controller.type][cID];
+            if (!c) return;
+            p.addCommand(c);
+        }
+
+        assignConfigToAll(cID)
+        {
+            for (let pID in this.players)
+            {
+                let p = this.players[pID];
+                if (!p || !p.controller) continue;
+                let c = this.configs[p.controller.type][cID];
+                if (!c) continue;
+                p.addCommand(c);    
+            }
+        }
+
+        removeConfigFromPlayer(pID, cID)
+        {
+            let p = this.players[pID];
+            if (!p || !p.controller) return;
+            p.removeCommand(cID);
+        }
+
+        removeConfigFromAll(cID)
+        {
+            for (let pID in this.players)
+            {
+                let p = this.players[pID];
+                if (!p || !p.controller) continue;
+                p.removeCommand(cID);
+            }
         }
 
         update(timestamp)
@@ -209,7 +298,22 @@
 
             for (let p in this.players)
             {
-                this.players[p].update();
+                let triggeredEvent = this.players[p].update();
+                if (triggeredEvent)
+                {
+                    this.sendEvent(this.players[p], triggeredEvent);
+                }
+            }
+        }
+
+        sendEvent(p, eID)
+        {
+            if (!mx.Game.handleEvent) return;
+            
+            let e = this.events[eID];
+            for (let i in e.codes)
+            {
+                mx.Game.handleEvent(p, e.codes[i]);
             }
         }
     }
