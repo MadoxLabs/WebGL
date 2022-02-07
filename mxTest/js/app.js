@@ -8,6 +8,7 @@ Game.appLoadingError = function (name)
 Game.appInit = function ()
 {
   Game.textureLocation = "assets/";
+  Game.loadInputFile("assets/controls.conf");
 }
 
 Game.deviceReady = function ()

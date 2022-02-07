@@ -48,7 +48,7 @@
                 {
                     let c = this.coonfig[i];
                     if ((pumped & c.class) != 0) continue;
-                    ret = c.pump(this.lastState, this.currState);
+                    ret = c.pump(this.controller);
                     if (ret) return ret;
                     pumped = pumped | c.class;
                 }
@@ -76,34 +76,76 @@
             super(id, ControllerType.Gamepad);
             this.lastState = { buttons: [], axes: [] };
             this.currState = { buttons: [], axes: [] };        
-            this.grabState();    
+            this.update();    
         }
 
-        unchangedDigitalFrom(s)
+        unchangedDigital()
         {
-            for (let i in this.buttons)
+            for (let i in this.lastState.buttons)
             {
-                if (this.buttons[i] != s.buttons[i]) return false;
+                if (this.lastState.buttons[i] != this.currState.buttons[i]) return false;
             }
             return true;
         }
 
-        unchangedAnalogFrom(s)
+        wasButtonPressed(buttons)
         {
-            for (let i in this.axes)
+            if (buttons.length)
             {
-                if (this.axes[i] != s.axes[i]) return false;
+                let ret = true;
+                for (let b in buttons)
+                {
+                    if ((this.currState.buttons[b] == 1.0 && this.lastState.buttons[b] != 1.0) == false) 
+                    {
+                        ret = false;
+                        break;
+                    }
+                }    
+                return ret;
             }
-            return true;
+
+            if (this.currState.buttons[b] == 1.0 && this.lastState.buttons[b] != 1.0) return true;
+            return false;
         }
 
-        isButtonDown(buttons)
+        wasButtonReleased(buttons)
         {
-            let ret = true;
-            for (let i in buttons)
+            if (buttons.length)
             {
-                if (
+                let ret = true;
+                for (let b in buttons)
+                {
+                    if ((this.currState.buttons[b] == 0.0 && this.lastState.buttons[b] != 0.0) == false) 
+                    {
+                        ret = false;
+                        break;
+                    }
+                }    
+                return ret;
             }
+
+            if (this.currState.buttons[b] == 0.0 && this.lastState.buttons[b] != 0.0) return true;
+            return false;
+        }
+
+        isButtonUnchanged(buttons)
+        {
+            if (buttons.length)
+            {
+                let ret = true;
+                for (let b in buttons)
+                {
+                    if ((this.currState.buttons[b] == this.lastState.buttons[b]) == false) 
+                    {
+                        ret = false;
+                        break;
+                    }
+                }    
+                return ret;
+            }
+
+            if (this.currState.buttons[b] == this.lastState.buttons[b]) return true;
+            return false;
         }
 
         getGamepad()
@@ -128,7 +170,7 @@
             }
         }
 
-        grabState(state)
+        update()
         {
             let gamepad = this.getGamepad();
             if (!gamepad) return;
@@ -143,39 +185,6 @@
             this.currState.axes[5] = this.currState.buttons[6];
             this.currState.axes[6] = this.currState.buttons[7];
         }
-
-        update()
-        {
-            this.grabState();
-            let power = 0;
-            for (let b in this.currState.buttons)
-            {
-                if (this.currState.buttons[b] == 1.0 && this.lastState.buttons[b] != 1.0)
-                {
-                    console.log("Controller "+this.id+" Button "+b+" PRESSED");
-                    power = 1.0;
-                }
-                else if (this.currState.buttons[b] == 0.0 && this.lastState.buttons[b] != 0.0)
-                    console.log("Controller "+this.id+" Button "+b+" RELEASED");
-            }
-            for (let b in this.currState.axes)
-            {
-                if (b > 4 && this.currState.axes[b] == 1.0) power = 1.0;
-                if (this.currState.axes[b] > this.lastState.axes[b])
-                {
-                    console.log("Controller "+this.id+" Axis "+b+" INCREASING");
-                    if (b > 4) power = this.currState.axes[b] > power ? this.currState.axes[b] : power;
-                }
-                else if (this.currState.axes[b] < this.lastState.axes[b])
-                {
-                    console.log("Controller "+this.id+" Axis "+b+" DECREASING");
-                    if (b > 4) power = this.currState.axes[b] > power ? this.currState.axes[b] : power;
-                }
-            }
-            if (power > 0) this.vibrate(power);
-        }
-
-
     }
 
     class ControllerKeyboardMouse extends Controller
@@ -210,7 +219,10 @@
             this.controllers = {};  // map to find what player is on what controller
             this.configs = {};      // map of configs for each controller - { type : { id : config } }
             this.events = {};       // map of events that can be triggered - { id : event }
-            this.init();
+            this.configs[ControllerType.Gamepad] = {};
+            this.configs[ControllerType.KeyboardMouse] = {};
+            this.configs[ControllerType.Touch] = {};
+            this.configs[ControllerType.Unknown] = {};
         }
 
         init()
@@ -219,10 +231,6 @@
             window.addEventListener("gamepadconnected", function(e) { obj.onPlayerConnected(e); });
             window.addEventListener("gamepaddisconnected", function(e) { obj.onPlayerDisconnected(e); });
             this.detectMouseKeyboard();
-            this.configs[ControllerType.Gamepad] = {};
-            this.configs[ControllerType.KeyboardMouse] = {};
-            this.configs[ControllerType.Touch] = {};
-            this.configs[ControllerType.Unknown] = {};
         }
 
         addConfigGroup(g)
@@ -366,4 +374,9 @@
     }
 
     mx.PlayerManager = new PlayerManager();
+    mx.ControllerType = ControllerType;
+    mx.Player = Player;
+    mx.Controller = Controller;
+    mx.ControllerGamePad = ControllerGamePad;
+    mx.ControllerKeyboardMouse = ControllerKeyboardMouse;
 })();

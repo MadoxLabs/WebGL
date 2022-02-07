@@ -273,6 +273,8 @@ var gl; // leave this global for quick access
     Game.loadTextureFile("missing", mx.libdir + "/assets/missing.png", true);
     if (Game.appInit) Game.appInit();
 
+    mx.PlayerManager.init();
+    
     Game.ready = true;
     Game.lastTime =performance.now();
     handleSizeChange();
@@ -357,6 +359,15 @@ var gl; // leave this global for quick access
 
 
 
+  Game.loadInputFile = function (name)
+  {
+    Game.loadingIncr(name);
+
+    var client = new XMLHttpRequest();
+    client.open('GET', name);
+    client.onload = function () { mx.InputLoader.process(client.responseText); Game.loadingDecr(name); }
+    client.send();
+  }
 
   Game.loadShaderFile = function (name)
   {

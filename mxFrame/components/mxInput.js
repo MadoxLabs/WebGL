@@ -14,8 +14,35 @@
 
     const DigitalStrokeState = {
         Up: 0,
-        Down: 1,
-        Unchanged: 2
+        Down: 1
+    }
+
+    const AnalogStrokeState = {
+      Over: 0,
+      Under: 1,
+      Dead: 2,
+      Squeezing: 3,
+      Releasing: 4
+    }
+
+    class Event
+    {
+        constructor(i, n)
+        {
+            this.id = i;
+            this.name = n;
+            this.codes = [];
+        }
+    }
+
+    class EventCode
+    {
+      constructor(c, p, t)
+      {
+          this.cmd = c;
+          this.param = p ? p : 0;
+          this.target = t ? t : 0;
+      }
     }
 
     class CommandConfigGroup
@@ -54,17 +81,16 @@
             this.commands.push(c);
         }
 
-        pump(laststate, currstate)
+        pump(controller)
         {
             if (this.activeCommand != null)
             {
-              switch (this.activeCommand.check(laststate, currstate, time))
+              switch (this.activeCommand.check(controller))
               {
                 case CommandState.Triggered:
                   {
                     let ret = this.activeCommand.event;
-                    if (this.activeCommand.repeat == false)
-                        this.activeCommand = null;
+                    if (this.activeCommand.repeat == false) this.activeCommand = null;
                     return ret;
                   }
                 case CommandState.Progressing:
@@ -94,10 +120,11 @@
     
     class Command
     {
-      constructor(e)
+      constructor(e, r)
       {
         this.event = e;
         this.strokes = [];
+        this.repeat = r ? r : false;
         this.reset();
       }
 
@@ -114,19 +141,42 @@
         this.started = false;
       }
 
-      check(lastState, currState)
+      check(controller)
       {
+        // sanity check - no work to be done
         if (this.strokes.length == 0) return CommandState.Failed;
+        // sanity check - in case its corrupt, so we dont crash
         if (!this.repeating && this.done > this.strokes.length) this.reset();
+        // if a stroke is started, begin counting time between strokes
         let s = this.strokes[this.repeating ? this.strokes.length-1 : this.done];  
-        if (this.started)
+
+        // timeout?
+        if (this.started && (mx.Game.time - this.time > s.maxWaitTime))
         {
-          this.time = 
+          this.reset();
         }
 
-        switch (s.isStroked(lastState, currState))
+        switch (s.isStroked(controller))
         {
-          case 
+          case StrokeState.Good:
+            if (!this.repeating) this.done++;
+            this.started = true;
+            this.time = mx.Game.time; // save the stroke time for wait timeout
+            if (this.done == this.strokes.length)
+            {
+              if (!this.repeat) this.reset();
+              else this.repeating = true;
+              return CommandState.Triggered;
+            }
+            return CommandState.Progressing;
+
+          case StrokeState.Bad:
+            this.reset();
+            break;
+
+          case StrokeState.Wait:
+            if (this.done > 0) return CommandState.Progressing;  
+            break;
         }
       }
     }
@@ -135,26 +185,44 @@
     {
         constructor(t)
         {
-            this.time = t ? t : 500;
+            // if we are waiting for this stroke to happen, we dont wait forever
+            this.maxWaitTime = t ? t : 500;
+            this.holdTime = 0;
         }
 
-        isStroked(lastState, currState)
+        isStroked(controller)
         {
         }
     }
 
     class StrokeDigital extends Stroke
     {
-        constructor(b, s, t)
+        constructor(b, s, t, h)
         {
             super(t);
+            this.startHoldTime = 0;
             this.buttons = b;
             this.state = s;
+            this.holdTime = h ? h : 0;
         }
 
-        isStroked(lastState, currState)
+        isStroked(controller)
         {
-            if (currState.unchangedFrom(lastState))
+            // if holding, check for unchanged buttons
+            // if time is up, we are good
+            // else waiting
+            if (this.startHoldTime)
+            {
+              if (controller.isButtonUnchanged(this.buttons) == false) return StrokeState.Bad;
+              if (mx.Game.time - this.startHoldTime >= this.holdTime)
+              {
+                this.startHoldTime = 0;
+                return StrokeState.Good;
+              }
+              return StrokeState.Wait;
+            }
+
+            if (controller.unchangedDigital())
             {
                 if (this.state == DigitalStrokeState.Unchanged) return StrokeState.Good;
                 return StrokeState.Wait;
@@ -163,19 +231,114 @@
             switch(this.state)
             {
               case DigitalStrokeState.Down:
-                if (lastState.isButtonUp(this.buttons) && currState.isButtonDown(this.buttons)) return StrokeState.Good;
+                if (controller.wasButtonPressed(this.buttons)) 
+                {
+                    if (!this.holdTime) return StrokeState.Good;
+
+                    // change to hold mode
+                    this.startHoldTime = mx.Game.time;
+                    return StrokeState.Wait; // waiting for hold to end
+                  }
                 break;
               case DigitalStrokeState.Up:
-                if (lastState.isButtonDown(this.buttons) && currState.isButtonUp(this.buttons)) return StrokeState.Good;
-                break;
-              case DigitalStrokeState.Unchanged:
-                if (lastState.isButtonDown(this.buttons) && currState.isButtonDown(this.buttons)) return StrokeState.Good;
-                if (lastState.isButtonUp(this.buttons) && currState.isButtonUp(this.buttons)) return StrokeState.Good;
+                if (controller.wasButtonReleased(this.buttons)) return StrokeState.Good;
                 break;
             }
-
             return StrokeState.Bad;
         }
     }
+
+    class StrokeAnalog extends Stroke
+    {
+        constructor(b, s, v, t)
+        {
+            super(t);
+            this.axes = b;
+            this.state = s;
+            this.value = v;
+        }
+
+        isStroked(controller)
+        {
+            let same = true;
+            for (let i in this.axes)
+            {
+              let axis = this.axis[i];
+              let last = controller.laststate.axes[axis];
+              let curr = controller.currstate.axes[axis];
+              if (this.isSame(last, curr) == false) { same = false; break; }
+            }
+            if (same) return StrokeState.Wait;
+
+            for (let i in this.axes)
+            {
+              let axis = this.axis[i];
+              let last = controller.laststate.axes[axis];
+              let curr = controller.currstate.axes[axis];
+              if (this.check(last, curr) == false) { return StrokeState.Bad; }
+            }
+
+            return StrokeState.Good;
+        }
+
+        check(valLast, valCurr)
+        {
+            switch (this.state)
+            {
+                case AnalogStrokeState.Over:
+                    if (valLast <= this.value && valCurr > this.value) return true;
+                    break;
+                case AnalogStrokeState.Under:
+                    if (valLast >= this.value && valCurr < this.value) return true;
+                    break;
+                case AnalogStrokeState.Dead:
+                    if (Math.Abs(valLast) > 0.12 && Math.Abs(valCurr) < 0.12) return true;
+                    break;
+                case AnalogStrokeState.Squeezing:
+                    if (valLast < valCurr) return true;
+                    break;
+                case AnalogStrokeState.Squeezing:
+                    if (valLast > valCurr) return true;
+                    break;
+            }
+            return false;
+        }
+
+        isSame(i)
+        {
+          switch (valLast, valCurr)
+          {
+              case AnalogStrokeState.Over:
+              case AnalogStrokeState.Under:
+                  if (valLast < this.value && valCurr < this.value) return true;
+                  if (valLast > this.value && valCurr > this.value) return true;
+                  break;
+              case AnalogStrokeState.Dead:
+                  if (Math.Abs(valLast) > 0.12 && Math.Abs(valCurr) > 0.12) return true;
+                  if (Math.Abs(valLast) < 0.12 && Math.Abs(valCurr) < 0.12) return true;
+                  break;
+              case AnalogStrokeState.Squeezing:
+                  if (valLast < valCurr) return true;
+                  break;
+              case AnalogStrokeState.Squeezing:
+                  if (valLast > valCurr) return true;
+                  break;
+            }
+          return false;
+        }
+    }
+
+    mx.CommandState = CommandState;
+    mx.StrokeState = StrokeState;
+    mx.DigitalStrokeState = DigitalStrokeState;
+    mx.AnalogStrokeState = AnalogStrokeState;
+    mx.Event = Event;
+    mx.EventCode = EventCode;
+    mx.CommandConfigGroup = CommandConfigGroup;
+    mx.CommandConfig = CommandConfig;
+    mx.Command = Command;
+    mx.Stroke = Stroke;
+    mx.StrokeDigital = StrokeDigital;
+    mx.StrokeAnalog = StrokeAnalog;
 }
 )();

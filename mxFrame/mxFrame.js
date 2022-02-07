@@ -19,6 +19,7 @@ function doneLoading() { }
   // source files to load, some optionally
   var dependancies = ["libs/glMatrix.js"];
   var baseSrc = ["libs/pako.js",
+                 "components/mxLoaders.js",
                  "components/mxMesh.js",
                  "components/mxTexture.js",
                  "components/mxShader.js",
@@ -26,6 +27,7 @@ function doneLoading() { }
                  "components/mxAssetManager.js",
                  "components/mxCamera.js",
                  "components/mxMouse.js",
+                 "components/mxInput.js",
                  "components/mxPlayer.js",
                  "components/mxGame.js"];
   var oculusSrc = ["libs/oculus.lib.js"];
