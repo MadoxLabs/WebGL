@@ -46,7 +46,7 @@
                 let pumped = 0;
                 for (let i = this.config.length-1; i >= 0; --i)
                 {
-                    let c = this.coonfig[i];
+                    let c = this.config[i];
                     if ((pumped & c.class) != 0) continue;
                     ret = c.pump(this.controller);
                     if (ret) return ret;
@@ -93,8 +93,9 @@
             if (buttons.length)
             {
                 let ret = true;
-                for (let b in buttons)
+                for (let bID in buttons)
                 {
+                    let b = buttons[bID];
                     if ((this.currState.buttons[b] == 1.0 && this.lastState.buttons[b] != 1.0) == false) 
                     {
                         ret = false;
@@ -104,7 +105,7 @@
                 return ret;
             }
 
-            if (this.currState.buttons[b] == 1.0 && this.lastState.buttons[b] != 1.0) return true;
+            if (this.currState.buttons[buttons] == 1.0 && this.lastState.buttons[buttons] != 1.0) return true;
             return false;
         }
 
@@ -113,8 +114,9 @@
             if (buttons.length)
             {
                 let ret = true;
-                for (let b in buttons)
+                for (let bID in buttons)
                 {
+                    let b = buttons[bID];
                     if ((this.currState.buttons[b] == 0.0 && this.lastState.buttons[b] != 0.0) == false) 
                     {
                         ret = false;
@@ -124,7 +126,7 @@
                 return ret;
             }
 
-            if (this.currState.buttons[b] == 0.0 && this.lastState.buttons[b] != 0.0) return true;
+            if (this.currState.buttons[buttons] == 0.0 && this.lastState.buttons[buttons] != 0.0) return true;
             return false;
         }
 
@@ -363,6 +365,8 @@
 
         sendEvent(p, eID)
         {
+            console.log("fire event " + eID);
+
             if (!mx.Game.handleEvent) return;
             
             let e = this.events[eID];

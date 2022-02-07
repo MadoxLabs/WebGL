@@ -101,9 +101,10 @@
               }
             }
       
-            for (let c in this.commands)
+            for (let cID in this.commands)
             {
-              switch (c.check(laststate, currstate, time))
+              let c = this.commands[cID];
+              switch (c.check(controller))
               {
                 case CommandState.Triggered:
                   return c.Event;
@@ -153,17 +154,20 @@
         // timeout?
         if (this.started && (mx.Game.time - this.time > s.maxWaitTime))
         {
+//          console.log("Time out");
           this.reset();
         }
 
         switch (s.isStroked(controller))
         {
           case StrokeState.Good:
+//            console.log("good stroke");
             if (!this.repeating) this.done++;
             this.started = true;
             this.time = mx.Game.time; // save the stroke time for wait timeout
             if (this.done == this.strokes.length)
             {
+//              console.log("strokes complete - trigger!");
               if (!this.repeat) this.reset();
               else this.repeating = true;
               return CommandState.Triggered;
@@ -171,6 +175,7 @@
             return CommandState.Progressing;
 
           case StrokeState.Bad:
+//            console.log("stroking ended - bad");
             this.reset();
             break;
 
