@@ -14,19 +14,23 @@
             this.id = id;
             this.controller = null;
             this.config = [];         // CommandConfig object LIFO
+
+            this.lockedConfig = null;
         }
 
         addConfig(c)
         {
             this.config.push(c);
+            console.log("player "+this.id+": add config '"+c.name+"'");
         }
 
         removeConfig(cID)
         {
-            for (let i in this.configs)
+            for (let i in this.config)
             {
-                if (this.configs[i].id = cID)
+                if (this.config[i].id == cID)
                 {
+                    console.log("player "+this.id+": remove config '"+this.config[i].name+"'");
                     this.config.splice(i, 1);
                     return;
                 }
@@ -44,12 +48,35 @@
                 // fire commands
                 let ret = 0;
                 let pumped = 0;
+                
+                // a config is locked? give it first crack, until it fails or triggers
+                if (this.lockedConfig)
+                {
+                    ret = this.lockedConfig.pump(this.controller);
+                    if (!ret) 
+                    {
+                        this.lockedConfig = null;
+                    }
+                    else if (ret > 0) 
+                    {
+                        this.lockedConfig = null;
+                        return ret;
+                    }
+                    else return 0;
+                }
+
                 for (let i = this.config.length-1; i >= 0; --i)
                 {
                     let c = this.config[i];
                     if ((pumped & c.class) != 0) continue;
                     ret = c.pump(this.controller);
-                    if (ret) return ret;
+                    if (ret == -1) // a command is progressing, dont let other configs run for now - lock it for next time
+                    {
+                        this.lockedConfig = c;
+                        break;
+                    }
+                    else if (ret) // a command triggered!
+                        return ret;
                     pumped = pumped | c.class;
                 }
             }
@@ -306,13 +333,11 @@
             if (c.player) c.player.controller = null;
             p.controller = c;
             c.player = p;
-            // assign the commands for this controller
-            for (let i in this.configs[c.type]) p.addConfig(this.configs[c.type][i]);
         }
 
         assignConfigToPlayer(pID, cID)
         {
-            let p = this.players[pID];
+            let p = pID.id ? pID : this.players[pID]; // were we passed a player?
             if (!p || !p.controller) return;
             let c = this.configs[p.controller.type][cID];
             if (!c) return;
@@ -333,7 +358,7 @@
 
         removeConfigFromPlayer(pID, cID)
         {
-            let p = this.players[pID];
+            let p = pID.id ? pID : this.players[pID];
             if (!p || !p.controller) return;
             p.removeConfig(cID);
         }
@@ -364,15 +389,23 @@
         }
 
         sendEvent(p, eID)
-        {
-            console.log("fire event " + eID);
-
-            if (!mx.Game.handleEvent) return;
-            
+        {            
             let e = this.events[eID];
-            for (let i in e.codes)
+            console.log("fire event " + eID + " ("+e.name+")");
+
+            if (mx.Game.handleEvent)
             {
-                mx.Game.handleEvent(p, e.codes[i]);
+                for (let i in e.codes)
+                {
+                    mx.Game.handleEvent(p, e.codes[i]);
+                }    
+            }
+            for (let i in e.assigns)
+            {
+                if (e.assigns[i].set)
+                    this.assignConfigToPlayer(p, e.assigns[i].config);
+                else
+                    this.removeConfigFromPlayer(p, e.assigns[i].config);
             }
         }
     }

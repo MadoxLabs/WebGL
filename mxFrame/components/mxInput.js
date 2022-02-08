@@ -32,6 +32,7 @@
             this.id = i;
             this.name = n;
             this.codes = [];
+            this.assigns = [];
         }
     }
 
@@ -42,6 +43,15 @@
           this.cmd = c;
           this.param = p ? p : 0;
           this.target = t ? t : 0;
+      }
+    }
+
+    class Assign
+    {
+      constructor(c, s)
+      {
+          this.config = c;
+          this.set = s;
       }
     }
 
@@ -90,11 +100,11 @@
                 case CommandState.Triggered:
                   {
                     let ret = this.activeCommand.event;
-                    if (this.activeCommand.repeat == false) this.activeCommand = null;
+                    this.activeCommand = null;
                     return ret;
                   }
                 case CommandState.Progressing:
-                  return 0;
+                  return -1;
                 case CommandState.Failed:
                     this.activeCommand = null;
                   break;
@@ -107,10 +117,10 @@
               switch (c.check(controller))
               {
                 case CommandState.Triggered:
-                  return c.Event;
+                  return c.event;
                 case CommandState.Progressing:
                   this.activeCommand = c;
-                  return 0;
+                  return -1;
                 case CommandState.Failed:
                   break;
               }
@@ -121,11 +131,10 @@
     
     class Command
     {
-      constructor(e, r)
+      constructor(e)
       {
         this.event = e;
         this.strokes = [];
-        this.repeat = r ? r : false;
         this.reset();
       }
 
@@ -138,7 +147,6 @@
       {
         this.done = 0;
         this.time = 0;
-        this.repeating = false;
         this.started = false;
       }
 
@@ -147,9 +155,9 @@
         // sanity check - no work to be done
         if (this.strokes.length == 0) return CommandState.Failed;
         // sanity check - in case its corrupt, so we dont crash
-        if (!this.repeating && this.done > this.strokes.length) this.reset();
+        if (this.done > this.strokes.length) this.reset();
         // if a stroke is started, begin counting time between strokes
-        let s = this.strokes[this.repeating ? this.strokes.length-1 : this.done];  
+        let s = this.strokes[this.done];  
 
         // timeout?
         if (this.started && (mx.Game.time - this.time > s.maxWaitTime))
@@ -162,14 +170,13 @@
         {
           case StrokeState.Good:
 //            console.log("good stroke");
-            if (!this.repeating) this.done++;
+            this.done++;
             this.started = true;
             this.time = mx.Game.time; // save the stroke time for wait timeout
             if (this.done == this.strokes.length)
             {
 //              console.log("strokes complete - trigger!");
-              if (!this.repeat) this.reset();
-              else this.repeating = true;
+              this.reset();
               return CommandState.Triggered;
             }
             return CommandState.Progressing;
@@ -229,8 +236,8 @@
 
             if (controller.unchangedDigital())
             {
-                if (this.state == DigitalStrokeState.Unchanged) return StrokeState.Good;
-                return StrokeState.Wait;
+              if (this.state == DigitalStrokeState.Unchanged) return StrokeState.Good;
+              return StrokeState.Wait;
             }
 
             switch(this.state)
@@ -238,7 +245,7 @@
               case DigitalStrokeState.Down:
                 if (controller.wasButtonPressed(this.buttons)) 
                 {
-                    if (!this.holdTime) return StrokeState.Good;
+                  if (!this.holdTime) return StrokeState.Good;
 
                     // change to hold mode
                     this.startHoldTime = mx.Game.time;
@@ -246,7 +253,10 @@
                   }
                 break;
               case DigitalStrokeState.Up:
-                if (controller.wasButtonReleased(this.buttons)) return StrokeState.Good;
+                if (controller.wasButtonReleased(this.buttons)) 
+                {
+                  return StrokeState.Good;
+                }
                 break;
             }
             return StrokeState.Bad;
@@ -338,6 +348,7 @@
     mx.DigitalStrokeState = DigitalStrokeState;
     mx.AnalogStrokeState = AnalogStrokeState;
     mx.Event = Event;
+    mx.Assign = Assign;
     mx.EventCode = EventCode;
     mx.CommandConfigGroup = CommandConfigGroup;
     mx.CommandConfig = CommandConfig;

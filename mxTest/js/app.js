@@ -39,3 +39,7 @@ Game.appDraw = function (eye)
   if (Game.loading) return;
 }
 
+Game.handlePlayerConnected = function(player)
+{
+  mx.PlayerManager.assignConfigToPlayer(player, 1); // start with default keybindings
+}

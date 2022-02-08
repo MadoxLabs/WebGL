@@ -95,10 +95,10 @@
                 if (words[0] == "Event")
                 {
                     lastEvent = null;
-                    if (words.length != 3) { this.error("Bad Event definition"); continue; }
+                    if (words.length != 2) { this.error("Bad Event definition"); continue; }
                     let id = this.resolveNumber(words[1], ids);
                     if (id === false) continue;
-                    lastEvent = new mx.Event(id, words[2]);
+                    lastEvent = new mx.Event(id, words[1]);
                     events.push(lastEvent);
                     continue;
                 }
@@ -124,10 +124,27 @@
                     continue;
                 }
 
+                if (words[0] == "Assign")
+                {
+                    if (!lastEvent) { this.error("Assign without a previous Event"); continue; }
+                    if (words.length != 3) { this.error("Bad Assign definition"); continue; }
+
+                    let id = this.resolveNumber(words[1], ids);
+                    if (id === false) continue;
+
+                    let set = words[2];
+                    if (set == "Set") set = true;
+                    else if (set == "Unset") set = false;
+                    else { this.error("Assign must use Set or Unset"); continue; }
+
+                    lastEvent.assigns.push(new mx.Assign(id, set));
+                    continue;
+                }
+
                 if (words[0] == "CommandConfig")
                 {
                     lastConfig = null;
-                    if (words.length < 4 || words.length > 5) { this.error("Bad CommandConfig definition"); continue; }
+                    if (words.length < 3 || words.length > 4) { this.error("Bad CommandConfig definition"); continue; }
                     let id = this.resolveNumber(words[1], ids);
                     if (id === false) continue;
 
@@ -135,12 +152,12 @@
                     if (type === false) continue;
                     if (type > 3) { this.error("Bad type number"); continue ; }
 
-                    let name = words[3];
+                    let name = words[1];
 
                     let klass = 0;
-                    if (words.length == 5)
+                    if (words.length == 4)
                     {
-                        let klass = this.resolveNumber(words[3], ids);
+                        klass = this.resolveNumber(words[3], ids);
                         if (klass === false) continue;
                     }
 
@@ -153,16 +170,11 @@
                 {
                     lastCommand = null;
                     if (!lastConfig) { this.error("Command without a previous CommandConfig"); continue; }
-                    if (words.length < 2 || words.length > 3) { this.error("Bad Command definition"); continue; }
+                    if (words.length != 2) { this.error("Bad Command definition"); continue; }
                     let id = this.resolveNumber(words[1], ids);
                     if (id === false) continue;
 
-                    let repeat = false;
-                    if(words.length == 3) 
-                    {
-                        if (words[2] == "Repeat") repeat = true;
-                    }
-                    lastCommand = new mx.Command(id, repeat);
+                    lastCommand = new mx.Command(id);
                     lastConfig.commands.push(lastCommand);
                     continue;
                 }
