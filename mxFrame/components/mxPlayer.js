@@ -48,7 +48,7 @@
                 // fire commands
                 let ret = 0;
                 let pumped = 0;
-                
+
                 // a config is locked? give it first crack, until it fails or triggers
                 if (this.lockedConfig)
                 {

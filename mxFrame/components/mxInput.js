@@ -278,21 +278,20 @@
             let same = true;
             for (let i in this.axes)
             {
-              let axis = this.axis[i];
-              let last = controller.laststate.axes[axis];
-              let curr = controller.currstate.axes[axis];
+              let axis = this.axes[i];
+              let last = controller.lastState.axes[axis];
+              let curr = controller.currState.axes[axis];
               if (this.isSame(last, curr) == false) { same = false; break; }
             }
             if (same) return StrokeState.Wait;
 
             for (let i in this.axes)
             {
-              let axis = this.axis[i];
-              let last = controller.laststate.axes[axis];
-              let curr = controller.currstate.axes[axis];
+              let axis = this.axes[i];
+              let last = controller.lastState.axes[axis];
+              let curr = controller.currState.axes[axis];
               if (this.check(last, curr) == false) { return StrokeState.Bad; }
             }
-
             return StrokeState.Good;
         }
 
@@ -307,7 +306,7 @@
                     if (valLast >= this.value && valCurr < this.value) return true;
                     break;
                 case AnalogStrokeState.Dead:
-                    if (Math.Abs(valLast) > 0.12 && Math.Abs(valCurr) < 0.12) return true;
+                    if (Math.abs(valLast) > this.value && Math.abs(valCurr) < this.value) return true;
                     break;
                 case AnalogStrokeState.Squeezing:
                     if (valLast < valCurr) return true;
@@ -319,18 +318,19 @@
             return false;
         }
 
-        isSame(i)
+        isSame(valLast, valCurr)
         {
-          switch (valLast, valCurr)
+          switch (this.state)
           {
               case AnalogStrokeState.Over:
+                if (valLast > this.value && valCurr > this.value) return true;
+                break;
               case AnalogStrokeState.Under:
-                  if (valLast < this.value && valCurr < this.value) return true;
-                  if (valLast > this.value && valCurr > this.value) return true;
-                  break;
+                if (valLast < this.value && valCurr < this.value) return true;
+                break;
               case AnalogStrokeState.Dead:
-                  if (Math.Abs(valLast) > 0.12 && Math.Abs(valCurr) > 0.12) return true;
-                  if (Math.Abs(valLast) < 0.12 && Math.Abs(valCurr) < 0.12) return true;
+                  if (Math.abs(valLast) > this.value && Math.abs(valCurr) > this.value) return true;
+                  if (Math.abs(valLast) < this.value && Math.abs(valCurr) < this.value) return true;
                   break;
               case AnalogStrokeState.Squeezing:
                   if (valLast < valCurr) return true;

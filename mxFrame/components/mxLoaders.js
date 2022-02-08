@@ -28,6 +28,22 @@
             return id;
         }
         
+        resolveFloat(word, ids)
+        {
+            let id = parseFloat(word);
+            if (isNaN(id))  
+            {
+                if (word in ids) 
+                    id = ids[word];
+                else 
+                {
+                    this.error("Non numeric value '" +word+ "'"); 
+                    return false; 
+                }
+            }
+            return id;
+        }
+
         process(text)
         {
             let ids = {};
@@ -232,9 +248,9 @@
 
                     let state = this.resolveNumber(words[2], ids);
                     if (state === false) continue;
-                    if (state > 1)  { this.error("Bad state number"); continue; }
+                    if (state > 2)  { this.error("Bad state number"); continue; }
 
-                    let value = this.resolveNumber(words[3], ids);
+                    let value = this.resolveFloat(words[3], ids);
                     if (value === false) continue;
 
                     let time = 0;
