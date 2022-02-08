@@ -262,6 +262,34 @@
                     lastCommand.strokes.push( new mx.StrokeAnalog(buttons, state, value, time) );
                     continue;
                 }
+
+                if (words[0] == "StrokeKey")
+                {
+                    if (!lastCommand) { this.error("StrokeKey without a previous Command"); continue; }
+                    if (words.length < 3 || words.length > 5) { this.error("Bad StrokeKey definition"); continue; }
+
+                    let keys = words[1].split(",");
+
+                    let state = this.resolveNumber(words[2], ids);
+                    if (state === false) continue;
+                    if (state > 1)  { this.error("Bad state number"); continue; }
+
+                    let time = 0;
+                    if(words.length > 3) 
+                    {
+                        let time = this.resolveNumber(words[3], ids);
+                        if (time === false) continue;
+                    }
+
+                    let hold = 0;
+                    if(words.length == 5) 
+                    {
+                        let hold = this.resolveNumber(words[4], ids);
+                        if (hold === false) continue;
+                    }
+                    lastCommand.strokes.push( new mx.StrokeKey(keys, state, time, hold) );
+                    continue;                    
+                }
             }
 
             let group = new mx.CommandConfigGroup();

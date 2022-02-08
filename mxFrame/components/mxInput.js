@@ -17,6 +17,10 @@
         Down: 1
     }
 
+    const KeyStrokeState = {
+      Up: 0,
+      Down: 1
+  }
     const AnalogStrokeState = {
       Over: 0,
       Under: 1,
@@ -343,10 +347,71 @@
         }
     }
 
+    class StrokeKey extends Stroke
+    {
+        constructor(k, s, t, h)
+        {
+            super(t);
+            this.startHoldTime = 0;
+            this.keys = k;
+            this.state = s;
+            this.holdTime = h ? h : 0;
+        }
+
+        isKeyUp(state, key)
+        {
+            if (key in state.keys)
+            {
+                return !state.keys[key];
+            }
+            return true;
+        }
+
+        isKeyDown(state, key)
+        {
+            if (key in state.keys)
+            {
+                return state.keys[key];
+            }
+            return false;
+        }
+
+        isStroked(controller)
+        {
+            let same = true;
+            for (let i in this.keys)
+            {
+                if (this.isKeyUp(controller.lastState, this.keys[i]) && this.isKeyUp(controller.currState, this.keys[i])) continue;
+                if (this.isKeyDown(controller.lastState, this.keys[i]) && this.isKeyDown(controller.currState, this.keys[i])) continue;
+                same = false;
+                break;
+            }
+            if (same)
+            {
+                return StrokeState.Wait;
+            }
+    
+          for (let i in this.keys)
+          {
+              switch (this.state)
+              {
+              case KeyStrokeState.Down:
+                  if (!(this.isKeyUp(controller.lastState, this.keys[i]) && this.isKeyDown(controller.currState, this.keys[i]))) return StrokeState.Bad;
+                  break;
+              case KeyStrokeState.Up:
+                  if (!(this.isKeyDown(controller.lastState, this.keys[i]) && this.isKeyUp(controller.currState, this.keys[i]))) return StrokeState.Bad;
+                  break;
+              }
+          }
+          return StrokeState.Good;
+        }
+    }
+
     mx.CommandState = CommandState;
     mx.StrokeState = StrokeState;
     mx.DigitalStrokeState = DigitalStrokeState;
     mx.AnalogStrokeState = AnalogStrokeState;
+    mx.KeyStrokeState = KeyStrokeState;
     mx.Event = Event;
     mx.Assign = Assign;
     mx.EventCode = EventCode;
@@ -356,5 +421,6 @@
     mx.Stroke = Stroke;
     mx.StrokeDigital = StrokeDigital;
     mx.StrokeAnalog = StrokeAnalog;
+    mx.StrokeKey = StrokeKey;
 }
 )();

@@ -252,8 +252,6 @@ var gl; // leave this global for quick access
     Game.camera = new mx.Camera(gl.viewportWidth, gl.viewportHeight);
 
     // handlers
-    document.onkeydown = handleKeyDown;
-    document.onkeyup = handleKeyUp;
     window.addEventListener('resize', handleSizeChange);
 
     if (mx.libtype & mx.WITH_OCULUS) {
@@ -272,8 +270,6 @@ var gl; // leave this global for quick access
     Game.loadTextureFile("mouse", mx.libdir + "/assets/mouse.png", false);
     Game.loadTextureFile("missing", mx.libdir + "/assets/missing.png", true);
     if (Game.appInit) Game.appInit();
-
-    mx.PlayerManager.init();
     
     Game.ready = true;
     Game.lastTime =performance.now();
@@ -432,7 +428,13 @@ var gl; // leave this global for quick access
 
   Game.loadingDecr = function (name)
   {
-    if (Game.loading == 1) { Game.shaderMan.processEffects(); console.log(Game.shaderMan.sources); Game.loadingStop(); }
+    if (Game.loading == 1) 
+    { 
+      Game.shaderMan.processEffects(); 
+      console.log(Game.shaderMan.sources); 
+      mx.PlayerManager.init();
+      Game.loadingStop(); 
+    }
     if (Game.loading > 0) Game.loading -= 1;
     if (reportLoaded) reportLoaded(name, Game.loading);
   }
@@ -601,13 +603,8 @@ var gl; // leave this global for quick access
     Game.deviceReady();
   }
 
-  function handleKeyDown(event)
+  Game.handleKeyDown = function(event)
   {
-    if (event.target.type) return;
-    // space and arrow keys dont scroll
-    if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1) event.preventDefault();
-    if ([90].indexOf(event.keyCode) > -1) adjust += 1;
-    if ([88].indexOf(event.keyCode) > -1) adjust -= 1;
     if ([80].indexOf(event.keyCode) > -1) { /*Game.shaderMan.log = true;*/ console.log(Game.getFPS()); }
     //if ([189].indexOf(event.keyCode) > -1) { wtf.trace.reset(); wtf.trace.start(options); }
     //if ([187].indexOf(event.keyCode) > -1) { wtf.trace.snapshot(); wtf.trace.stop(); }
@@ -615,7 +612,7 @@ var gl; // leave this global for quick access
     if (Game.appHandleKeyDown) Game.appHandleKeyDown(event);
   }
 
-  function handleKeyUp(event)
+  Game.handleKeyUp = function (event)
   {
     if (event.target.type) return;
     if (Game.appHandleKeyUp) Game.appHandleKeyUp(event);

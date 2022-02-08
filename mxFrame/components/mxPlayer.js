@@ -221,13 +221,41 @@
         constructor(id)
         {
             super(id, ControllerType.KeyboardMouse);
-            this.lastState = null;
-            this.currState = null;            
+            this.pendingKeys = {};
+            this.lastState = {keys: {}};
+            this.currState = {keys: {}};      
+            
+            let obj = this;
+            document.onkeydown = function(e) { obj.handleKeyDown(e); }
+            document.onkeyup   = function(e) { obj.handleKeyUp(e); }
+        }
+
+        handleKeyDown(event)
+        {
+            if (event.target.type) return;
+            // space and arrow keys dont scroll
+            if ([9, 32, 37, 38, 39, 40].indexOf(event.keyCode) > -1) event.preventDefault();
+            if (mx.Game.handleKeyDown) mx.Game.handleKeyDown(event);
+
+//            console.log("Pressed "+event.code+ "("+event.keyCode+")");
+
+            this.pendingKeys[event.code] = true;
+        }
+        
+        handleKeyUp(event)
+        {
+            if (event.target.type) return;
+            if (mx.Game.handleKeyUp) mx.Game.handleKeyUp(event);
+
+//            console.log("UNPressed "+event.code+ "("+event.keyCode+")");
+            this.pendingKeys[event.code] = false;
         }
 
         update()
         {
-
+            this.lastState.keys = Object.assign({}, this.currState.keys);     
+            Object.assign(this.currState.keys, this.pendingKeys);
+            this.pendingKeys = {};
         }
     }
 
