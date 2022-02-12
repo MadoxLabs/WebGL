@@ -15,7 +15,8 @@
         get name() { return this.#name; }
         get value() { return null; }
         getValue(i) { return null; }
-        setToDefault() { if (this.wrapper) this.wrapper.setDefault(); }
+        setValue(i, val) { }
+        setToDefault() { if (this.wrapper) this.wrapper.setToDefault(); }
         toString() { return ""; }
     }
 
@@ -48,6 +49,11 @@
         get count() { return this.#value.length; }
         get value() { return this.count ? this.#value[0] : null; }
         getValue(i) { return i < this.count ? this.#value[i] : null; }
+        setValue(i, val) 
+        {  
+            if (i < this.count) this.#value[i] = parseInt(""+value);
+            else this.push(value);
+        }
         push(value) { this.#value.push( parseInt(""+value)); }
         toString() { return ""+this.value.join(","); }
     }
@@ -81,6 +87,11 @@
         get count() { return this.#value.length; }
         get value() { return this.count ? this.#value[0] : null; }
         getValue(i) { return i < this.count ? this.#value[i] : null; }
+        setValue(i, val) 
+        {  
+            if (i < this.count) this.#value[i] = parseFloat(""+value);
+            else this.push(value);
+        }
         push(value) { this.#value.push( parseFloat(""+value)); }
         toString() { return ""+this.value.join(","); }
     }
@@ -114,6 +125,11 @@
         get count() { return this.#value.length; }
         get value() { return this.count ? this.#value[0] : null; }
         getValue(i) { return i < this.count ? this.#value[i] : null; }
+        setValue(i, val) 
+        {  
+            if (i < this.count) this.#value[i] = ""+value;
+            else this.push(value);
+        }
         push(value) { this.#value.push( ""+value); }
         toString() { return ""+this.value.join(","); }
     }
@@ -196,8 +212,13 @@
 
         get value() 
         {
-            let val = this.#data.getValue(this.#index);
-            if (this.#data.isContainer()) this.#advanceIndex();
+            let val;
+            if (this.#data.isContainer()) {
+                val = this.#data.getValue(this.#index);
+                this.#advanceIndex();
+            }
+            else
+                val = this.#data.value;
             return val;
         }
 
