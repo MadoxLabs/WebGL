@@ -20,6 +20,7 @@ function doneLoading() { }
   var dependancies = ["libs/glMatrix.js"];
   var baseSrc = ["libs/pako.js",
                  "components/mxLoaders.js",
+                 "components/mxData.js",
                  "components/mxMesh.js",
                  "components/mxTexture.js",
                  "components/mxShader.js",

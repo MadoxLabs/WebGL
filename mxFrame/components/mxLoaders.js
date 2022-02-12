@@ -290,6 +290,36 @@
                     lastCommand.strokes.push( new mx.StrokeKey(keys, state, time, hold) );
                     continue;                    
                 }
+
+                if (words[0] == "StrokeMouse")
+                {
+                    if (!lastCommand) { this.error("StrokeMouse without a previous Command"); continue; }
+                    if (words.length < 3 || words.length > 5) { this.error("Bad StrokeMouse definition"); continue; }
+
+                    let button = this.resolveNumber(words[1], ids);
+                    if (button === false) continue;
+                    if (button > 2)  { this.error("Bad button number"); continue; }
+
+                    let state = this.resolveNumber(words[2], ids);
+                    if (state === false) continue;
+                    if (state > 1)  { this.error("Bad state number"); continue; }
+
+                    let time = 0;
+                    if(words.length > 3) 
+                    {
+                        let time = this.resolveNumber(words[3], ids);
+                        if (time === false) continue;
+                    }
+
+                    let hold = 0;
+                    if(words.length == 5) 
+                    {
+                        let hold = this.resolveNumber(words[4], ids);
+                        if (hold === false) continue;
+                    }
+                    lastCommand.strokes.push( new mx.StrokeMouse(button, state, time, hold) );
+                    continue;                    
+                }
             }
 
             let group = new mx.CommandConfigGroup();

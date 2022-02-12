@@ -18,15 +18,16 @@
     }
 
     const KeyStrokeState = {
-      Up: 0,
-      Down: 1
-  }
+        Up: 0,
+        Down: 1
+    }
+
     const AnalogStrokeState = {
-      Over: 0,
-      Under: 1,
-      Dead: 2,
-      Squeezing: 3,
-      Releasing: 4
+        Over: 0,
+        Under: 1,
+        Dead: 2,
+        Squeezing: 3,
+        Releasing: 4
     }
 
     class Event
@@ -87,7 +88,7 @@
             this.id = i;
             this.type = t;
             this.commands = [];
-            this.activeCommand = null;
+            this.activeCommands = [];
         }
 
         addCommand(c)
@@ -97,24 +98,33 @@
 
         pump(controller)
         {
-            if (this.activeCommand != null)
+            if (this.activeCommands.length > 0)
             {
-              switch (this.activeCommand.check(controller))
+              let ret = 0;
+              let i = this.activeCommands.length;
+              while(i--)
               {
-                case CommandState.Triggered:
-                  {
-                    let ret = this.activeCommand.event;
-                    this.activeCommand = null;
-                    return ret;
-                  }
-                case CommandState.Progressing:
-                  return -1;
-                case CommandState.Failed:
-                    this.activeCommand = null;
-                  break;
+                let c = this.activeCommands[i];                
+                switch (c.check(controller))
+                {
+                  case CommandState.Triggered:
+                    {
+                      let ret = c.event;
+                      this.activeCommands = [];
+                      return ret;
+                    }
+                  case CommandState.Progressing:
+                    ret = -1;
+                    break;
+                  case CommandState.Failed:
+                    this.activeCommands.splice(i,1);
+                    break;
+                }
               }
+              if (ret == -1) return ret;
             }
       
+            let ret = 0;
             for (let cID in this.commands)
             {
               let c = this.commands[cID];
@@ -123,13 +133,13 @@
                 case CommandState.Triggered:
                   return c.event;
                 case CommandState.Progressing:
-                  this.activeCommand = c;
-                  return -1;
+                  this.activeCommands.push(c);
+                  ret = -1;
                 case CommandState.Failed:
                   break;
               }
             }
-            return 0;      
+            return ret;      
         }
     }
     
@@ -407,6 +417,55 @@
         }
     }
 
+    class StrokeMouse extends Stroke
+    {
+        constructor(b, s, t, h)
+        {
+            super(t);
+            this.startHoldTime = 0;
+            this.button = b;
+            this.state = s;
+            this.holdTime = h ? h : 0;
+        }
+
+        isKeyUp(state, button)
+        {
+            if (button in state.buttons)
+            {
+                return !state.buttons[button];
+            }
+            return true;
+        }
+
+        isKeyDown(state, button)
+        {
+            if (button in state.buttons)
+            {
+                return state.buttons[button];
+            }
+            return false;
+        }
+
+        isStroked(controller)
+        {
+          if (this.isKeyUp(controller.lastState, this.button) && this.isKeyUp(controller.currState, this.button)) 
+            return StrokeState.Wait;
+          if (this.isKeyDown(controller.lastState, this.button) && this.isKeyDown(controller.currState, this.button)) 
+            return StrokeState.Wait;
+    
+          switch (this.state)
+          {
+          case KeyStrokeState.Down:
+              if (!(this.isKeyUp(controller.lastState, this.button) && this.isKeyDown(controller.currState, this.button))) return StrokeState.Bad;
+              break;
+          case KeyStrokeState.Up:
+              if (!(this.isKeyDown(controller.lastState, this.button) && this.isKeyUp(controller.currState, this.button))) return StrokeState.Bad;
+              break;
+          }
+          return StrokeState.Good;
+        }
+    }
+
     mx.CommandState = CommandState;
     mx.StrokeState = StrokeState;
     mx.DigitalStrokeState = DigitalStrokeState;
@@ -422,5 +481,6 @@
     mx.StrokeDigital = StrokeDigital;
     mx.StrokeAnalog = StrokeAnalog;
     mx.StrokeKey = StrokeKey;
+    mx.StrokeMouse = StrokeMouse;
 }
 )();

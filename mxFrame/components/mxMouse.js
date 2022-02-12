@@ -172,8 +172,8 @@
 
   Mouse.prototype.mouseOut = function (event)
   {
-    if (this.down) this.pendingout = true;
-    else
+//    if (this.down) this.pendingout = true;
+//    else
     {
       if (this.grabbed) this.release();
       this.active = false;

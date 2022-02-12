@@ -582,6 +582,7 @@ var gl; // leave this global for quick access
 
   Game.fireMouseEvent = function (type, mouse)
   {
+    mx.PlayerManager.handleMouseEvent(type, mouse);
     if (Game.appHandleMouseEvent) Game.appHandleMouseEvent(type, mouse);
   }
 

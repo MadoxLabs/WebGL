@@ -222,12 +222,26 @@
         {
             super(id, ControllerType.KeyboardMouse);
             this.pendingKeys = {};
-            this.lastState = {keys: {}};
-            this.currState = {keys: {}};      
+            this.pendingButtons = {};
+            this.lastState = {keys: {}, buttons: {}};
+            this.currState = {keys: {}, buttons: {}};      
             
             let obj = this;
             document.onkeydown = function(e) { obj.handleKeyDown(e); }
             document.onkeyup   = function(e) { obj.handleKeyUp(e); }
+        }
+
+        handleMouseEvent(type, mouse)
+        {
+            if (type == mx.MouseEvent.Down || type == mx.MouseEvent.Up)
+            {
+                this.pendingButtons[mouse.button] = mouse.down;
+            }
+            if (type == mx.MouseEvent.Out)
+            {
+                this.pendingButtons[mouse.button] = false;
+            }
+
         }
 
         handleKeyDown(event)
@@ -254,8 +268,11 @@
         update()
         {
             this.lastState.keys = Object.assign({}, this.currState.keys);     
+            this.lastState.buttons = Object.assign({}, this.currState.buttons);     
             Object.assign(this.currState.keys, this.pendingKeys);
+            Object.assign(this.currState.buttons, this.pendingButtons);
             this.pendingKeys = {};
+            this.pendingButtons = {};
         }
     }
 
@@ -324,6 +341,12 @@
             let ret = this.nextPlayerID;
             this.nextPlayerID++;
             return ret;
+        }
+
+        handleMouseEvent(type, mouse)
+        {
+            let c = this.controllers[999];
+            if (c) c.handleMouseEvent(type, mouse);
         }
 
         onPlayerConnected(e)
