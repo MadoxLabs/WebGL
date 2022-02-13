@@ -36,6 +36,55 @@
 
     // TODO live skin
 
+    let idsource = 1;
+
+    class Component
+    { 
+        constructor()
+        {
+            this.skin = 0;
+            this.rect = { x:0, y:0, w:0, h:0 };
+            this.name = "";
+            this.stretch = false;
+            this.id = idsource++;
+        }
+    }
+
+    class SkinManager
+    {
+        constructor()
+        {
+            this.skins = {};           // string to skin
+            this.animatedSkins = {};   // string to skin
+            this.surface = null;
+            this.components = {};    // int to component
+            this.originalComponents = {} // int to rect
+            this.names = {} // string to int
+        }
+
+        addSkin(name, skin)
+        {
+            this.skins[name] = skin;
+            if (skin.numFrames != 1) this.animatedSkins[name] = skin;
+        }
+
+        // todo add live skin
+
+        setSkin(name, active)
+        {
+            if (name in this.skins)
+            {
+                this.skins[name].active = active;
+            }
+        }
+
+        bakeSkins(sizeHint, rects)
+        {
+            if (!sizeHint) sizeHint = 512;
+            
+        }
+    }
+
     mx.SkinManager = new SkinManager();
     mx.Skin = Skin;
     //mx.LiveSkin = LiveSkin
