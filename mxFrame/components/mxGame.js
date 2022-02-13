@@ -354,6 +354,15 @@ var gl; // leave this global for quick access
   }
 
 
+  Game.loadSkinFile = function (name)
+  {
+    Game.loadingIncr(name);
+
+    var client = new XMLHttpRequest();
+    client.open('GET', name);
+    client.onload = function () { mx.SkinLoader.process(client.responseText); Game.loadingDecr(name); }
+    client.send();
+  }
 
   Game.loadInputFile = function (name)
   {

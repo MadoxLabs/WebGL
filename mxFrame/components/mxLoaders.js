@@ -1,15 +1,137 @@
 (function (){
 
-    class InputLoader
+    class Loader
     {
         constructor()
         {
             this.linenum = 0;
+            this.text = "";            
+            this.name = "";
         }
 
         error(text)
         {
-            console.log("Input File: line " +this.linenum+" : "+text);
+            console.log(this.name+" File: line " +this.linenum+" : "+text);
+        }
+
+        parse(text)
+        {
+            this.text = text;
+            this.lines = this.text.replace("\r","").split("\n");
+            this.linenum = 0;
+        }
+
+        nextLine()
+        {
+            if (this.linenum == this.lines.length) return null;
+            this.linenum += 1;
+            return this.lines[this.linenum-1].trim();
+        }
+
+        process(text) { }
+    }
+
+    class SkinLoader extends Loader
+    {
+        constructor()
+        {
+            super(); 
+            this.name = "Skin";
+        }
+        
+        process(text)
+        {
+            let skin = new mx.Skin();
+
+            this.parse(text);
+            let line = null;
+            while ((line = this.nextLine()) !== null)
+            {
+                if (line[0] == '#') continue;
+
+                let words = line.split(" ");
+                if (!words || !words.length) continue;
+
+                else if (words[0] == "Texture") 
+                {
+                    if (words.length < 2) { this.error("bad texture line"); continue; }
+                    let file = words[1];
+                    let name = file.split('.')[0];
+                    mx.Game.loadTextureFile(name, file, false);
+
+                    skin.textureLoading = true;
+                    skin.size = null;
+                    skin.msPerFrame = 0;
+                    skin.frames = 1;
+                }
+
+                else if (words[0] == "Name") 
+                {
+                    if (words.length < 2) { this.error("bad name line"); continue; }
+                    skin.name = words[1];
+                }
+
+                else if (words[0] == "Size")
+                {
+                  if (words.length < 3) { this.error("bad size line"); continue; }
+        
+                  let x = parseInt(words[1]);
+                  let y = parseInt(words[2]);
+                  skin.Size = {w: x, h: y};
+                }
+        
+                else if (words[0] == "MSPerFrame")
+                {
+                  if (words.length < 2) { this.error("bad MXPerFrame line"); continue; }
+        
+                  let x = parseInt(words[1]);
+                  skin.msPerFrame = x;
+                }
+        
+                else if (words[0] == "Frames")
+                {
+                  if (words.length < 2) { this.error("bad frames line"); continue; }
+        
+                  let x = parseInt(words[1]);
+                  skin.frames = x;
+                }
+        
+                else if ((words[0] == "Component") || (words[0] == "Componant"))
+                {
+                  if (words.length < 6) { this.error("bad component line"); continue; }
+        
+                  let name = words[1];
+                  let x = parseInt(words[2]);
+                  let y = parseInt(words[3]);
+                  let w = parseInt(words[4]);
+                  let h = parseInt(words[5]);       
+                  let rect = {x:x, y:y, w:w, h:h};
+        
+                  if (name in skin.names)
+                  {
+                      this.error(name + " already exists!");
+                  }
+                  else
+                  {
+                      skin.names[name] = skin.components.length;
+                      skin.components.push(rect);
+                  }
+                }
+            }
+
+            if (!skin.name) this.error("Missing name");
+            else if (!skin.textureLoading) this.error("Missing texture");
+            else if (!skin.components.length) this.error("Missing components");
+            else mx.SkinManager.addSkin(skin);
+        }
+    }
+
+    class InputLoader extends Loader
+    {
+        constructor()
+        {
+            super(); 
+            this.name = "Input";
         }
 
         resolveNumber(word, ids)
@@ -88,11 +210,10 @@
             ids['LeftStickAxis'] = 4;
             ids['RightStickAxis'] = 5;
 
-            let lines = text.replace("\r","").split("\n");
-            for (let l in lines)
+            this.parse(text);
+            let line = null;
+            while ((line = this.nextLine()) !== null)
             {
-                this.linenum = l;
-                let line = lines[l].trim();
                 if (line[0] == '#') continue;
 
                 let words = line.split(" ");
