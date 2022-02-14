@@ -60,9 +60,8 @@
                     mx.Game.loadTextureFile(name, file, false);
 
                     skin.textureLoading = true;
-                    skin.size = null;
                     skin.msPerFrame = 0;
-                    skin.frames = 1;
+                    skin.numFrames = 1;
                 }
 
                 else if (words[0] == "Name") 
@@ -77,7 +76,7 @@
         
                   let x = parseInt(words[1]);
                   let y = parseInt(words[2]);
-                  skin.Size = {w: x, h: y};
+                  skin.size = {w: x, h: y};
                 }
         
                 else if (words[0] == "MSPerFrame")
@@ -93,7 +92,7 @@
                   if (words.length < 2) { this.error("bad frames line"); continue; }
         
                   let x = parseInt(words[1]);
-                  skin.frames = x;
+                  skin.numFrames = x;
                 }
         
                 else if ((words[0] == "Component") || (words[0] == "Componant"))
@@ -451,4 +450,5 @@
     }
 
     mx.InputLoader = new InputLoader();
+    mx.SkinLoader = new SkinLoader();
 })();

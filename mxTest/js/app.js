@@ -9,6 +9,10 @@ Game.appInit = function ()
 {
   Game.textureLocation = "assets/";
   Game.loadInputFile("assets/controls.conf");
+  Game.loadSkinFile("assets/CreditsBG.skin");
+  Game.loadSkinFile("assets/DisconnectBG.skin");
+  Game.loadSkinFile("assets/Elements.skin");
+  Game.loadSkinFile("assets/Flubber.skin");
 }
 
 Game.deviceReady = function ()
@@ -21,7 +25,7 @@ Game.loadingStart = function ()
 
 Game.loadingStop = function ()
 {
-
+  mx.SkinManager.bakeSkins();
 }
 
 Game.appUpdate = function ()

@@ -1,0 +1,30 @@
+Texture Elements.png
+Componant TitleBeetle 362 76 225 73
+Componant TitleBother 362 162 260 73
+Componant Focus 362 3 215 61
+Componant FocusSmall 343 248 133 61
+Componant LabelSmall 194 6 89 41
+Componant LabelMedium 192 49 134 41
+Componant LabelLarge 211 92 94 41
+Componant LabelEasy 192 179 83 41
+Componant LabelNormal 192 222 128 41
+Componant LabelHard 192 265 96 41
+Componant LabelHiveSize 10 50 162 41
+Componant LabelDifficulty 10 94 157 41
+Componant LabelTutorial 10 137 132 34
+Componant LabelTasks 10 179 97 34
+Componant LabelCredits 10 224 121 34
+Componant LabelPurchase 10 266 159 34
+Componant LabelScores 10 307 120 34
+Componant LabelBack 10 10 70 30
+Componant LabelNoTasks 10 348 97 34
+Componant LabelNoPurchase 10 390 159 34
+Componant LabelNoScores 10 433 120 34
+Componant LabelQuit 192 348 72 34
+Componant LabelClose 192 390 92 34
+Componant LabelOn 192 137 62 34
+Componant LabelOff 255 137 62 34
+Componant BlankAlpha 600 400 10 10
+Componant LabelRemove 317 402 218 37
+Componant LabelRemove2 317 438 309 37
+Name Elements
