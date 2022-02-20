@@ -191,8 +191,8 @@
         {
             this.#texture = null;
             this.name = null;
-            this.components = [];
-            this.names = {};
+            this.names = {}; // name to index
+            this.components = []; // components by index
             this.#size = null
             this.msPerFrame = 0;
             this.numFrames = 0;
@@ -268,9 +268,12 @@
     {
         constructor()
         {
+          // TODO more than one skin - make live skins their own skin also
+
             this.skins = {};           // string to skin
             this.animatedSkins = {};   // string to skin
             this.surface = null;
+            this.size = {x:0, y:0, w:0, h:0};
             this.components = {};    // int to component
             this.originalComponents = {} // int to rect
             this.names = {} // string to int
@@ -383,7 +386,9 @@ console.log("try size " + binsize);
               binsize = rects[0].w;
               binheight = rects[0].h;
             }
-console.log("got size "+binsize +" x "+binheight)            ;
+            this.size.w - binsize;
+            this.size.h - binheight;
+console.log("got size "+binsize +" x "+binheight);
 console.log(rects);
       
             // make a canvas, copy the textures onto it
@@ -433,9 +438,70 @@ console.log(rects);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
             gl.bindTexture(gl.TEXTURE_2D, null);            
         }
+
+        getSkinSize() { return this.size; }
+
+        getTexture() { return this.surface; }
+
+        getComponentByName(name)
+        {
+          if (name in this.names)
+          {
+            let index = this.names[name];
+            if (index in this.components)
+            {
+              return this.components[index];
+            }
+          }
+          return null;
+        }
+
+        getComponentByIndex(index)
+        {
+            if (index in this.components)
+            {
+              return this.components[index];
+            }
+          return null;
+        }
+
+        update(elapsed)
+        {
+          // copy next animated texture frame to the baked texture
+          for (let skinindex in this.animatedSkins)
+          {
+            let skin = this.animatedSkins[skinindex];
+            if (skin.active == false) continue;
+            if (skin.numFrames == 1) continue;
+          
+            // is it time for the next frame?
+            skin.curTime += elapsed;
+            if (skin.curTime < skin.msPerFrame) continue;
+          
+            // how many frames should we advance?
+            while (skin.curTime >= skin.msPerFrame)
+            {
+              skin.curTime -= skin.msPerFrame;
+              skin.curFrame++;
+            }
+            while (skin.curFrame >= skin.numFrames) skin.curFrame -= skin.numFrames;
+          
+            // what is the componant name?
+            let compname = Object.keys(skin.names)[0];
+            let compid = this.names[compname];
+            let comp = this/componants[compid];
+          
+            // update the componant to the new rect
+            comp.rect.X = this.originalComponants[compid].x + (comp.rect.w * skin.curFrame) % skin.texture.w;
+            comp.rect.Y = this.originalComponants[compid].y + ((comp.rect.w * skin.curFrame) / skin.texture.w) * comp.rect.h;
+          }
+            
+          // TODO live skin
+        }
     }
 
     mx.SkinManager = new SkinManager();
     mx.Skin = Skin;
+    mx.Component = Component;
     //mx.LiveSkin = LiveSkin
 })();

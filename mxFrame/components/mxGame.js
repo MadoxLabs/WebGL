@@ -442,6 +442,7 @@ var gl; // leave this global for quick access
       Game.shaderMan.processEffects(); 
       console.log(Game.shaderMan.sources); 
       mx.PlayerManager.init();
+      mx.SkinManager.bakeSkins();
       Game.loadingStop(); 
     }
     if (Game.loading > 0) Game.loading -= 1;
@@ -507,6 +508,7 @@ var gl; // leave this global for quick access
   Game.update = function ()
   {
     mx.PlayerManager.update(Game.time);
+    mx.SkinManager.update(Game.elapsed);
     if (Game.appUpdate) Game.appUpdate();
     Game.camera.update();
   }
