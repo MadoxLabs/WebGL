@@ -282,7 +282,7 @@
                     mState = mxParseState.None;
                     mSubState = 0;
 
-                    if (words.length == 3) 
+                    if (words.length == 3)  // code 28
                     { 
                         let players = this.resolveNumber(words[1], this.mIDs);
                         if (players === false) continue;
@@ -293,7 +293,7 @@
                         mx.UIManager.setCommand(cmd, players);
 
                     }
-                    else if (words.length == 2) 
+                    else if (words.length == 2) // code 30
                     { 
                         let focus = this.resolveNumber(words[1], this.mIDs);
                         if (focus === false) continue;
@@ -305,24 +305,24 @@
                         this.error("Bad Assign definition"); continue; 
                     }
                 }
-                else if (words[0] == "Publish")
+                else if (words[0] == "Publish") // code 1
                 {
                     if (words.length != 3) { this.error("Bad Publish definition"); continue; }
                     let line = "";
                     for (let i = 2; i < words.length; ++i) line += words[i] + " ";
                     this.mPublish[words[1]] = line.trim();
                 }
-                else if (words[0] == "ShiftDef")
+                else if (words[0] == "ShiftDef") // code 2
                 {
                     this.mState = mxParseState.ShiftDef;
                     this.mSubState = 100;
                 }
-                else if (words[0] == "FocusDef")
+                else if (words[0] == "FocusDef") // code 6
                 {
                     this.mState = mxParseState.FocusDef;
                     this.mSubState = 200;
                 }
-                else if (words[0] == "Widget")
+                else if (words[0] == "Widget") // code 11
                 {
                     if (words.length != 3) { this.error("Bad Widget definition"); continue; }
                     let id = this.resolveNumber(words[1], this.mIDs);
@@ -339,7 +339,7 @@
 
                 else if (this.mState == mxParseState.ShiftDef)
                 {
-                    if (words[0] == "Player") 
+                    if (words[0] == "Player") // code 3
                     { 
                         if (words.length != 3) { this.error("Bad Player definition"); continue; }
                         let mask = this.resolveNumber(words[1], this.mIDs);
@@ -350,7 +350,7 @@
 
                         mSubState = 101; 
                     }
-                    else if (words[0] == "Element" && ((mSubState == 102) || (mSubState == 101))) 
+                    else if (words[0] == "Element" && ((mSubState == 102) || (mSubState == 101))) // code 4
                     { 
                         if (words.length != 2) { this.error("Bad Element definition"); continue; }
                         let widget_id = this.resolveNumber(words[1], this.mIDs);
@@ -358,7 +358,7 @@
 
                         mSubState = 102; 
                     }
-                    else if (words[0] == "Direction" && mSubState == 102) 
+                    else if (words[0] == "Direction" && mSubState == 102) // code 5
                     {
                         if (words.length != 3) { this.error("Bad Direction definition"); continue; }
                         let dir = this.resolveNumber(words[1], this.mTypes);
@@ -373,7 +373,7 @@
 
                 else if (this.mState == mxParseState.FocusDef)
                 {
-                    if (words[0] == "Player") 
+                    if (words[0] == "Player") // code 7
                     { 
                         if (words.length != 3) { this.error("Bad Player definition"); continue; }
                         let mask = this.resolveNumber(words[1], this.mIDs);
@@ -387,12 +387,12 @@
                     else if (words[0] == "Element" && (mSubState == 201)) 
                     { 
                         if (words.length < 2) { this.error("Bad Element definition"); continue; }
-                        if (words.length == 2)
+                        if (words.length == 2) // code 8
                         {
                             let widget_id = this.resolveNumber(words[1], this.mIDs);
                             if (widget_id === false) continue;    
                         }
-                        else if (words.length == 5)
+                        else if (words.length == 5) // code 10
                         {
                             let r = this.resolveNumber(words[1], this.mIDs);
                             if (r === false) continue;    
@@ -403,18 +403,12 @@
                             let a = this.resolveNumber(words[1], this.mIDs);
                             if (a === false) continue;    
                         }
-                        else if (words.length == 3 && words[1] == "Parent")
+                        else if (words.length == 3 && words[1] == "Parent") // code 9
                         {
                             let widget_id = this.resolveNumber(words[1], this.mIDs);
                             if (widget_id === false) continue;    
                         }
                     }
-
-                    else if (this.mState == mxParseState.Widget)
-                    {
-
-                    }
-
                 }
 
                 else if (this.mState == mxParseState.Widget)
@@ -422,22 +416,30 @@
                   // Componant commands
                   if (mSubState == 300) 
                   {
-                    if (words[0] == "Componant")
+                    if (words[0] == "Component" || words[0] == "Componant") // code 16
                     {
                         let name = words[2];
                         if (name === false) continue;
                     }
                     else if (words[0] == "Stretch")
                     {
-                        let val = this.resolveNumber(words[1], this.mTypes);
+                        let val = this.resolveNumber(words[1], this.mTypes); // code 17
                         if (val === false) continue;
                     }
                     else if (words[0] == "Scale")
                     {
-                        let val = this.resolveNumber(words[1], this.mIDs);
+                        let val = this.resolveNumber(words[1], this.mIDs); // code 29
                         if (val === false) continue;
                     }   
                   }
+
+                  if (words[0] == "TopLeftX") WriteCode2Numbers(12, words);
+                  else if (words[0] == "TopLeftY") WriteCode2Numbers(13, words);
+                  else if (words[0] == "BottomRightX") WriteCode2Numbers(14, words);
+                  else if (words[0] == "BottomRightY") WriteCode2Numbers(15, words);
+                  else if (words[0] == "Visible") WriteCode(18, words);
+                  else if (words[0] == "Active") WriteCode(38, words);
+                  
                 }
             }
 
