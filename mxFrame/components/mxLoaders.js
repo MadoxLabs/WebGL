@@ -9,6 +9,38 @@
             this.name = "";
         }
 
+        resolveNumber(word, ids)
+        {
+            let id = parseInt(word);
+            if (isNaN(id))  
+            {
+                if (word in ids) 
+                    id = ids[word];
+                else 
+                {
+                    this.error("Non numeric value '" +word+ "'"); 
+                    return false; 
+                }
+            }
+            return id;
+        }
+        
+        resolveFloat(word, ids)
+        {
+            let id = parseFloat(word);
+            if (isNaN(id))  
+            {
+                if (word in ids) 
+                    id = ids[word];
+                else 
+                {
+                    this.error("Non numeric value '" +word+ "'"); 
+                    return false; 
+                }
+            }
+            return id;
+        }
+        
         error(text)
         {
             console.log(this.name+" File: line " +this.linenum+" : "+text);
@@ -125,44 +157,302 @@
         }
     }
 
+    const mxParseState = {
+        None: 0,
+        ShiftDef: 1,
+        FocusDef: 2,
+        Widget: 3
+    }
+
+    // Used by the layout importer. Repsents a collection of UI objects
+    class UIGroup
+    {
+        constructor()
+        {
+            this.mInitialFocus = 0; // int
+            this.mFocusDefs = []; // focus defs
+            this.mShiftDefs = []; // shift defs
+            this.mWidgets = []; // widgets
+            this.mPublish = {}; // string to string
+        }
+    }
+
+    class LayoutLoader extends Loader
+    {
+        constructor()
+        {
+            super(); 
+            this.name = "Layout";
+            this.init();
+        }
+
+        init()
+        {
+            this.fdef = null;  // focus def
+            this.sdef = null; // shift def
+            this.group = new UIGroup();
+
+            this.mTypes = {};
+            this.mIDs = {};
+            this.mState = mxParseState.None;
+            this.mSubState = 0;
+            this.mConstants = "";
+
+            this.mTypes["North"] = 0;
+            this.mTypes["South"] = 1;
+            this.mTypes["East"] = 2;
+            this.mTypes["West"] = 3;
+
+            this.mTypes["Componant"] = 0;
+            this.mTypes["Label"] = 1;
+            this.mTypes["Container"] = 2;
+            this.mTypes["Button"] = 3;
+            this.mTypes["TabControl"] = 4;
+            this.mTypes["Slider"] = 5;
+            this.mTypes["Scrollbar"] = 6;
+            this.mTypes["Dropdown"] = 7;
+
+            this.mTypes["True"] = 1;
+            this.mTypes["False"] = 0;
+
+            this.mTypes["Large"] = 0;
+            this.mTypes["Small"] = 1;
+            this.mTypes["None"] = 2;
+
+            this.mTypes["ButtonImage"] = 1;
+            this.mTypes["ButtonText"] = 2;
+
+            this.mTypes["Clear"] = 0;
+            this.mTypes["Solid"] = 1;
+
+            this.mTypes["FG"] = 0;
+            this.mTypes["BG"] = 1;
+            this.mTypes["ActiveFG"] = 2;
+            this.mTypes["InactiveFG"] = 3;
+
+            this.mTypes["LeftOf"] = 0;
+            this.mTypes["LeftAlign"] = 1;
+            this.mTypes["Fixed"] = 2;
+            this.mTypes["RightOf"] = 3;
+            this.mTypes["RightAlign"] = 4;
+            this.mTypes["Center"] = 5;
+            this.mTypes["CenterAlign"] = 6;
+            this.mTypes["Below"] = 7;
+            this.mTypes["BottomAlign"] = 8;
+            this.mTypes["Above"] = 9;
+            this.mTypes["TopAlign"] = 10;
+        }
+        
+        saveAll()
+        {
+          if (this.fdef != null) this.group.mFocusDefs.push(this.fdef);
+          this.fdef = null;
+    
+          if (this.sdef != null) this.group.mShiftDefs.push(this.sdef);
+          this.sdef = null;
+        }
+
+        process(text)
+        {
+            this.init();
+
+            this.parse(text);
+            let line = null;
+            while ((line = this.nextLine()) !== null)
+            {
+                if (line[0] == '#') continue;
+
+                let words = line.split(" ");
+                if (!words || !words.length) continue;
+
+                else if (words[0] == "END") break;
+                else if (words[0] == "ID")
+                {
+                    mState = mxParseState.None;
+                    mSubState = 0;
+
+                    if (words.length != 3) { this.error("Bad ID definition"); continue; }
+                    let id = parseInt(words[1]);
+                    if (!id)  { this.error("Non numeric ID"); continue; }
+                    if (this.mIDs[id]) { this.error("Duplicate ID definition"); continue; }
+                    this.mIDs[words[2]] = id;
+                }                
+                else if (words[0] == "Assign")
+                {
+                    mState = mxParseState.None;
+                    mSubState = 0;
+
+                    if (words.length == 3) 
+                    { 
+                        let players = this.resolveNumber(words[1], this.mIDs);
+                        if (players === false) continue;
+
+                        let cmd = this.resolveNumber(words[2], this.mIDs);
+                        if (cmd === false) continue;
+
+                        mx.UIManager.setCommand(cmd, players);
+
+                    }
+                    else if (words.length == 2) 
+                    { 
+                        let focus = this.resolveNumber(words[1], this.mIDs);
+                        if (focus === false) continue;
+
+                        this.group.mInitialFocus = focus;
+                    }
+                    else
+                    {
+                        this.error("Bad Assign definition"); continue; 
+                    }
+                }
+                else if (words[0] == "Publish")
+                {
+                    if (words.length != 3) { this.error("Bad Publish definition"); continue; }
+                    let line = "";
+                    for (let i = 2; i < words.length; ++i) line += words[i] + " ";
+                    this.mPublish[words[1]] = line.trim();
+                }
+                else if (words[0] == "ShiftDef")
+                {
+                    this.mState = mxParseState.ShiftDef;
+                    this.mSubState = 100;
+                }
+                else if (words[0] == "FocusDef")
+                {
+                    this.mState = mxParseState.FocusDef;
+                    this.mSubState = 200;
+                }
+                else if (words[0] == "Widget")
+                {
+                    if (words.length != 3) { this.error("Bad Widget definition"); continue; }
+                    let id = this.resolveNumber(words[1], this.mIDs);
+                    if (id === false) continue;
+
+                    let type = this.resolveNumber(words[2], this.mTypes);
+                    if (type === false) continue;
+
+                    this.mState = mxParseState.Widget;
+                    this.mSubState = 300+type;        
+                    
+                    // TODO
+                }
+
+                else if (this.mState == mxParseState.ShiftDef)
+                {
+                    if (words[0] == "Player") 
+                    { 
+                        if (words.length != 3) { this.error("Bad Player definition"); continue; }
+                        let mask = this.resolveNumber(words[1], this.mIDs);
+                        if (mask === false) continue;
+    
+                        let firstchild_id = this.resolveNumber(words[2], this.mIDs);
+                        if (firstchild_id === false) continue;
+
+                        mSubState = 101; 
+                    }
+                    else if (words[0] == "Element" && ((mSubState == 102) || (mSubState == 101))) 
+                    { 
+                        if (words.length != 2) { this.error("Bad Element definition"); continue; }
+                        let widget_id = this.resolveNumber(words[1], this.mIDs);
+                        if (widget_id === false) continue;
+
+                        mSubState = 102; 
+                    }
+                    else if (words[0] == "Direction" && mSubState == 102) 
+                    {
+                        if (words.length != 3) { this.error("Bad Direction definition"); continue; }
+                        let dir = this.resolveNumber(words[1], this.mTypes);
+                        if (dir === false) continue;
+
+                        let widget = this.resolveNumber(words[1], this.mIDs);
+                        if (widget === false) continue;
+
+                        WriteCodeNumber(5, words);
+                    }          
+                }
+
+                else if (this.mState == mxParseState.FocusDef)
+                {
+                    if (words[0] == "Player") 
+                    { 
+                        if (words.length != 3) { this.error("Bad Player definition"); continue; }
+                        let mask = this.resolveNumber(words[1], this.mIDs);
+                        if (mask === false) continue;
+    
+                        let firstchild_id = this.resolveNumber(words[2], this.mIDs);
+                        if (firstchild_id === false) continue;
+
+                        mSubState = 201; 
+                    }
+                    else if (words[0] == "Element" && (mSubState == 201)) 
+                    { 
+                        if (words.length < 2) { this.error("Bad Element definition"); continue; }
+                        if (words.length == 2)
+                        {
+                            let widget_id = this.resolveNumber(words[1], this.mIDs);
+                            if (widget_id === false) continue;    
+                        }
+                        else if (words.length == 5)
+                        {
+                            let r = this.resolveNumber(words[1], this.mIDs);
+                            if (r === false) continue;    
+                            let g = this.resolveNumber(words[1], this.mIDs);
+                            if (g === false) continue;    
+                            let b = this.resolveNumber(words[1], this.mIDs);
+                            if (b === false) continue;    
+                            let a = this.resolveNumber(words[1], this.mIDs);
+                            if (a === false) continue;    
+                        }
+                        else if (words.length == 3 && words[1] == "Parent")
+                        {
+                            let widget_id = this.resolveNumber(words[1], this.mIDs);
+                            if (widget_id === false) continue;    
+                        }
+                    }
+
+                    else if (this.mState == mxParseState.Widget)
+                    {
+
+                    }
+
+                }
+
+                else if (this.mState == mxParseState.Widget)
+                {
+                  // Componant commands
+                  if (mSubState == 300) 
+                  {
+                    if (words[0] == "Componant")
+                    {
+                        let name = words[2];
+                        if (name === false) continue;
+                    }
+                    else if (words[0] == "Stretch")
+                    {
+                        let val = this.resolveNumber(words[1], this.mTypes);
+                        if (val === false) continue;
+                    }
+                    else if (words[0] == "Scale")
+                    {
+                        let val = this.resolveNumber(words[1], this.mIDs);
+                        if (val === false) continue;
+                    }   
+                  }
+                }
+            }
+
+            this.saveAll();
+
+            
+            mx.UIManager.processGroup(group);
+        }
+    }
     class InputLoader extends Loader
     {
         constructor()
         {
             super(); 
             this.name = "Input";
-        }
-
-        resolveNumber(word, ids)
-        {
-            let id = parseInt(word);
-            if (isNaN(id))  
-            {
-                if (word in ids) 
-                    id = ids[word];
-                else 
-                {
-                    this.error("Non numeric value '" +word+ "'"); 
-                    return false; 
-                }
-            }
-            return id;
-        }
-        
-        resolveFloat(word, ids)
-        {
-            let id = parseFloat(word);
-            if (isNaN(id))  
-            {
-                if (word in ids) 
-                    id = ids[word];
-                else 
-                {
-                    this.error("Non numeric value '" +word+ "'"); 
-                    return false; 
-                }
-            }
-            return id;
         }
 
         process(text)
