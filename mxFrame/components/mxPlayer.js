@@ -286,8 +286,6 @@
             // handles polling the controller states
             this.lastUpdate = 0;  // time of last controller poll
             this.updateFreq = 50; // time between controller polls
-            // unique id for players, increment for each connection
-            this.nextPlayerID = 1;
             // data
             this.players = {};      // map of all players
             this.controllers = {};  // map to find what player is on what controller
@@ -327,20 +325,13 @@
         {
             if (matchMedia('(pointer:fine)').matches) 
             {
-                let c = new ControllerKeyboardMouse(999);
-                let p = new Player( this.getNextPlayerID() );
+                let c = new ControllerKeyboardMouse(5);
+                let p = new Player(5);
                 this.controllers[c.id] = c;
                 this.players[p.id] = p;
                 this.assignPlayer(p,c);
                 if (mx.Game.handlePlayerConnected) mx.Game.handlePlayerConnected(p);
             }
-        }
-
-        getNextPlayerID()
-        {
-            let ret = this.nextPlayerID;
-            this.nextPlayerID++;
-            return ret;
         }
 
         handleMouseEvent(type, mouse)
@@ -352,7 +343,7 @@
         onPlayerConnected(e)
         {
             console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.", e.gamepad.index, e.gamepad.id, e.gamepad.buttons.length, e.gamepad.axes.length);
-            let p = new Player( this.getNextPlayerID() );
+            let p = new Player(e.gamepad.index);
             let c = new ControllerGamePad(e.gamepad.index);
             this.controllers[c.id] = c;
             this.players[p.id] = p;
@@ -458,6 +449,16 @@
                 else
                     this.removeConfigFromPlayer(p, e.assigns[i].config);
             }
+        }
+
+        IndexToMask(i)
+        {
+            if (i == 5) return 1;
+            if (i == 1) return 2;
+            if (i == 2) return 4;
+            if (i == 3) return 8;
+            if (i == 4) return 16;
+            return 0;
         }
     }
 

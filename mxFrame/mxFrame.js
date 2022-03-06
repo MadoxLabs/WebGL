@@ -19,6 +19,7 @@ function doneLoading() { }
   // source files to load, some optionally
   var dependancies = ["libs/glMatrix.js"];
   var baseSrc = ["libs/pako.js",
+                 "components/mxLayout.js",
                  "components/mxLoaders.js",
                  "components/mxUI.js",
                  "components/mxData.js",
