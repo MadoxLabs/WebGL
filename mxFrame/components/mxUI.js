@@ -304,7 +304,7 @@ console.log("Baking textures");
             let needSort = false;
       
             this.components = {};
-            this.originalComponants = {};
+            this.originalComponents = {};
             this.names = {};
       
             // create an array of the texture sizes
@@ -426,7 +426,7 @@ console.log(rects);
                 this.names[name] = comp.id;
                 this.components[comp.id] = comp;
       
-                if (skin.numFrames > 1) this.originalComponants[comp.id] = comp.rect;
+                if (skin.numFrames > 1) this.originalComponents[comp.id] = comp.rect;
               }
               ++i;
             }
@@ -492,8 +492,8 @@ console.log(rects);
             let comp = this/componants[compid];
           
             // update the componant to the new rect
-            comp.rect.X = this.originalComponants[compid].x + (comp.rect.w * skin.curFrame) % skin.texture.w;
-            comp.rect.Y = this.originalComponants[compid].y + ((comp.rect.w * skin.curFrame) / skin.texture.w) * comp.rect.h;
+            comp.rect.X = this.originalComponents[compid].x + (comp.rect.w * skin.curFrame) % skin.texture.w;
+            comp.rect.Y = this.originalComponents[compid].y + ((comp.rect.w * skin.curFrame) / skin.texture.w) * comp.rect.h;
           }
             
           // TODO live skin

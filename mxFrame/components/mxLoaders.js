@@ -127,7 +127,7 @@
                   skin.numFrames = x;
                 }
         
-                else if ((words[0] == "Component") || (words[0] == "Componant"))
+                else if ((words[0] == "Component") || (words[0] == "Component"))
                 {
                   if (words.length < 6) { this.error("bad component line"); continue; }
         
@@ -182,11 +182,11 @@
             this.selem = null // shift element
             this.group = new mx.UIGroup();
     
-            this.curComponantId = 0;
+            this.curComponentId = 0;
             this.curPlaceable = null;
     
             this.mPlaces = {}; // id to place
-            this.mComponants = {}; // id = component
+            this.mComponents = {}; // id = component
             this.mWidgets = {}; // id to widget
     
             this.mTypes = {};
@@ -195,12 +195,24 @@
             this.mSubState = 0;
             this.mConstants = "";
     
+            this.mPlaces[0] = mx.Place.LeftOf;
+            this.mPlaces[1] = mx.Place.LeftAlign;
+            this.mPlaces[2] = mx.Place.Fixed;
+            this.mPlaces[3] = mx.Place.RightOf;
+            this.mPlaces[4] = mx.Place.RightAlign;
+            this.mPlaces[5] = mx.Place.Center;
+            this.mPlaces[6] = mx.Place.CenterAlign;
+            this.mPlaces[7] = mx.Place.Below;
+            this.mPlaces[8] = mx.Place.BottomAlign;
+            this.mPlaces[9] = mx.Place.Above;
+            this.mPlaces[10] = mx.Place.TopAlign;
+
             this.mTypes["North"] = 0;
             this.mTypes["South"] = 1;
             this.mTypes["East"] = 2;
             this.mTypes["West"] = 3;
     
-            this.mTypes["Componant"] = 0;
+            this.mTypes["Component"] = 0;
             this.mTypes["Label"] = 1;
             this.mTypes["Container"] = 2;
             this.mTypes["Button"] = 3;
@@ -289,7 +301,6 @@
                         if (cmd === false) continue;
     
                         mx.UIManager.setCommand(cmd, players);
-    
                     }
                     else if (words.length == 2) // code 30
                     {
@@ -352,17 +363,18 @@
                     switch (type)
                     {
                         case 0:
-                            this.curComponantID = id;
+                            this.curComponentID = id;
                             break;
                         case 2:
                             {
                                 let w = new mx.Container(id);
-                                this.curComponantID = 0;
+                                this.curComponentID = 0;
                                 this.curPlaceable = w;
                                 this.mWidgets[id] = w;
                             }
                             break;
                         default:
+                            { this.error("Bad widget type"); }
                             // todo all the widgets
                     }
                 }
@@ -371,6 +383,7 @@
                 {
                     if (words[0] == "Player") // code 3
                     {
+                        if (!this.sdef) { this.error("Bad ShiftDef state"); continue; }
                         if (words.length != 3) { this.error("Bad Player definition"); continue; }
                         let mask = this.resolveNumber(words[1], this.mIDs);
                         if (mask === false) continue;
@@ -385,6 +398,7 @@
                     }
                     else if (words[0] == "Element" && ((mSubState == 102) || (mSubState == 101))) // code 4
                     {
+                        if (!this.spdef) { this.error("Bad ShiftPlayerDef state"); continue; }
                         if (words.length != 2) { this.error("Bad Element definition"); continue; }
                         let widget_id = this.resolveNumber(words[1], this.mIDs);
                         if (widget_id === false) continue;
@@ -395,6 +409,7 @@
                     }
                     else if (words[0] == "Direction" && mSubState == 102) // code 5
                     {
+                        if (!this.selem) { this.error("Bad ShiftElement state"); continue; }
                         if (words.length != 3) { this.error("Bad Direction definition"); continue; }
                         let dir = this.resolveNumber(words[1], this.mTypes);
                         if (dir === false) continue;
@@ -408,6 +423,7 @@
                             case 1: this.selem.mShifts[mx.ShiftDir.South] = widget; break;
                             case 2: this.selem.mShifts[mx.ShiftDir.East ] = widget; break;
                             case 3: this.selem.mShifts[mx.ShiftDir.West ] = widget; break;
+                            default: this.error("Bad direction");
                         }    
                     }
                 }
@@ -416,6 +432,7 @@
                 {
                     if (words[0] == "Player") // code 7
                     {
+                        if (!this.fdef) { this.error("Bad FocusDef state"); continue; }
                         if (words.length != 3) { this.error("Bad Player definition"); continue; }
                         let mask = this.resolveNumber(words[1], this.mIDs);
                         if (mask === false) continue;
@@ -431,18 +448,19 @@
                     }
                     else if (words[0] == "Element" && (mSubState == 201))
                     {
+                        if (!this.fpdef) { this.error("Bad FocusPlayerDef state"); continue; }
                         if (words.length < 2) { this.error("Bad Element definition"); continue; }
                         if (words.length == 2) // code 8
                         {
                             let comp = this.resolveNumber(words[1], this.mIDs);
                             if (comp === false) continue;
     
-                            if (comp in this.mComponants)
+                            if (comp in this.mComponents)
                             {
-                                let link = this.mComponants[comp];
+                                let link = this.mComponents[comp];
                                 let elem = new mx.FocusElement(link);
                                 this.fpdef.mElements.push(elem);
-                            }
+                            } else { this.error("Unknown component"); continue; }
                         }
                         else if (words.length == 5) // code 10
                         {
@@ -463,47 +481,57 @@
                             let comp = this.resolveNumber(words[1], this.mIDs);
                             if (comp === false) continue;
     
-                            if (comp in this.mComponants)
+                            if (comp in this.mComponents)
                             {
-                                let link = this.mComponants[comp];
+                                let link = this.mComponents[comp];
                                 let elem = new mx.FocusElement(link, true);
                                 this.fpdef.mElements.push(elem);
-                            }
+                            } else { this.error("Unknown component"); continue; }
                         }
                     }
                 }
     
                 else if (this.mState == ParseState.Widget)
                 {
-                    // Componant commands
+                    if (!this.curPlaceable) { this.error("Bad placeable state"); continue; }
+
+                    // Component commands
                     if (this.mSubState == 300)
                     {
-                        if (words[0] == "Component" || words[0] == "Componant") // code 16
+                        if (words[0] == "Component") // code 16
                         {
                             let name = words[2];
-                            if (name === false) continue;
+                            if (!name || !name.length) { this.error("Bad name"); continue; }
     
-                            let link = new mx.ComponantLink(name);
-                            this.mComponants.add(this.curComponantID, link);
+                            let link = new mx.ComponentLink(name);
+                            this.mComponents[this.curComponentID] = link;
                             this.curPlaceable = link;
                         }
                         else if (words[0] == "Stretch")
                         {
                             let val = this.resolveNumber(words[1], this.mTypes); // code 17
                             if (val === false) continue;
-                            this.mComponants[this.curComponantID].mStretch = (val == 0 ? false : true);
+                            if (this.curComponentID in this.mComponents)
+                            {
+                                this.mComponents[this.curComponentID].mStretch = (val == 0 ? false : true);
+                            } else { this.error("Unknown component"); continue; }
                         }
                         else if (words[0] == "Scale")
                         {
                             let val = this.resolveNumber(words[1], this.mIDs); // code 29
                             if (val === false) continue;
     
-                            if (this.curComponantID != 0)
-                                this.mComponants[this.curComponantID].scale = val;
+                            if (this.curComponentID != 0)
+                            {
+                                if (this.curComponentID in this.mComponents)
+                                {
+                                    this.mComponents[this.curComponentID].Scale = val;
+                                } else { this.error("Unknown component"); continue; }
+                            }
                             else
                             {
                                 let widget = this.curPlaceable;
-                                widget.scale = val;
+                                widget.Scale = val;
                             }
                         }
                     }
@@ -521,18 +549,18 @@
                             if (id in this.mWidgets)
                             {
                                 let parent = this.mWidgets[id];
-                                parent.addChild(widget);
+                                parent.AddChild(widget);
                             }
                         }
-                        else if (words[0] == "Componant") // code 22
+                        else if (words[0] == "Component") // code 22
                         {
                             let id = this.resolveNumber(words[1], this.mIDs);
                             if (id === false) continue;
     
                             let widget = this.curPlaceable;
-                            if (id in this.mComponants)
+                            if (id in this.mComponents)
                             {
-                                widget.addComponant(this.mComponants[id]);
+                                widget.AddComponent(this.mComponents[id]);
                             }
                         }
                     }
@@ -602,6 +630,7 @@
                     {
                         let place = this.resolveNumber(words[1], this.mTypes);
                         if (place === false) continue;
+                        if (!(place in this.mPlaces)) { this.error("Bad place"); continue; }
     
                         let id = this.resolveNumber(words[1], this.mIDs);
                         if (id === false) continue;
@@ -610,7 +639,7 @@
                         if (offset === false) continue;
     
                         let relative = null;
-                        if (id in this.mComponants) relative = this.mComponants[id];
+                        if (id in this.mComponents) relative = this.mComponents[id];
                         if (id in this.mWidgets) relative = this.mWidgets[id];
     
                         this.curPlaceable.mTopLeft.SetX(this.mPlaces[place], relative, offset);
@@ -619,7 +648,8 @@
                     {
                         let place = this.resolveNumber(words[1], this.mTypes);
                         if (place === false) continue;
-    
+                        if (!(place in this.mPlaces)) { this.error("Bad place"); continue; }
+
                         let id = this.resolveNumber(words[1], this.mIDs);
                         if (id === false) continue;
     
@@ -627,7 +657,7 @@
                         if (offset === false) continue;
     
                         let relative = null;
-                        if (id in this.mComponants) relative = this.mComponants[id];
+                        if (id in this.mComponents) relative = this.mComponents[id];
                         if (id in this.mWidgets) relative = this.mWidgets[id];
     
                         this.curPlaceable.mTopLeft.SetY(this.mPlaces[place], relative, offset);
@@ -636,6 +666,7 @@
                     {
                         let place = this.resolveNumber(words[1], this.mTypes);
                         if (place === false) continue;
+                        if (!(place in this.mPlaces)) { this.error("Bad place"); continue; }
     
                         let id = this.resolveNumber(words[1], this.mIDs);
                         if (id === false) continue;
@@ -644,7 +675,7 @@
                         if (offset === false) continue;
     
                         let relative = null;
-                        if (id in this.mComponants) relative = this.mComponants[id];
+                        if (id in this.mComponents) relative = this.mComponents[id];
                         if (id in this.mWidgets) relative = this.mWidgets[id];
     
                         this.curPlaceable.mBottomRight.SetX(this.mPlaces[place], relative, offset);
@@ -653,6 +684,7 @@
                     {
                         let place = this.resolveNumber(words[1], this.mTypes);
                         if (place === false) continue;
+                        if (!(place in this.mPlaces)) { this.error("Bad place"); continue; }
     
                         let id = this.resolveNumber(words[1], this.mIDs);
                         if (id === false) continue;
@@ -661,7 +693,7 @@
                         if (offset === false) continue;
     
                         let relative = null;
-                        if (id in this.mComponants) relative = this.mComponants[id];
+                        if (id in this.mComponents) relative = this.mComponents[id];
                         if (id in this.mWidgets) relative = this.mWidgets[id];
     
                         this.curPlaceable.mBottomRight.SetY(this.mPlaces[place], relative, offset);
@@ -671,9 +703,9 @@
                         let visible = this.resolveNumber(words[1], this.mTypes);
                         if (visible === false) continue;
     
-                        if (this.curComponantID != 0)
+                        if (this.curComponentID != 0)
                         {
-                            this.mComponants[this.curComponantID].mSkip = (visible == 1 ? false : true);
+                            this.mComponents[this.curComponentID].mSkip = (visible == 1 ? false : true);
                         }
                         else
                         {
@@ -686,13 +718,13 @@
                         let active = this.resolveNumber(words[1], this.mTypes);
                         if (active === false) continue;
     
-                        if (this.curComponantID != 0)
+                        if (this.curComponentID != 0)
                         {
-                            this.mComponants[this.curComponantID].mSkip = (active == 1 ? false : true);
+                            this.mComponents[this.curComponentID].mSkip = (active == 1 ? false : true);
                         }
                         else
                         {
-                            let widget = curPlaceable;
+                            let widget = this.curPlaceable;
                             widget.Active = (active == 0 ? false : true);
                         }
                     }
