@@ -360,7 +360,7 @@ var gl; // leave this global for quick access
 
     var client = new XMLHttpRequest();
     client.open('GET', name);
-    client.onload = function () { mx.SkinLoader.process(client.responseText); Game.loadingDecr(name); }
+    client.onload = function () { console.log("Skin: "+name); mx.SkinLoader.process(client.responseText); Game.loadingDecr(name); }
     client.send();
   }
 
@@ -370,7 +370,7 @@ var gl; // leave this global for quick access
 
     var client = new XMLHttpRequest();
     client.open('GET', name);
-    client.onload = function () { mx.InputLoader.process(client.responseText); Game.loadingDecr(name); }
+    client.onload = function () { console.log("InputDef: "+name);  mx.InputLoader.process(client.responseText); Game.loadingDecr(name); }
     client.send();
   }
 
@@ -440,7 +440,6 @@ var gl; // leave this global for quick access
     if (Game.loading == 1) 
     { 
       Game.shaderMan.processEffects(); 
-      console.log(Game.shaderMan.sources); 
       mx.PlayerManager.init();
       mx.SkinManager.bakeSkins();
       Game.loadingStop(); 

@@ -1,5 +1,5 @@
 (function()
-{
+{    
     class Color
     {
         constructor(r, g, b, a)
@@ -14,8 +14,8 @@
 
     const FocusType = {
         Color: 0,
-        Componant: 1,
-        ParentComponant: 2
+        Component: 1,
+        ParentComponent: 2
     };
 
     const ShiftDir = {
@@ -42,44 +42,35 @@
     // An element contains the parameters for a given focus type
     class FocusElement
     {
-        //        public mxFocusType mType;
-        //        public Vector4 mColor;
-        //        public mxComponantLink mComponant;
-
-        constructor(c)
-        {
-            this.isFocusElement = true;
-            this.mColor = c.isColor ? c : new Color(0, 0, 0, 1);
-            this.mComponant = null;
-            this.mType = FocusType.Color;
-        }
-
         constructor(c, parent)
         {
-            this.mComponant = c;
-            this.mColor = new Color(0, 0, 0, 0);
-            this.mType = parent ? FocusType.ParentComponant : FocusType.Componant;
+            this.isFocusElement = true;
+            if (c.isColor)
+            {
+                this.mColor = c.isColor ? c : new Color(0, 0, 0, 1);
+                this.mComponent = null;          // mxComponentLink
+                this.mType = FocusType.Color;    // mxFocusType    
+            }
+            else
+            {
+                this.mColor = new Color(0, 0, 0, 0);
+                this.mComponent = c;
+                this.mType = parent ? FocusType.ParentComponent : FocusType.Component;
+            }
         }
     }
 
     // Focus definition holds all the focus elements that get applied for a given player(s)
     class FocusPlayerDef
     {
-        //        public int mPlayers; // mask for which players this affects
-        //        public List < mxFocusElement > mElements; // the UI componantlinks that define the focus visual element
-        //        public int mCommands; // global commands that this focus gives 
-
-        //        public mxWidget mTarget;
-        //        public int mCount;
-
         constructor(pmask)
         {
             this.isFocusPlayerDef = true;
             this.mCount = 0;
-            this.mTarget = null;
-            this.mPlayers = pmask;
-            this.mElements = [];
-            this.mCommands = 0;
+            this.mTarget = null;     // mxWidget
+            this.mPlayers = pmask;   // mask for which players this affects
+            this.mElements = [];     // List < mxFocusElement >  // the UI componentlinks that define the focus visual element
+            this.mCommands = 0;      // int id  // global commands that this focus gives 
         }
     }
 
@@ -87,21 +78,17 @@
     // Different players have have different focus effects defined.
     class FocusDef
     {
-        //public List<mxFocusPlayerDef> mDefs;
-        //protected Dictionary<int, mxFocusPlayerDef> mDefsByPlayer;
-        //protected int mID;
+        #private;
 
-        get ID()
-        {
-            return this.mID;
-        }
+        get ID() { return this.#private.mID; }
 
         constructor(id)
         {
             this.isFocusDef = true;
-            this.mID = id;
-            this.mDefsByPlayer = {};
-            this.mDefs = [];
+            this.#private = {};
+            this.#private.mID = id;
+            this.#private.mDefsByPlayer = {}; // Dictionary<int, mxFocusPlayerDef>
+            this.mDefs = [];                  // List<mxFocusPlayerDef>
         }
 
         Initialize( /*mxFocusDef*/ def)
@@ -128,12 +115,12 @@
             }
         }
 
-        CopyFocus(def, p)
+        CopyFocus(/* focus def */def, /* player index */p)
         {
             if (!def || !def.isFocusDef) return;
 
-            let newdef = this.GetFocusDef(p);
-            let olddef = def.GetFocusDef(p);
+            let newdef = this.GetFocusDef(p); // mxFocusPlayerDef
+            let olddef = def.GetFocusDef(p);  // mxFocusPlayerDef
 
             if (!newdef) return;
             if (!olddef) return;
@@ -145,52 +132,44 @@
         {
             let def = null; // mxFocusPlayerDef
             let i = mx.PlayerManager.IndexToMask(p);
-            if (i in this.mDefsByPlayer) def = this.mDefsByPlayer[i];
+            if (i in this.#private.mDefsByPlayer) def = this.#private.mDefsByPlayer[i];
             return def;
         }
 
         AddFocusDef(def) // mxFocusPlayerDef
-            {
-                if (!def || !def.isFocusPlayerDef) return;
-
-                this.mDefs.Add(def);
-                if ((def.mPlayers & 1) > 0) this.mDefsByPlayer[1] = def;
-                if ((def.mPlayers & 2) > 0) this.mDefsByPlayer[2] = def;
-                if ((def.mPlayers & 4) > 0) this.mDefsByPlayer[4] = def;
-                if ((def.mPlayers & 8) > 0) this.mDefsByPlayer[8] = def;
-            }
+        {
+            if (!def || !def.isFocusPlayerDef) return;
+            this.mDefs.Add(def);
+            if ((def.mPlayers & 1) > 0) this.#private.mDefsByPlayer[1] = def;
+            if ((def.mPlayers & 2) > 0) this.#private.mDefsByPlayer[2] = def;
+            if ((def.mPlayers & 4) > 0) this.#private.mDefsByPlayer[4] = def;
+            if ((def.mPlayers & 8) > 0) this.#private.mDefsByPlayer[8] = def;
+        }
     }
 
     // defines which widgets are adjacent to a given widget for purposes of moving
     // the focus
     class ShiftElement
     {
-        //public int mWidgetID;
-        //public Dictionary < mxShiftDir, int > mShifts;
-
         constructor(widgetid)
         {
             this.isShiftElement = true;
             this.mWidgetID = widgetid;
-            this.mShifts = {};
+            this.mShifts = {};        // Dictionary < mxShiftDir, int >
         }
     }
 
     class ShiftPlayerDef
     {
-        //public int mPlayers;                      // mask for which players this affects
-        //public int mFirstChild;
-        //public Dictionary<int, mxShiftElement> mFocusShifts; // defines the widgets 'tab order'
-
         constructor(pmask, first)
         {
             this.isShiftPlayerDef = true;
             this.mFirstChild = first;
-            this.mPlayers = pmask;
-            this.mFocusShifts = {};
+            this.mPlayers = pmask;   // mask for which players this affects
+            this.mFocusShifts = {};  //  Dictionary<int, mxShiftElement> mFocusShifts; // defines the widgets 'tab order'
         }
 
-        AddElement(elem)
+        AddElement(/* ShiftElement */ elem)
         {
             if (!elem || !elem.isShiftElement) return;
             this.mFocusShifts[elem.mWidgetID] = elem;
@@ -209,16 +188,17 @@
 
     class ShiftDef
     {
-        //protected int mWidgetID;
-        //public int WidgetID { get { return mWidgetID; } }
-        //public Dictionary<int, mxShiftPlayerDef> mDefs;
+        #private
 
         constructor(widgetid)
-        {
+        {            
             this.isShiftDef = true;
-            this.mWidgetID = widgetid;
-            this.mDefs = {};
+            this.#private = {};
+            this.#private.mWidgetID = widgetid;
+            this.mDefs = {};                            // Dictionary<int, mxShiftPlayerDef>
         }
+
+        get WidgetID() { return this.#private.widgetid; }
 
         GetShiftDefByIndex(p)
         {
@@ -272,7 +252,7 @@
     {
         constructor(x, y)
         {
-            thie.x = x;
+            this.x = x;
             this.y = y;
         }
 
@@ -338,13 +318,10 @@
     // Arrange will move and resize each object into its proper position.
     class Layout
     {
-        //    public mxWidget mWidget = null;
-        //    public List<mxPlaceable> mObjects = new List<mxPlaceable>();
-
         constructor(obj)
         {
             this.mWidget = obj; // widget
-            this.mObjects = [];
+            this.mObjects = []; //  List<mxPlaceable> mObjects
         }
 
         Add(obj)
@@ -355,14 +332,12 @@
         Remove(obj)
         {
             let index = this.mObjects.indexOf(obj);
-            if (index > -1) {
-                this.mObjects.splice(index, 1);
-            }
+            if (index > -1) this.mObjects.splice(index, 1);
         }
 
         Arrange()
         {
-            if (this.mWidget == null) return;
+            if (!this.mWidget) return;
 
             let winSize = this.mWidget.Rect;
 

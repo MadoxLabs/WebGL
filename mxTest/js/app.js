@@ -25,7 +25,6 @@ Game.loadingStart = function ()
 
 Game.loadingStop = function ()
 {
-  mx.SkinManager.bakeSkins();
 }
 
 Game.appUpdate = function ()

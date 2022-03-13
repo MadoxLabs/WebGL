@@ -184,16 +184,19 @@
 
     class Skin
     {
-        #texture;
-        #size;
+        #private;
 
         constructor()
         {
-            this.#texture = null;
+            this.isSkin = true;
+
+            this.#private = {};
+            this.#private.texture = null;
+            this.#private.size = null
+
             this.name = null;
             this.names = {}; // name to index
             this.components = []; // components by index
-            this.#size = null
             this.msPerFrame = 0;
             this.numFrames = 0;
             this.active = true;
@@ -214,37 +217,37 @@
 
         get texture()
         {
-            if (!this.#texture)
+            if (!this.#private.texture)
             {
-                this.#texture = mx.Game.assetMan.assets[this.name];
-                if (this.#texture && !this.#size)
+                this.#private.texture = mx.Game.assetMan.assets[this.name];
+                if (this.#private.texture && !this.#private.size)
                 {
-                  this.#size = {};
-                  this.#size.w = this.#texture.width;
-                    this.#size.h = this.#texture.height;
+                    this.#private.size = {};
+                    this.#private.size.w = this.#private.texture.width;
+                    this.#private.size.h = this.#private.texture.height;
                 }
             }
-            return this.#texture;
+            return this.#private.texture;
         }
 
         set size(s)
         {
-            this.#size = { w:s.w, h:s.h };
+            this.#private.size = { w:s.w, h:s.h };
         }
 
         get size()
         {
-          if (!this.#size)
+          if (!this.#private.size)
           {
-            this.#texture = mx.Game.assetMan.assets[this.name];
-            if (this.#texture)
-              {
-                this.#size = {};
-                  this.#size.w = this.#texture.width;
-                  this.#size.h = this.#texture.height;
-              }              
+            this.#private.texture = mx.Game.assetMan.assets[this.name];
+            if (this.#private.texture)
+            {
+                this.#private.size = {};
+                this.#private.size.w = this.#private.texture.width;
+                this.#private.size.h = this.#private.texture.height;
+            }              
           }
-          return this.#size;
+          return this.#private.size;
       }
     }
 
@@ -380,7 +383,7 @@ console.log("try size " + binsize);
                 }
               }
             }
-            else
+            else if (rects.length)
             {
               // we only have one texture
               binsize = rects[0].w;
@@ -486,12 +489,12 @@ console.log(rects);
             }
             while (skin.curFrame >= skin.numFrames) skin.curFrame -= skin.numFrames;
           
-            // what is the componant name?
+            // what is the component name?
             let compname = Object.keys(skin.names)[0];
             let compid = this.names[compname];
-            let comp = this/componants[compid];
+            let comp = this.components[compid];
           
-            // update the componant to the new rect
+            // update the compoeant to the new rect
             comp.rect.X = this.originalComponents[compid].x + (comp.rect.w * skin.curFrame) % skin.texture.w;
             comp.rect.Y = this.originalComponents[compid].y + ((comp.rect.w * skin.curFrame) / skin.texture.w) * comp.rect.h;
           }

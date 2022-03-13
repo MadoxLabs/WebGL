@@ -79,8 +79,9 @@
             }
             if (comp)
             {
-                this.#mRect.Width = Math.floor(comp.rect.Width * this.#mScale);
-                this.#mRect.Height = Math.floor(comp.rect.Height * this.#mScale);    
+                // todo new protected
+//                this.#mRect.Width = Math.floor(comp.rect.Width * this.#mScale);
+//                this.#mRect.Height = Math.floor(comp.rect.Height * this.#mScale);    
             }
         }
     }
@@ -187,7 +188,7 @@
             super();
             this.mClipRect = new mx.Rectangle(0, 0, 0, 0);
             this.#mWidgetType = WidgetType.Widget;
-            this.#mId = id;
+// todo            this.#mId = id;
             this.#mTinted = false;
             this.#mParent = null;
             this.mObject = this;
@@ -215,8 +216,8 @@
         {
             if (this.#mParent != null && this.#mWidgetType != WidgetType.Scrollbar) 
                 return new mx.Rectangle(this.#mRect.X, this.#mRect.Y - this.#mParent.mOffset, this.#mRect.Width, this.#mRect.Height);
-            else 
-                return this.#mRect.copy();    
+// todo            else 
+//                return this.#mRect.copy();    
         }
 
         get AbsRect()

@@ -127,7 +127,7 @@
                   skin.numFrames = x;
                 }
         
-                else if ((words[0] == "Component") || (words[0] == "Component"))
+                else if ((words[0] == "Component"))
                 {
                   if (words.length < 6) { this.error("bad component line"); continue; }
         
