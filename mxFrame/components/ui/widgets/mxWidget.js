@@ -1,87 +1,156 @@
 (function () {
 
+    // PROTECTED
+    // this is the support code that makes protected members possible
+    let id = 1;
+    function getID() { return id++; }
+
+    let dataStore = {};
+    function getData(id) {  return (id in dataStore) ? dataStore[id] : null; }
+    function saveData(data) { if (data.id) dataStore[data.id] = data; }
+    // END PROTECTED
+
+
     // Placeable is a base class for things that have a position and can be
     // placed via a layout
     class Placeable extends mx.LayoutDef 
-    {
-        #mRect;
+    {    
+        #private;    
 
-        get Rect() {return this.#mRect; }
+        get Rect()
+        {
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mRect : null;
+        }
 
         constructor() 
         {
+            super();
+            this.isPlaceable = true;
+            this.#private = {};
+
             this.mObject = this;
-            this.#mRect = null;
+        }
+
+        init(data)
+        {
+            if (this.#private.id) return;
+
+            if (!data) data = { id: mx.getID() };
+            this.#private.id = data.id;
+
+            data.mRect = null;
+            saveData(data);
         }
 
         Place(rect) 
         {
-            this.#mRect = rect;
+            if (!rect.isRect) return;
+            
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            _protected.mRect = rect;
         }
     }
 
     // ComponentLink refers to a Ui skin componant and gives it a placeable 
     // position in a widget
-    class ComponentLink extends mx.Placeable 
+    class ComponentLink extends Placeable 
     {
-        //    public bool mStretch;
-        //    public bool mSkip;
+        #private;
 
-        //    protected long mCompID;
-        get CompID() { return this.#mCompID; };
-        set CompID(value) { this.#mCompID = value; this.SetSize(); }
+        get Baked() 
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mBaked : null;
+        }
 
-        //    protected float mScale;
-        get Scale() { return this.#mScale; }
-        set Scale(value) { this.#mScale = value; this.SetSize(this.#mName); }
+        get CompID() 
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mCompID : null;
+        }
+        set CompID(value) 
+        { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mCompID = value; 
+            this.SetSize(); 
+        }
 
-        //    protected string mName;
-        get Name() { return this.#mName; }
+        get Scale()
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mScale : null;
+        }
+        set Scale(value)
+        { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mScale = value; 
+            this.SetSize(_protected.mName); 
+        }
 
-        //    internal bool mBaked;
-
-        #mBaked;
-        #mCompID;
-        #mScale;
-        #mName;
+        get Name()
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mName : null;
+        }
 
         constructor(name, baked) 
         {
             super();
-            this.#mCompID = 0;
-            this.#mName = null;
+            this.mObject = this;
+
+            this.isComponentLink = true;
+            this.#private = {};
+            this.#private.params = { name: name ? ""+name : null, baked: baked ? true : false };
+
             this.mStretch = false;
             this.mSkip = false;
-            this.mObject = this;
-            this.#mScale = 1.0;
-            this.#mBaked = baked ? true : false;
-            if (name) {
-                this.#mName = name;
-                this.SetSize(name);
-            }
+        }
+
+        init(data)
+        {
+            if ( this.#private.id) return;
+
+            if (!data) data = { id: mx.getID() };
+            this.#private.id = data.id;
+
+            super.init(data);
+            data.mCompID = 0;
+            data.mScale = 1.0;
+            data.mBaked = this.#private.params.baked;
+            data.mName = this.#private.params.name;
+            saveData(data);
+
+            if (data.name) this.SetSize(data.name);
         }
 
         SetSize(name) 
         {
             let comp = null;
 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             if (!name || !name.length) 
             {
-                comp = mx.SkinManager.GetComponentByIndex(this.#mCompID);
+                comp = mx.SkinManager.GetComponentByIndex(_protected.mCompID);
                 if (comp == null) return;
-                this.#mName = comp.name;
+                _protected.mName = comp.name;
             }
             else
             {
                 comp = mx.SkinManager.GetComponentByName(name);
                 if (comp == null) return;
-                this.#mCompID = comp.id;    
+                _protected.mCompID = comp.id;    
             }
             if (comp)
             {
-                // todo new protected
-//                this.#mRect.Width = Math.floor(comp.rect.Width * this.#mScale);
-//                this.#mRect.Height = Math.floor(comp.rect.Height * this.#mScale);    
+                _protected.mRect.Width = Math.floor(comp.rect.Width * _protected.mScale);
+                _protected.mRect.Height = Math.floor(comp.rect.Height * _protected.mScale);    
             }
         }
     }
@@ -97,8 +166,7 @@
         Scrollbar: 8,
         Dropdown: 9
     };
-    
-    
+        
     // Widget is the base class for all UI widgets. It made up UI componants that
     // get placed using a layout
     //
@@ -106,101 +174,133 @@
     // gets added to the players in the parent mask
     class Widget extends Placeable
     {
-        #mTinted; // bool
-        set Tinted(value) { this.#mTinted = value; }
-        get Tinted() { if (!this.#mTinted && this.#mParent != null) return this.#mParent.Tinted; else return this.#mTinted; }
+        #private;
 
-        #mTint; // color
+        set Tinted(value) 
+        { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mTinted = value ? true : false; 
+        }
+        get Tinted() 
+        { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+            
+            if (!_protected.mTinted && _protected.mParent != null) return _protected.mParent.Tinted; 
+            else return _protected.mTinted; 
+        }
+
         get Tint()
         {
-            if (this.#mParent != null && this.#mParent.Tinted) 
-                return this.#mParent.Tint;
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            if (_protected.mParent != null && _protected.mParent.Tinted) 
+                return _protected.mParent.Tint;
             else
-                return this.#mTint[this.#mTint.length - 1];
+                return _protected.mTint[_protected.mTint.length - 1];
         }
         set Tint(value) 
         { 
-            if (!this.#mTint) 
+            if (!value.isColor) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            if (!_protected.mTint) 
             {
-                this.#mTint = []; 
-                this.#mTint.push(value);
+                _protected.mTint = []; 
+                _protected.mTint.push(value);
             }
             else
-                this.#mTint[0] = value; 
+                _protected.mTint[0] = value; 
         }
 
-        #mID;
-        get ID()  { return this.#mID; }
+        get ID()  
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mId : null;
+        }
 
-        #mWidgetType;
-        get WidgetType() { return this.#mWidgetType; }
+        get WidgetType() 
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mWidgetType : null;
+        }
 
-        #mVisible;
         get Visible() 
         {
-            if (this.#mVisible && this.#mParent != null) return this.#mParent.Visible;
-            return this.#mVisible;    
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            if (_protected.mVisible && _protected.mParent != null) return _protected.mParent.Visible;
+            return _protected.mVisible;    
         }
         set Visible(value) 
         {
-            if (value && !this.#mVisible) this.onVisible();
-            else if (!value && this.#mVisible) this.onInvisible();    
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            if (value && !_protected.mVisible) this.onVisible();
+            else if (!value && _protected.mVisible) this.onInvisible();    
         }
 
-        #mActive;
         get Active() 
         {
-            if (this.#mActive && this.#mParent != null) return this.#mParent.Active;
-            return this.#mActive;    
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            if (_protected.mActive && _protected.mParent != null) return _protected.mParent.Active;
+            return _protected.mActive;    
         }
         set Active(value) 
         {
-            if (value && !this.#mActive) this.onActive();
-            else if (!value && this.#mActive) this.onInactive();    
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            if (value && !_protected.mActive) this.onActive();
+            else if (!value && _protected.mActive) this.onInactive();    
         }
-
-//    protected mxWidgetType mWidgetType;
-//    protected bool mVisible = true;
-//    protected bool mActive = true;
-//    protected int mId;
-//    protected List<Vector4> mTint;
-//    protected bool mTinted;
-
-        #mParent;
-        #mCompLayout;
-        #mComponents;
-        #mFocusComponents;
-//  protected mxParentWidget mParent = null;
-//  protected mxLayout mCompLayout = null;
-//  protected List<mxComponentLink> mComponents = new List<mxComponentLink>();
-//protected List<mxComponentLink> mFocusComponents = new List<mxComponentLink>();
-
-//    public Rectangle mClipRect = new Rectangle(0, 0, 0, 0);
-//    public Vector4 mColorFG;
-//    public Vector4 mColorBG;
-//    public int mCmdFocus = 0;  // the command config to give while focused
-    
-    // for use by mxUISurface Render
-//    public int mDepth;
 
         constructor(id)
         {
             super();
-            this.mClipRect = new mx.Rectangle(0, 0, 0, 0);
-            this.#mWidgetType = WidgetType.Widget;
-// todo            this.#mId = id;
-            this.#mTinted = false;
-            this.#mParent = null;
             this.mObject = this;
-            this.#mCompLayout = new mx.Layout(this);
-            this.#mTint = [];
-            this.#mTint.push(new mx.Color(1,1,1,1));
+
+            this.isWidget = true;
+            this.#private = {};
+            this.#private.params = { id: id };
+
+            this.mClipRect = new mx.Rectangle(0, 0, 0, 0);
             this.mColorBG = new mx.Color(0,0,0,0);
             this.mColorFG = new mx.Color(1,1,1,1);
+            this.mCmdFocus = 0;  // the command config to give while focused
+            // for use by mxUISurface Render
             this.mDepth = 100;                 // default topmost depth
-            this.#mComponents = [];
-            this.#mFocusComponents = [];
+        }
 
+        init(data)
+        {
+            if ( this.#private.id) return;
+
+            if (!data) data = { id: mx.getID() };
+            this.#private.id = data.id;
+
+            super.init(data);
+            data.mWidgetType = WidgetType.Widget;
+            data.mId = this.#private.params.id;
+            data.mVisible = false;                  // bool
+            data.mActive = false;                   // bool
+            data.mTinted = false;                   // bool
+            data.mParent = null;                    // mxParentWidget
+            data.mCompLayout = new mx.Layout(this); // mxLayout
+            data.mTint = [];                        // List<Vector4>
+            data.mTint.push(new mx.Color(1,1,1,1)); // 
+            data.mComponents = [];                  // List<mxComponentLink>
+            data.mFocusComponents = [];             // List<mxComponentLink>
+            saveData(data);
+            
             mx.UIManager.Register(this);
         }
 
@@ -208,47 +308,82 @@
         // not width, height
         get AbsClipRect() 
         { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             let r = this.AbsRect;
-            return new mx.Rectangle(r.X + this.mClipRect.X, r.Y + this.mClipRect.Y, r.X + this.#mRect.Width - this.mClipRect.Width, r.Y + this.#mRect.Height - this.mClipRect.Height); 
+            return new mx.Rectangle(r.X + this.mClipRect.X, r.Y + this.mClipRect.Y, r.X + _protected.mRect.Width - this.mClipRect.Width, r.Y + _protected.mRect.Height - this.mClipRect.Height); 
         }
     
         get OffsetRect()
         {
-            if (this.#mParent != null && this.#mWidgetType != WidgetType.Scrollbar) 
-                return new mx.Rectangle(this.#mRect.X, this.#mRect.Y - this.#mParent.mOffset, this.#mRect.Width, this.#mRect.Height);
-// todo            else 
-//                return this.#mRect.copy();    
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            if (_protected.mParent != null && _protected.mWidgetType != WidgetType.Scrollbar) 
+                return new mx.Rectangle(_protected.mRect.X, _protected.mRect.Y - _protected.mParent.mOffset, _protected.mRect.Width, _protected.mRect.Height);
+            else 
+                return _protected.mRect.copy();    
         }
 
         get AbsRect()
         {
-            if (this.#mParent == null)
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            if (_protected.mParent == null)
             {
-                return this.#mRect.copy();
+                return _protected.mRect.copy();
             }
             else
             {
                   let r = this.OffsetRect;
-                  r.X += this.#mParent.AbsRect.X;
-                  r.Y += this.#mParent.AbsRect.Y;
+                  r.X += _protected.mParent.AbsRect.X;
+                  r.Y += _protected.mParent.AbsRect.Y;
                   return r;
             }
         }
 
-        Place(rect) { super.Place(rect); this.#mCompLayout.Arrange(); }
+        Place(rect) 
+        { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            super.Place(rect); 
+            _protected.mCompLayout.Arrange(); 
+        }
     
-        get Parent() { return this.#mParent; }
+        Arrange()
+        {
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            _protected.mCompLayout.Arrange(); 
+        }
+
+        get Parent() 
+        { 
+            let _protected = getData(this.#private.id);
+            return _protected ? _protected.mParent : null; 
+        }
         set Parent(value) 
         { 
-            if (this.#mParent != null) this.#mParent.RemoveChild(this);
-            this.#mParent = value;
+            if (!value.isParentWidget) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            if (_protected.mParent != null) _protected.mParent.RemoveChild(this);
+            _protected.mParent = value;
             this.PropegateDepth();
             this.OnParent();
         }
 
         PropegateDepth()
         {
-          this.mDepth = this.#mParent.mDepth - 1;
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            this.mDepth = _protected.mParent.mDepth - 1;
         }
 
         OnParent() { }
@@ -261,54 +396,79 @@
 
         RemoveAllComponents()
         {
-            this.#mComponents = [];
-            this.#mCompLayout.mObjects = [];
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            _protected.mComponents = [];
+            _protected.mCompLayout.mObjects = [];
         }
 
         RemoveComponent(comp) // mxComponentLink
         {
-            let index = this.mComponents.indexOf(comp);
-            if (index > -1) {
-                this.mComponents.splice(index, 1);
-            }
+            if (!comp.isComponentLink) return;
 
-            this.#mCompLayout.Remove(comp);
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            let index = this.mComponents.indexOf(comp);
+            if (index > -1) this.mComponents.splice(index, 1);
+
+            _protected.mCompLayout.Remove(comp);
         }
 
         AddComponent(comp) // mxComponentLink
         {
+            if (!comp.isComponentLink) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             this.mComponents.push(comp);
-            this.#mCompLayout.Add(comp);
+            _protected.mCompLayout.Add(comp);
         }
 
         AddFocusComponent(comp) // mxComponentLink
         {
+            if (!comp.isComponentLink) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             this.mFocusComponents.push(comp);
-            this.#mCompLayout.Add(comp);
+            _protected.mCompLayout.Add(comp);
         }
 
         RemoveFocusComponent(comp) // mxComponentLink
         {
+            if (!comp.isComponentLink) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             let index = this.mFocusComponents.indexOf(comp);
-            if (index > -1) {
-                this.mFocusComponents.splice(index, 1);
-            }
-            this.#mCompLayout.Remove(comp);
+            if (index > -1) this.mFocusComponents.splice(index, 1);
+            _protected.mCompLayout.Remove(comp);
         }
 
         AddBakedComponent(name) // string
         {
-            let comp = new mx.ComponentLink(name, true); 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            let comp = new mx.ComponentLink(""+name, true); 
             this.mComponents.push(comp);
-            this.#mCompLayout.Add(comp);
+            _protected.mCompLayout.Add(comp);
             return comp;
         }
 
         AddComponent(name) // string
         {
-            let comp = new mx.ComponentLink(name); 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            let comp = new mx.ComponentLink(""+name); 
             this.mComponents.push(comp);
-            this.#mCompLayout.Add(comp);
+            _protected.mCompLayout.Add(comp);
             return comp;
         }
 
@@ -337,13 +497,15 @@
 
         get NumComponents() { return this.mFocusComponents.length + this.mComponents.length; }
 
-        onCallMe()
-        {  
-
-        }
+        onCallMe() {  }
 
         onFocusIn(focus) // mxFocusPlayerDef
         {
+            if (!focus.isFocusPlayerDef) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             let arrange = false;
             let parentarrange = false;
 
@@ -357,32 +519,37 @@
                 switch (elem.mType) 
                 {
                 case mxFocusType.Color:
-                    this.#mTint.Add(elem.mColor);
-                    this.#mTinted = true;
+                    _protected.mTint.push(elem.mColor);
+                    _protected.mTinted = true;
                     break;
                 case mxFocusType.Component:
                     this.AddFocusComponent(elem.mComponent);
                     arrange = true;
                     break;
                 case mxFocusType.ParentComponent:
-                    if (this.#mParent != null) 
+                    if (_protected.mParent != null) 
                     {
                         elem.mComponent.mTopLeft.xRelativeTo = this;
                         elem.mComponent.mTopLeft.yRelativeTo = this;
                         if (elem.mComponent.mTopLeft.xPlace != mxPlace.None) elem.mComponent.mBottomRight.xRelativeTo = this;
                         if (elem.mComponent.mTopLeft.yPlace != mxPlace.None) elem.mComponent.mBottomRight.yRelativeTo = this;
-                        this.#mParent.AddComponent(elem.mComponent);
+                        _protected.mParent.AddComponent(elem.mComponent);
                         parentarrange = true;
                     }
                     break;
                 }
             }
-            if (arrange) this.#mCompLayout.Arrange();
-            if (parentarrange) this.#mParent.#mCompLayout.Arrange();
+            if (arrange) _protected.mCompLayout.Arrange();
+            if (parentarrange) _protected.mParent.Arrange();
         }
 
         onFocusOut(focus) // mxFocusPlayerDef
         {
+            if (!focus.isFocusPlayerDef) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
             let arrange = false;
             let parentarrange = false;
 
@@ -395,24 +562,25 @@
                 switch (elem.mType)
                 {
                 case mx.FocusType.Color:
-                    this.#mTint.Remove(elem.mColor);
-                    this.#mTinted = false;
+                    let index = _protected.mTint.indexOf(elem.mColor);
+                    if (index > -1) _protected.mTint.splice(index, 1);
+                    _protected.mTinted = false;
                     break;
                 case mx.FocusType.Component:
                     this.RemoveFocusComponent(elem.mComponent);
                     arrange = true;
                     break;
                 case mx.FocusType.ParentComponent:
-                    if (this.#mParent != null)
+                    if (_protected.mParent != null)
                     {
-                        this.#mParent.RemoveComponent(elem.mComponent);
+                        _protected.mParent.RemoveComponent(elem.mComponent);
                         parentarrange = true;
                     }
                     break;
                 }
             }
-            if (arrange) this.#mCompLayout.Arrange();
-            if (parentarrange) this.#mParent.#mCompLayout.Arrange();
+            if (arrange) _protected.mCompLayout.Arrange();
+            if (parentarrange) _protected.mParent.Arrange();
         }
 
         onParentChange(active, visible)
@@ -421,22 +589,30 @@
 
         onActive()
         {
-            this.#mActive = true;
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mActive = true;
         }
 
         onInactive()
         {
-            this.#mActive = false;
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mActive = false;
         }
 
         onVisible()
         {
-            this.#mVisible = true;
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mVisible = true;
         }
 
         onInvisible()
         {
-            this.#mVisible = false;    
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+            _protected.mVisible = false;    
         }
 
         handleCommand(o, e)
@@ -449,49 +625,79 @@
     // client area
     class ParentWidget extends Widget
     {
-        #mLayout;
-        #mChilds;
-//        protected mxLayout mLayout = null;
-//        protected List<mxWidget> mChilds = new List<mxWidget>();
-    
+        #private;
+
         constructor(id)
         {
             super(id);
+            this.mObject = this;
+
+            this.isParentWidget = true;
+            this.#private = {};
+
             this.mOffset = 0;
-            this.#mWidgetType = mx.WidgetType.ParentWidget;
-            this.#mLayout = new mx.Layout(this);
-            this.#mChilds = [];
         }
-    
-        Place(rect) { super.Place(rect); this.#mLayout.Arrange(); }
+
+        init(data)
+        {
+            if ( this.#private.id) return;
+
+            if (!data) data = { id: mx.getID() };
+            this.#private.id = data.id;
+
+            super.init(data);
+            data.mWidgetType = mx.WidgetType.ParentWidget;
+            data.mLayout = new mx.Layout(this);
+            data.mChilds = [];                               // List<mxWidget>
+            saveData(data);
+        }
+        
+        Place(rect) 
+        { 
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            super.Place(rect); 
+            _protected.mLayout.Arrange(); 
+        }
     
         Arrange()
         {
-          this.#mLayout.Arrange();
-          this.#mCompLayout.Arrange();
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            _protected.mLayout.Arrange();
+            _protected.mCompLayout.Arrange();
         }
     
         AddChild(child) // mxWidget
         {
-          this.#mLayout.Add(child);
-          this.#mChilds.push(child);
-          child.Parent = this;
-          this.#mLayout.Arrange();
-          if (this.#mVisible) child.onActive();
+            if (!child.isWidget) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            _protected.mLayout.Add(child);
+            _protected.mChilds.push(child);
+            child.Parent = this;
+            _protected.mLayout.Arrange();
+            if (_protected.mVisible) child.onActive();
         }
     
         RemoveChild(c) // Widget
         {
-            for (let i in this.#mChilds)
+            if (!child.isWidget) return;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return;
+
+            for (let i in _protected.mChilds)
             {
-                let child = this.#mChilds[i];
+                let child = _protected.mChilds[i];
                 if (child == c) 
                 {
-//                    this.#mChilds.Remove(child);
-                    let index = this.#mChilds.indexOf(child);
-                    if (index > -1) {
-                        this.#mChilds.splice(index, 1);
-                    }
+                    let index = _protected.mChilds.indexOf(child);
+                    if (index > -1) _protected.mChilds.splice(index, 1);
 
                     child.onInactive();
                     c.Parent = null;
@@ -499,43 +705,59 @@
                 }
             }
     
-            this.#mLayout.Remove(c);
-            this.#mLayout.Arrange();
+            _protected.mLayout.Remove(c);
+            _protected.mLayout.Arrange();
         }
     
         HasChild() 
         {
-          return (this.#mChilds.length > 0) ;
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            return (_protected.mChilds.length > 0) ;
         }
     
         HasChild(w) // mxWidget
         { 
-          for (let i in this.#mChilds)
-          {
-              let child = this.#mChilds[i];
-              if ((child == w) || child.HasChild(w)) {
-                  return true;
+            if (!child.isWidget) return null;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            for (let i in _protected.mChilds)
+            {
+                let child = _protected.mChilds[i];
+                if ((child == w) || child.HasChild(w)) {
+                    return true;
+                }
             }
-          }
-          return false;
+            return false;
         }
     
         Contains(w) // mxWidget
         {
-          if (this.HasChild(w)) return true;
+            if (!child.isWidget) return null;
+
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+            
+            if (this.HasChild(w)) return true;
     
-          for (let i in this.#mChilds)
-          {
-              let child = this.#mChilds[i];
-              if (child.Contains(w)) return true;
-          }
-          return false;
+            for (let i in _protected.mChilds)
+            {
+                let child = _protected.mChilds[i];
+                if (child.Contains(w)) return true;
+            }
+            return false;
         }
     
         GetChild(i)
         {
-          if (i >= this.#mChilds.length) return null;
-          return this.#mChilds[i];
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            if (i >= _protected.mChilds.length) return null;
+            return _protected.mChilds[i];
         }
     
         onFocusIn(focus) // mxFocusPlayerDef
@@ -550,37 +772,62 @@
     
         PropegateDepth()
         {
-            for (let child in this.#mChilds) this.#mChilds[child].PropegateDepth();
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
+            for (let child in _protected.mChilds) _protected.mChilds[child].PropegateDepth();
         }
     
         onVisible()
         {
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
             super.onVisible();
-            for (let child in this.#mChilds) this.#mChilds[child].onParentChange(this.#mActive, this.#mVisible);
+            for (let child in _protected.mChilds) _protected.mChilds[child].onParentChange(_protected.mActive, _protected.mVisible);
         }
     
         onInvisible()
         {
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
             super.onInvisible();
-            for (let child in this.#mChilds) this.#mChilds[child].onParentChange(this.#mActive, this.#mVisible);
+            for (let child in _protected.mChilds) _protected.mChilds[child].onParentChange(_protected.mActive, _protected.mVisible);
         }
     
         onActive()
         {
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
             super.onActive();
-            for (let child in this.#mChilds) this.#mChilds[child].onParentChange(this.#mActive, this.#mVisible);
+            for (let child in _protected.mChilds) _protected.mChilds[child].onParentChange(_protected.mActive, _protected.mVisible);
         }
     
         onInactive()
         {
+            let _protected = getData(this.#private.id);
+            if (!_protected) return null;
+
             super.onInactive();
-            for (let child in this.#mChilds) this.#mChilds[child].onParentChange(this.#mActive, this.#mVisible);
+            for (let child in _protected.mChilds) _protected.mChilds[child].onParentChange(_protected.mActive, _protected.mVisible);
         }
     }
 
+    mx.getID = getID;
+
+    mx.createPlaceable = function() { let ret = new Placeable(); ret.init(); return ret; };
     mx.Placeable = Placeable;
+
+    mx.createComponentLink = function(name, baked) { let ret = new ComponentLink(name, baked); ret.init(); return ret; };
     mx.ComponentLink = ComponentLink;
+
     mx.WidgetType = WidgetType;
+
+    mx.createWidget = function(id) { let ret = new Widget(id); ret.init(); return ret; };
     mx.Widget = Widget;
+
+    mx.createParentWidget = function(id) { let ret = new ParentWidget(id); ret.init(); return ret; };
     mx.ParentWidget = ParentWidget;
 })();

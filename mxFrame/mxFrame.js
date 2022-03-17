@@ -17,24 +17,27 @@ function doneLoading() { }
   mx.WITH_DEBUG = 16;
 
   // source files to load, some optionally
-  var dependancies = ["libs/glMatrix.js"];
-  var baseSrc = ["libs/pako.js",
-                 "components/ui/mxLayout.js",
-                 "components/ui/mxLoaders.js",
-                 "components/ui/mxData.js",
-                 "components/ui/mxInput.js",
-                 "components/ui/mxPlayer.js",
-                 "components/ui/mxUISkin.js",
-//                 "components/ui/widgets/mxWidget.js",
-//                 "components/ui/widgets/mxContainer.js",
-                 "components/mxMesh.js",
-                 "components/mxTexture.js",
-                 "components/mxShader.js",
-                 "components/mxShaderManager.js",
-                 "components/mxAssetManager.js",
-                 "components/mxCamera.js",
-                 "components/mxMouse.js",
-                 "components/mxGame.js"];
+//  var dependancies = ["libs/glMatrix.js"];
+  var baseSrc = [ [ "libs/glMatrix.js"],
+                  [ "libs/pako.js",
+                    "components/ui/mxLayout.js",
+                    "components/ui/mxLoaders.js",
+                    "components/ui/mxData.js",
+                    "components/ui/mxInput.js",
+                    "components/ui/mxPlayer.js",
+                    "components/ui/mxUISkin.js",
+                    "components/mxMesh.js",
+                    "components/mxTexture.js",
+                    "components/mxShader.js",
+                    "components/mxShaderManager.js",
+                    "components/mxAssetManager.js",
+                    "components/mxCamera.js",
+                    "components/mxMouse.js",
+                    "components/mxGame.js" 
+                  ],
+                  [ "components/ui/widgets/mxWidget.js" ],
+                  ["components/ui/widgets/mxContainer.js"]
+                 ];
   var oculusSrc = ["libs/oculus.lib.js"];
   var touchSrc = ["libs/hammer.lib.js"];
   var debugSrc = ["libs/WebGLInspector/embed.js"];
@@ -76,65 +79,38 @@ function doneLoading() { }
   // when phase2 ends, the game is started.
   function handleLoaded(filename)
   {
-    if (loadState.loadDeps)
-    {
-      loadState.loadDeps -= 1;
-      console.log(" " + filename + " loaded. " + loadState.loadDeps + " left");
-      if (reportBootup) reportBootup("Stage 1/3 - " + loadState.loadDeps + " files to go");
-      if (!loadState.loadDeps)
-      {
-        console.log("Boot up phase 1");
-        for (i in loadState.src) include(loadState.libdir + "/" + loadState.src[i]);
-      }
-    }
-    else if (loadState.loadPhase1)
-    {
-      loadState.loadPhase1 -= 1;
-      console.log(" " + filename + " loaded. " + loadState.loadPhase1 + " left");
-      if (reportBootup) reportBootup("Stage 2/3 - " + loadState.loadPhase1 + " files to go");
-      if (!loadState.loadPhase1) 
-      {
-        console.log("Boot up phase 2");
-        if ('loadPhase2Index' in loadState)
-        {
-          console.log("Load group "+loadState.loadPhase2Index);
+      loadState.length -= 1;
+      if (reportBootup) reportBootup("Loading - " + loadState.length + " files to go");
+      console.log(" " + filename + " loaded. " + loadState.length + " left");
 
-          let files = loadState.appsrc[loadState.loadPhase2Index]
-          loadState.loadPhase2group = files.length;
-          for (i in files) include(files[i]);
-        }
-        else
-          for (i in loadState.appsrc) include(loadState.appsrc[i]);
-      }
-    }
-    else if (loadState.loadPhase2) {
-      loadState.loadPhase2 -= 1;
-      if (reportBootup) reportBootup("Stage 3/3 - " + loadState.loadPhase2 + " files to go");
-      console.log(" " + filename + " loaded. " + loadState.loadPhase2 + " left");
-
-      if ('loadPhase2group' in loadState)
+      loadState.groupLength -= 1;
+      if (!loadState.groupLength)
       {
-        loadState.loadPhase2group -= 1;
-        if (!loadState.loadPhase2group)
-        {
-          console.log("Done group");
-          loadState.loadPhase2Index++;
-          if (loadState.loadPhase2Index < loadState.appsrc.length)
-          {
-            console.log("Load group "+loadState.loadPhase2Index);
-            let files = loadState.appsrc[loadState.loadPhase2Index]
-            loadState.loadPhase2group = files.length;
-            for (i in files) include(files[i]);    
-            return;            
-          }
-        }
+        console.log("Done group");
+        loadState.loadIndex++;
+        nextGroup();
       }
 
-      if (!loadState.loadPhase2)
+      if (!loadState.length)
       {
         if (loadState.libtype & mx.WITH_DEBUG) include(loadState.libdir + "/libs/WebGLInspector/core/embed.js");
         waitForDebug();
-      }
+      }    
+  }
+
+  function nextGroup()
+  {
+    if (loadState.loadIndex < loadState.src.length)
+    {
+      console.log("Load group "+loadState.loadIndex);
+      loadState.groupLength = loadState.src[loadState.loadIndex].length;
+      for (let i in loadState.src[loadState.loadIndex])
+      {
+        if ( loadState.loadIndex >= loadState.userFilesIndex)
+          include(loadState.src[loadState.loadIndex][i]);
+        else
+          include(loadState.libdir + "/" + loadState.src[loadState.loadIndex][i]);
+      }  
     }
   }
 
@@ -193,30 +169,29 @@ function doneLoading() { }
 
     loadState.libtype = type;
     loadState.libdir = lib;
-    loadState.appsrc = files;
 
-    let appsrcLength = files.length;
+    var src = baseSrc;
+//    if (type & mx.WITH_MXFRAME) src = src.concat(baseSrc);
+    if (type & mx.WITH_OCULUS)  src.push(oculusSrc);
+    if (type & mx.WITH_NOISE)   src.push(perlinSrc);
+    if (type & mx.WITH_TOUCH)   src.push(touchSrc);
+
+    loadState.userFilesIndex = src.length;
+
     if (Array.isArray(files[0]))
     {
-      appsrcLength = 0;
-      for (let i in files) appsrcLength += files[i].length;
-      loadState.loadPhase2Index = 0;
+      for (let i in files) src.push(files[i]);
     }
+    else src.push(files);
 
-    var src = [];
-    if (type & mx.WITH_MXFRAME) src = src.concat(baseSrc);
-    if (type & mx.WITH_OCULUS)  src = src.concat(oculusSrc);
-    if (type & mx.WITH_NOISE)   src = src.concat(perlinSrc);
-    if (type & mx.WITH_TOUCH) src = src.concat(touchSrc);
+    loadState.length = 0;
+    for (let i in src) loadState.length += src[i].length;
+    loadState.loadIndex = 0;
     loadState.src = src;
-
-    loadState.loadDeps = dependancies.length;
-    loadState.loadPhase1 = src.length;
-    loadState.loadPhase2 = appsrcLength;
     loadState.loadDebug = (type & mx.WITH_DEBUG) ? 1 : 0;
 
-    console.log("Boot up phase 0");
-    for (i in dependancies) include(loadState.libdir + "/" + dependancies[i]);
+    console.log("Boot up");
+    nextGroup();
   };
 })();
 

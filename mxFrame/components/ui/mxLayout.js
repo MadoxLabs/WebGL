@@ -252,6 +252,7 @@
     {
         constructor(x, y)
         {
+            this.isPoint = true;
             this.x = x;
             this.y = y;
         }
@@ -263,9 +264,10 @@
     {
         constructor(x, y, w, h)
         {
-            thie.X = x;
+            this.isRect = true;
+            this.X = x;
             this.Y = y;
-            thie.Width = w;
+            this.Width = w;
             this.Height = h;
         }
         copy() { return new Rectangle(this.X, this.Y, this.Width, this.Height); }
@@ -540,7 +542,7 @@
     mx.Rectangle = Rectangle;
     mx.Point = Point;
     mx.Corner = Corner;
-    mx.LayoutDef - LayoutDef;
+    mx.LayoutDef = LayoutDef;
     mx.Layout = Layout;
 
 })();
