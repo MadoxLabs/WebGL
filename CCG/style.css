@@ -1,0 +1,22 @@
+html, body {
+    margin:0px;
+    height:100%;
+}
+
+body {
+    background-color: #15233c;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#surface, #game {
+    position:absolute;
+    top:0px;
+    right:0px;
+    bottom:0px;
+    left:0px;
+}
