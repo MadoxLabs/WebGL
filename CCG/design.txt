@@ -97,7 +97,7 @@ engine need
 + draw mini crew
 - draw effect lines
 - flash card 
-- move card from zone to zone
++ move card from zone to zone
 
 - show system is powered
 - show requirements are ok
@@ -113,33 +113,61 @@ what do we want to show
 - reveal some enemy
 - card goes back to deck
 
-> take hit
+> take hit - take damage, some evaded
 
 - fire weapon : its powered
 
-> take hit
+> take hit, we better take action!
 
 - evasive action
 
 > take hit : less dmg
 
-- full spread : redistribute power, no eveade
+- get full spread : need to redistribute power, no evade, so:
 - use jamming
 
-> target power
+> target weapon - he cant fire
 
-- use full spread
+- reroute and use full spread
 
-> fire
+> fire heavy barrel - 5 to target and one other system, engine is hit
 
-- emergency repair
+- we drew ramming but cant use it, emergency repair engine
 
-> 
+> fire, 
 
 - pedal to the metal
 
->
+> fire
 
 - ramming
 
+
 -------------------
+
+our shots:  his ship 25
+fire 5
+full 10
+ramming 10
+
+his shots
+hit 5 -2           2
+hit  5 -2          2 = 4
+hit, evaded 5 -4   0 = 4
+big hit  9 -4      5 = 9
+hit  5             4 = 13
+hit  5 -2          2 = 15
+
+our hands
+1  !on screen, fire, evasive action      | jamming
+2  !fire, evasive action, jamming        | shields up
+3  !evasive action, shields up, jamming  | full spread
+4  full spread, !jamming, shields up     | emergency repair
+5  !full spread, x, x                    | ramming speed
+6  ramming Speed, !emergncy repair, x    | pedal to the metal
+7  !pedal to the metal, ramming spead, x | self destruct
+8  !ramming speed, x, x                  
+
+useless cards
+- shields up
+- self destruct

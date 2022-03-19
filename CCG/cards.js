@@ -100,10 +100,117 @@ new Card({
     requires: [ "Weapon" ]
 });
 
-
 new Card({
     id: "DEMO-6",
     name: "Captain Smith",
     type: CardType.Crew,
     effectText: ["Best captain in the fleet","Hand size: 3","Actions: 1"]
+});
+
+new Card({
+    id: "DEMO-7",
+    name: "Shields Up",
+    type: CardType.Action,
+    effectText: ["Activate one defensive system"],
+    requires: [ "Defense" ]
+});
+
+new Card({
+    id: "DEMO-8",
+    name: "Full Salvo",
+    type: CardType.Action,
+    effectText: ["Fire one weapon system", "Damage: x2"],
+    requires: [ "Weapon", "Power: x2" ]
+});
+
+new Card({
+    id: "DEMO-9",
+    name: "Ramming Speed",
+    type: CardType.Action,
+    effectText: ["Ram the enemy ship", "Damage: 10", "Hull: -2"],
+    requires: [ "Nav", "Speed: 10" ]
+});
+
+new Card({
+    id: "DEMO-10",
+    name: "Self Destruct",
+    type: CardType.Action,
+    effectText: ["Destroy one vessel you control", "Deamge: 5 for each power point"],
+    requires: [ "Power" ]
+});
+
+new Card({
+    id: "DEMO-11",
+    name: "Jamming Signal",
+    type: CardType.Action,
+    effectText: ["Enemy can not attack next turn"],
+    requires: [ ]
+});
+
+new Card({
+    id: "DEMO-12",
+    name: "On Screen",
+    type: CardType.Action,
+    effectText: ["Reveal enemy's external systems", "Once"],
+    requires: [ ]
+});
+
+new Card({
+    id: "DEMO-13",
+    name: "Evasive Action",
+    type: CardType.Action,
+    effectText: ["Avoid enemy fire for 3 turns", "Evade: +2"],
+    requires: [ "Nav" ]
+});
+
+new Card({
+    id: "DEMO-14",
+    name: "Emergency Repairs",
+    type: CardType.Action,
+    effectText: ["Repair any non Hull system", "HP: +5"],
+    requires: [ ]
+});
+
+new Card({
+    id: "DEMO-15",
+    name: "Pedal to the Metal",
+    type: CardType.Action,
+    effectText: ["Speed: +5"],
+    requires: [ "Nav" ]
+});
+
+new Card({
+    id: "DEMO-16",
+    name: "Alien Captain",
+    type: CardType.Crew,
+    effectText: ["An angry alien","Hand size: 3","Actions: 1"]
+});
+
+new Card({
+    id: "DEMO-17",
+    name: "Reenforced Hull",
+    type: CardType.System,
+    system: SystemTypes.Hull,
+    effectText: ["Stong steel plating"],
+    hp: 25
+});
+
+new Card({
+    id: "DEMO-18",
+    name: "Machien Guns",
+    type: CardType.System,
+    system: SystemTypes.Weapon,
+    power: -2,
+    effectText: ["A pair of machine guns", "Damage: 4", "External"],
+    hp: 5
+});
+
+new Card({
+    id: "DEMO-19",
+    name: "Chemical Propultion Engine",
+    type: CardType.System,
+    system: SystemTypes.Nav,
+    power: -2,
+    effectText: ["Standard rocket fuel engine", "Speed: 5", "External"],
+    hp: 10
 });

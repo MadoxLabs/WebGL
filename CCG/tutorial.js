@@ -180,10 +180,18 @@ class Step18 extends Bubble
     constructor() { super(); }
     update() 
     { 
+        Game.enemy = new HandManager();
+        Game.enemy.addSystem("DEMO-17");
+        Game.enemy.addSystem("DEMO-18");
+        Game.enemy.addSystem("DEMO-1");
+        Game.enemy.addSystem("DEMO-19");
+        Game.enemy.addCrew("DEMO-16"); 
+        Game.enemy.activateCrew(0);
+
         let play1 = function() { Game.hand.activateUsedCard(); Game.draw.moveCard(Game.hand.activecard,2,1,4,3); Game.hand.endTurn();}
-        let card1 = function() { Game.hand.addHand("DEMO-5"); Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); Game.hand.useCard(1); }
-        let card2 = function() { Game.hand.addHand("DEMO-5"); Game.draw.deal( card1 );}
-        let card3 = function() { Game.hand.addHand("DEMO-5"); Game.draw.deal( card2 );}
+        let card1 = function() { Game.hand.addHand("DEMO-13"); Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); Game.hand.useCard(1); }
+        let card2 = function() { Game.hand.addHand("DEMO-5");  Game.draw.deal( card1 );}
+        let card3 = function() { Game.hand.addHand("DEMO-12"); Game.draw.deal( card2 );}
         Game.draw.deal( card3 ); 
     }
     render() { Game.draw.drawBubble(4.040353089533418, 1.5939470365699875, ["Good shot!"] ); }

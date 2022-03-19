@@ -193,7 +193,7 @@ class DrawTool
                 Game.draw.drawCard(hand.hand[i]);        
             }
         }
-        if (Game.hand.activecard)
+        if (hand.activecard)
         {
             Game.draw.moveToCel(2,1);
             Game.draw.drawCard(hand.activecard);    
@@ -221,6 +221,31 @@ class DrawTool
                 this.inMotion.splice(i,1);
             else 
                 this.inMotion[i].update();
+        }
+
+        // enemy
+        hand = Game.enemy;
+        if (!hand) return;
+
+        for (let i in hand.ship)
+        {
+            Game.draw.moveToCel(i,0);
+            if (hand.ship[i].system == SystemTypes.Hull || hand.ship[i].state.revealed)
+                Game.draw.drawCard(hand.ship[i]);    
+            else
+                Game.draw.drawFaceDown();
+        }
+
+        if (hand.activecrew)
+        {
+            Game.draw.moveToCel(5,0);
+            Game.draw.drawCard(hand.activecrew);
+        }
+
+        if (hand.activecard)
+        {
+            Game.draw.moveToCel(2,1);
+            Game.draw.drawCard(hand.activecard);    
         }
     }
 
