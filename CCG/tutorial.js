@@ -10,13 +10,6 @@ class TutorialManager
 
     startAt(num)
     {
-        for (let i = 0; i < num; ++i)
-        {
-            if (this.bubbles[i])
-            {
-                this.bubbles[i].update();
-            }
-        }
         this.step = num;
     }
 
@@ -150,7 +143,7 @@ new Step13();
 class Step14 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(3.6542713567839193, 2.814070351758794, ["On your turn, the cards you draw into your hand","will appear in this row."],3.230769230769231, 3.656998738965952 ); }
+    render() { Game.draw.drawBubble(3.698060941828255, 3.3850415512465375, ["On your turn, the cards you draw into your hand","will appear in this row."],3.230769230769231, 3.656998738965952 ); }
 }
 new Step14();
 class Step15 extends Bubble
@@ -170,13 +163,30 @@ class Step17 extends Bubble
     constructor() { super(); }
     update() 
     { 
+        Game.hand = new HandManager();
+        Game.hand.addSystem("DEMO-3");
+        Game.hand.addSystem("DEMO-1");
+        Game.hand.addSystem("DEMO-4");
+        Game.hand.addSystem("DEMO-2");
+        Game.hand.addCrew("DEMO-6"); 
+        Game.hand.activateCrew(0);
+        Game.hand.deck = [];
+    }
+    render() { Game.draw.drawBubble(4.040353089533418, 1.5939470365699875, ["Let's battle!"] ); }
+}
+new Step17();
+class Step18 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
         let play1 = function() { Game.hand.activateUsedCard(); Game.draw.moveCard(Game.hand.activecard,2,1,4,3); Game.hand.endTurn();}
         let card1 = function() { Game.hand.addHand("DEMO-5"); Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); Game.hand.useCard(1); }
         let card2 = function() { Game.hand.addHand("DEMO-5"); Game.draw.deal( card1 );}
         let card3 = function() { Game.hand.addHand("DEMO-5"); Game.draw.deal( card2 );}
         Game.draw.deal( card3 ); 
     }
-    render() { Game.draw.drawBubble(4.040353089533418, 1.5939470365699875, ["Let's battle!"] ); }
+    render() { Game.draw.drawBubble(4.040353089533418, 1.5939470365699875, ["Good shot!"] ); }
 }
-new Step17();
+new Step18();
 

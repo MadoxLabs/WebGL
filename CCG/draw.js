@@ -22,6 +22,14 @@ class CardInMotion
         this.done = false;
     }
 
+    computeDuration()
+    {
+        let xlen = Math.abs( this.fromCelX - this.toCelX);
+        let ylen = Math.abs( this.fromCelY - this.toCelY);
+        let len = Math.sqrt(xlen*xlen + ylen*ylen);
+        this.duration = 2000.0 * len / 6.0;
+    }
+
     update()
     {
         if (this.done) return;
@@ -31,7 +39,7 @@ class CardInMotion
         if (this.duration - elapsed < 0) 
         {
             this.done = true;
-            this.callback();
+            if (this.callback) this.callback();
             return;
         }
 
@@ -119,6 +127,7 @@ class DrawTool
         let o = this;
         mover.drawCall = function() { o.drawCard(card); }
         mover.callback = callback;
+        mover.computeDuration();
         this.inMotion.push(mover);
     }
 
@@ -132,6 +141,7 @@ class DrawTool
         let o = this;
         mover.drawCall = function() { o.drawFaceDown(); }
         mover.callback = callback;
+        mover.computeDuration();
         this.inMotion.push(mover);
     }
 
