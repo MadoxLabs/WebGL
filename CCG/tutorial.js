@@ -15,7 +15,7 @@ class TutorialManager
 
     progress()
     {
-        if (!this.step) location.reload();
+        if (!this.step) { location.reload(); return; }
         this.step++;
         this.updated = false;
     }
