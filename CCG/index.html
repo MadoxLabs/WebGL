@@ -8,8 +8,20 @@
     <!-- loader script includes all the actual js files -->
     <script src="loader.js"></script>
 </head>
-<body onload="Game.loadApp();">
-    <div id="loading"><p style="font-size:30px; font-family:Impact; color:red">LOADING...</p></div>
+<body onload="">
+    <div id="loading">
+        <p style="font-size:30px; font-family:Impact; color:red">
+            MADOX LABS Space Ship Card Game
+        </p>
+        <br>
+        <button type='button' onclick="Game.startTutorial(1)">Start Intro Tutorial</button><br>
+        <button type='button' onclick="Game.startTutorial(17)">Start Battle Tutorial</button><br>
+        <button type='button' onclick="Game.startTutorial(0)">Start Spacedock Tutorial</button><br>
+        <button type='button' onclick="Game.startTutorial(0)">Start Crewed Battle Tutorial</button><br>
+        <button type='button' onclick="Game.startTutorial(0)">Start Training Tutorial</button><br>
+        <button type='button' onclick="Game.startTutorial(0)">Start Refit Tutorial</button><br>
+        <button type='button' onclick="Game.startTutorial(0)">Start Campaign Tutorial</button><br>
+    </div>
     <div id="game" style="display: none">
         <canvas id="surface"></canvas>
     </div>

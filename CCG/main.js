@@ -21,6 +21,7 @@ Game.postInit = function()
     Game.hand = new HandManager();
 
     Game.onResize();
+    Tutorial.startAt(Game.startingStep);
 
     Game.Ready = true;
 };

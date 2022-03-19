@@ -8,8 +8,14 @@ class TutorialManager
         this.bubbles = [];
     }
 
+    startAt(num)
+    {
+        this.step = num;
+    }
+
     progress()
     {
+        if (!this.step) location.reload();
         this.step++;
         this.updated = false;
     }
@@ -38,6 +44,13 @@ class Bubble
     update() { }
     render() { }
 }
+
+class Step0 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(4.718446601941747, 1.3703190013869626, ["This tutorial doesn't exist yet!", "Come back later"]); }
+}
+new Step0();
 
 class Step1 extends Bubble
 {

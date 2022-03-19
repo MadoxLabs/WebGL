@@ -45,6 +45,12 @@ var Game = {};
   var loadState = 0; // how many files are left to include, so we know when we're done
   var step = 1;
 
+  Game.startTutorial = function(num)
+  {
+    Game.startingStep = num;
+    Game.loadApp();
+  }
+
   // the boot up entry point
   Game.loadApp = function ()
   {
