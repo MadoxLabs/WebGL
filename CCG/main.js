@@ -30,6 +30,9 @@ Game.init = function()
 
     document.getElementById("loading").style.display = "inline";
     document.getElementById("game").style.display = "none";
+
+    window.addEventListener('resize', function(event) { if ( Game.onResize) Game.onResize(); }, true);    
+    Game.onResize();
 };
 
 Game.run = function()
@@ -53,6 +56,10 @@ Game.postInit = function()
 
     Game.mouse = new Mouse(Game.canvas);
 
+    Game.cardWidth = 200;
+    Game.cardHeight = 300;
+    Game.onResize();
+
     Game.Ready = true;
 };
 
@@ -61,7 +68,11 @@ Game.fireMouseEvent = function(type, mouse)
     if (type == MouseEvent.Up)
     {
         step++;
+
+        console.log("click at "+mouse.lastDownX+", "+mouse.lastDownY);
+        console.log("thats a factor of  "+(mouse.lastDownX/Game.cardWidth)+", "+(mouse.lastDownY/Game.cardHeight));
     }
+
 };
 
 Game.update = function()
@@ -81,40 +92,43 @@ Game.render = function()
     Game.context.lineWidth = 2;
     Game.context.strokeRect(2, 2, Game.canvas.width - 4, Game.canvas.height - 4);
 
-//    Game.drawBubble(100, 60, ["Hello this is a test!", "This is the edge of the page"], 10, 30);
-//    Game.drawBubble(400, 100, ["Look at this bubble", "Its great"], 300, 80);
-//    Game.drawBubble(100, 200, ["Can we point up?"], 180, 120);
-//    Game.drawBubble(300, 200, ["Can we point right?", "And down?!"], [ {x:500, y:220}, {x:300, y:320} ]);
+    // board
+//    let cursorX = 10;
+//    let cursorY = 10;
+//    let stepOver = function() { cursorX += Game.cardWidth+10; }
+//    let stepDown = function() { cursorY += Game.cardHeight+10; }
+//    let crewDown = function() { cursorY += Game.cardHeight * 0.2 +10; }
+//    let reset = function() { cursorX = 10; }
+    Game.moveToCel(0,0); Game.drawZone("Enemy Ship System"); 
+    Game.moveToCel(1,0); Game.drawZone("Enemy Ship System"); 
+    Game.moveToCel(2,0); Game.drawZone("Enemy Ship System"); 
+    Game.moveToCel(3,0); Game.drawZone("Enemy Ship System"); 
+    Game.moveToCel(4,0); Game.drawZone("Enemy Ship System"); 
+    Game.moveToCel(5,0); Game.drawZone("Enemy Portrait");    
 
-    Game.drawZone(10,10,"Enemy Ship System");
-    Game.drawZone(120,10,"Enemy Ship System");
-    Game.drawZone(230,10,"Enemy Ship System");
-    Game.drawZone(340,10,"Enemy Ship System");
-    Game.drawZone(450,10,"Enemy Ship System");
-    Game.drawZone(560,10,"Enemy Portrait");
+    Game.moveToCel(2,1); Game.drawZone("Played Card");
 
-    Game.drawZone(230, 170, "Played Card");
+    Game.moveToCel(0,2); Game.drawZone("My Ship System");
+    Game.moveToCel(1,2); Game.drawZone("My Ship System"); 
+    Game.moveToCel(2,2); Game.drawZone("My Ship System");
+    Game.moveToCel(3,2); Game.drawZone("My Ship System");
+    Game.moveToCel(4,2); Game.drawZone("My Ship System"); 
 
-    Game.drawZone(10, 330,"My Ship System");
-    Game.drawZone(120,330,"My Ship System");
-    Game.drawZone(230,330,"My Ship System");
-    Game.drawZone(340,330,"My Ship System");
-    Game.drawZone(450,330,"My Ship System");
+    Game.moveToCel(5,2);   Game.drawCrewZone();
+    Game.moveToCel(5,2.25); Game.drawCrewZone();
+    Game.moveToCel(5,2.5); Game.drawCrewZone(); 
+    Game.moveToCel(5,2.75); Game.drawCrewZone(); 
 
-    Game.drawZone(10, 490,"My Hand");
-    Game.drawZone(120,490,"My Hand");
-    Game.drawZone(230,490,"My Hand");
-    Game.drawZone(450,490,"My Deck");
+    Game.moveToCel(0,3); Game.drawZone("My Hand"); 
+    Game.moveToCel(1,3); Game.drawZone("My Hand"); 
+    Game.moveToCel(2,3); Game.drawZone("My Hand"); 
+    Game.moveToCel(4,3); Game.drawZone("My Deck");  
 
-    Game.drawZone(560,490,"Active Crew");
-
-    Game.drawCrewZone(560,330);
-    Game.drawCrewZone(560,380);
-    Game.drawCrewZone(560,430);
+    Game.moveToCel(5,3); Game.drawZone("Active Crew");
 
     if (step == 0)
     {
-        Game.drawBubble(600, 250, ["This is the game board", "Click to see some cards"], 300, 300);
+        Game.drawBubble(4.7,1.6, ["This is the game board", "Click to see some cards"], 3.58, 1.63);
     }
     if (step > 0)
     {
@@ -124,14 +138,16 @@ Game.render = function()
         card.system = "Power";
         card.power = 10;
         card.effectText = ["A basic power core", "Provides 10 power per turn"];
-        Game.drawCard(400, 400, card);
+        Game.moveToCel(0,2);
+        Game.drawCard(card);
     
         card = new Card();
         card.name = "FIRE!";
         card.type = CardType.Action;
         card.effectText = ["Fire one weapon system"];
         card.requires = [ "Weapon" ];
-        Game.drawCard(650, 400, card);
+        Game.moveToCel(0,3);
+        Game.drawCard(card);
     
         card = new Card();
         card.name = "Phaser Cannon";
@@ -139,19 +155,31 @@ Game.render = function()
         card.type = CardType.System;
         card.power = -2;
         card.effectText = ["A small phased energy cannon", "Damage: 5"];
-        Game.drawCard(150, 400, card);    
+        Game.moveToCel(1,2);
+        Game.drawCard(card);    
 
         if (step == 1)
-            Game.drawBubble(400, 300, ["This is some cards"], 450, 400);
+            Game.drawBubble(4.7,1.6, ["This is some cards"], 3.6, 2.0);
 
         if (step == 2)
-           Game.drawBubble(400, 300, ["That it for now"], 450, 300);
+           Game.drawBubble(4.7,1.6, ["That it for now"], 4.9,1.6);
 
     }
 };
 
+Game.moveToCel = function(x, y)
+{
+    Game.cursorX = 10 + (Game.cardWidth+10) * x;
+    Game.cursorY = 10 + (Game.cardHeight+10) * y;
+}
+
 Game.drawBubble = function(x, y, _text, targetx, targety)
 {
+    x *= Game.cardWidth;
+    y *= Game.cardHeight;
+    targetx *= Game.cardWidth;
+    targety *= Game.cardHeight;
+
     let text = _text;
     if (Array.isArray(text) == false)
     {
@@ -302,7 +330,7 @@ SystemColours["Weapon"] ="Red";
 SystemColours["Nav"   ] ="Blue";
 SystemColours["Action"] ="#000";
 
-Game.setFontForText = function(_text, width)
+Game.setFontForText = function(_text, width, height)
 {
     let text = _text;
     if (Array.isArray(text) == false)
@@ -316,6 +344,12 @@ Game.setFontForText = function(_text, width)
     {
         Game.context.font = ""+s+"px Helvetica";
 
+        if (height)
+        {
+            let h = s; //Game.context.measureText(text[0]).height;
+            if (h >= height) continue;
+        }
+
         let w = 0;
         for (let i in text)
         {
@@ -327,40 +361,42 @@ Game.setFontForText = function(_text, width)
     return 5;
 }
 
-Game.drawCard = function(x, y, card)
+Game.drawCard = function(card)
 {
-    let h = 300;
-    let w = 200;
+    let x = Game.cursorX;
+    let y = Game.cursorY;
+    let h = Game.cardHeight;
+    let w = Game.cardWidth;
     let radius = w/10;
     var r = x + w;
     var b = y + h;
 
-    let nameHeight = 40;
+    let nameHeight = h * 0.13;
     let nameOffsetX = w * 0.05;
-    let nameOffsetY = nameHeight * 0.6;
+    let nameOffsetY = nameHeight * 0.8;
     let namePosX = x + nameOffsetX;
     let namePosY = y + nameOffsetY;
-    let systemHeight = 30;
+    let systemHeight = h * 0.1;
     let systemWidth = w * 0.5;
     let systemOffsetX = systemWidth * 0.1;
     let systemOffsetY = systemHeight * 0.3;
     let systemPosX = x + systemOffsetX;
     let systemPosY = b - systemOffsetY;
-    let powerHeight = 30;
+    let powerHeight = h * 0.1;
     let powerOffsetX = w * 0.05;
-    let powerOffsetY = powerHeight * 0.6;
+    let powerOffsetY = powerHeight * 0.8;
     let powerPosX = x + powerOffsetX;
     let powerPosY = y + nameHeight + powerOffsetY;
     let hpOffsetX = w * 0.05;
-    let hpOffsetY = powerHeight * 0.6;
+    let hpOffsetY = powerHeight * 0.8;
     let hpPosX = x + w/2 + hpOffsetX;
     let hpPosY = y + nameHeight + hpOffsetY;
     let effectOffsetX = w * 0.05;
     let effectPosX = x + effectOffsetX;
-    let effectStepY = 20;
+    let effectStepY = 0;
     let reqOffsetX = w * 0.05;
     let reqPosX = x + reqOffsetX;
-    let reqStepY = 20;
+    let reqStepY = 0;
 
     // background
     Game.context.beginPath();
@@ -392,7 +428,7 @@ Game.drawCard = function(x, y, card)
     Game.context.lineTo(x, y + radius); // left edge
     Game.context.fill();
     
-    Game.setFontForText(card.name, w - nameOffsetX - nameOffsetX);
+    Game.setFontForText(card.name, w - nameOffsetX - nameOffsetX, nameHeight);
     Game.context.fillStyle = "#000";
     Game.context.fillText(card.name,namePosX, namePosY);
 
@@ -418,17 +454,17 @@ Game.drawCard = function(x, y, card)
             text = ">>> " + (-1*card.power);
         else
             text = "<<< " + card.power;
-        Game.setFontForText(text, w/2 - nameOffsetX - nameOffsetX);
+        Game.setFontForText(text, w/2 - nameOffsetX - nameOffsetX, powerHeight);
         Game.context.fillText(text, powerPosX, powerPosY);
     
         text = "HP: "+card.hp;
-        Game.setFontForText(text, w/2 - nameOffsetX - nameOffsetX);
+        Game.setFontForText(text, w/2 - nameOffsetX - nameOffsetX, powerHeight);
         Game.context.fillStyle = card.type == CardType.Action ? "#fff": "#000";
         Game.context.fillText(text, hpPosX, hpPosY);    
     }
 
     // Requirement area
-    reqStepY = Game.setFontForText(card.requires, w - nameOffsetX - nameOffsetX);
+    reqStepY = Game.setFontForText(card.requires, w - nameOffsetX - nameOffsetX) * 1.1;
     let reqY = y + nameHeight + (card.type == CardType.System ? powerHeight : 0) + reqStepY;
     Game.context.fillStyle = "#aaa";
     Game.context.fillRect(x, reqY-reqStepY+2, w,  (reqStepY * card.requires.length));
@@ -440,7 +476,7 @@ Game.drawCard = function(x, y, card)
     }
 
     // Effect area
-    effectStepY = Game.setFontForText(card.effectText, w - nameOffsetX - nameOffsetX);
+    effectStepY = Game.setFontForText(card.effectText, w - nameOffsetX - nameOffsetX) * 1.1;
 
     let effectHeight = effectStepY * (card.effectText.length+1);
     Game.context.beginPath();
@@ -489,21 +525,23 @@ Game.drawCard = function(x, y, card)
     Game.context.fill();
 
     text = card.type == CardType.Action ? "Action" : card.system;
-    Game.setFontForText(text, w/2 - nameOffsetX - nameOffsetX);
+    Game.setFontForText(text, w/2 - nameOffsetX - nameOffsetX, systemHeight);
     Game.context.fillStyle = card.type == CardType.Action ? "#fff": "#000";
     Game.context.fillText(text, systemPosX, systemPosY);
 
 }
 
-Game.drawZone = function(x, y, label)
+Game.drawZone = function(label)
 {
-    let h = 150;
-    let w = 100;
+    let x = Game.cursorX;
+    let y = Game.cursorY;
+    let h = Game.cardHeight;
+    let w = Game.cardWidth;
     let radius = w/10;
     var r = x + w;
     var b = y + h;
 
-    let nameHeight = 40;
+    let nameHeight = h * 0.24;
     let nameOffsetX = w * 0.05;
     let nameOffsetY = nameHeight * 0.6;
     let namePosX = x + nameOffsetX;
@@ -530,17 +568,19 @@ Game.drawZone = function(x, y, label)
     Game.context.fillText(label, namePosX, namePosY);
 }
 
-Game.drawCrewZone = function(x, y)
+Game.drawCrewZone = function()
 {
-    let h = 40;
-    let w = 100;
+    let x = Game.cursorX;
+    let y = Game.cursorY;
+    let h = Game.cardHeight * 0.2;
+    let w = Game.cardWidth;
     let radius = w/10;
     var r = x + w;
     var b = y + h;
 
-    let nameHeight = 40;
+    let nameHeight = h;
     let nameOffsetX = w * 0.05;
-    let nameOffsetY = nameHeight * 0.6;
+    let nameOffsetY = nameHeight * 0.8;
     let namePosX = x + nameOffsetX;
     let namePosY = y + nameOffsetY;
 
@@ -564,3 +604,33 @@ Game.drawCrewZone = function(x, y)
     Game.context.fillStyle = "#000";
     Game.context.fillText("Crew", namePosX, namePosY);
 }
+
+Game.onResize = function() 
+{
+    // 10 pixel margin
+    let h = window.innerHeight - 50;
+    let w = window.innerWidth - 70;
+
+    let across = w/6;
+    let down = h/4;
+
+    // check using across
+    let checkDown = across * 1.5;
+    if (h/checkDown >= 4)
+    {
+        // we can use it
+        Game.cardWidth = across;
+        Game.cardHeight = checkDown;
+        return;
+    }
+    // check using down
+    let checkAcross = down / 1.5;
+    if (w/checkAcross >= 6)
+    {
+        // we can use it
+        Game.cardWidth = checkAcross;
+        Game.cardHeight = down;
+        return;
+    }  
+}
+  

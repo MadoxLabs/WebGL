@@ -112,7 +112,7 @@ class Mouse
 
   mouseWheel(e)
   {
-    e.preventDefault();
+//    e.preventDefault();
     var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
     this.wheel = delta;
     if (this.click) this.click = false;
