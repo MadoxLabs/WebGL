@@ -114,13 +114,14 @@ new Step9();
 class Step10 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(1.449311639549437, 1.7171464330413015, ["Each system has its own health.", "If a system is reduced to 0, it can't be used until repaired."], [{ x: 1.9261992619926198, y: 2.2878228782287824 },{ x: 2.959409594095941, y: 2.2878228782287824 },{ x: 4.044280442804428, y: 2.277982779827798 }] ); }
+    render() { Game.draw.drawBubble(1.81029263370333, 1.70736629667003035, ["Each system has its own health.", "If a system is reduced to 0, it can't be used until repaired."], [{ x: 1.9261992619926198, y: 2.2878228782287824 },{ x: 2.959409594095941, y: 2.2878228782287824 },{ x: 4.044280442804428, y: 2.277982779827798 }] ); }
 }
 new Step10();
 
 class Step11 extends Bubble
 {
     constructor() { super(); }
+    update() { Game.hand.addCrew("DEMO-6"); Game.hand.activateCrew(0); }
     render() { Game.draw.drawBubble(0.825531914893617, 3.370212765957447, ["Every ship needs a crew. You start with only one, the Captain.", "This ship is captained by Captain Smith."], 5.455233291298866, 3.4098360655737703 ); }
 }
 new Step11();
@@ -133,13 +134,14 @@ new Step12();
 class Step13 extends Bubble
 {
     constructor() { super(); }
+    update() { Game.hand.deck = []; }
     render() { Game.draw.drawBubble(1.8892988929889298, 1.5596555965559655, ["Each crew member has their own deck of action cards.","The active crew member's deck goes here."],4.872635561160152, 3.2030264817150065 ); }
 }
 new Step13();
 class Step14 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(1.8892988929889298, 1.5596555965559655, ["On your turn, the cards you draw into your hand will appear in this row."],3.230769230769231, 3.656998738965952 ); }
+    render() { Game.draw.drawBubble(3.6542713567839193, 2.814070351758794, ["On your turn, the cards you draw into your hand","will appear in this row."],3.230769230769231, 3.656998738965952 ); }
 }
 new Step14();
 class Step15 extends Bubble

@@ -1,9 +1,10 @@
 let SystemColours = {};
-SystemColours[SystemTypes.Hull] = "#ccc";
-SystemColours[SystemTypes.Power] = "Yellow";
-SystemColours[SystemTypes.Weapon] = "Red";
-SystemColours[SystemTypes.Nav] = "Blue";
-SystemColours["Action"] = "#000";
+SystemColours[SystemTypes.Hull] = "#cccccc";
+SystemColours[SystemTypes.Power] = "#ffff00";
+SystemColours[SystemTypes.Weapon] = "#ff0000";
+SystemColours[SystemTypes.Nav] = "#0000ff";
+SystemColours[CardType.Action] = "#000000";
+SystemColours[CardType.Crew] = "#ff9966";
 
 class DrawTool
 {
@@ -12,6 +13,25 @@ class DrawTool
         this.context = context;
         this.cardWidth = 200;
         this.cardHeight = 300;
+    }
+
+    createFacedownPattern()
+    {
+        // Create a pattern, offscreen
+        const patternCanvas = document.createElement('canvas');
+        const patternContext = patternCanvas.getContext('2d');
+
+        // Give the pattern a width and height of 50
+        patternCanvas.width = 50;
+        patternCanvas.height = 50;
+
+        // Give the pattern a background color and draw an arc
+        patternContext.fillStyle = '#fec';
+        patternContext.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+        patternContext.arc(0, 0, 50, 0, .5 * Math.PI);
+        patternContext.stroke();
+
+        this.facedownPattern = this.context.createPattern(patternCanvas, 'repeat');
     }
 
     computeCardSize()
@@ -41,6 +61,8 @@ class DrawTool
             this.cardHeight = down;
             return;
         }
+
+        this.createFacedownPattern();
     }
 
     drawBoard()
@@ -61,9 +83,9 @@ class DrawTool
         this.moveToCel(3,2); this.drawZone("My Ship System");
         this.moveToCel(4,2); this.drawZone("My Ship System"); 
     
-        this.moveToCel(5,2);   this.drawCrewZone();
+        this.moveToCel(5,2);    this.drawCrewZone();
         this.moveToCel(5,2.25); this.drawCrewZone();
-        this.moveToCel(5,2.5); this.drawCrewZone(); 
+        this.moveToCel(5,2.5);  this.drawCrewZone(); 
         this.moveToCel(5,2.75); this.drawCrewZone(); 
     
         this.moveToCel(0,3); this.drawZone("My Hand"); 
@@ -87,6 +109,21 @@ class DrawTool
         {
             Game.draw.moveToCel(i,3);
             Game.draw.drawCard(hand.hand[i]);    
+        }
+        for (let i in hand.crew)
+        {
+            Game.draw.moveToCel(5,2 + (0.25*i));
+            Game.draw.drawCrewZone(hand.crew[i].name);    
+        }
+        if (hand.activecrew)
+        {
+            Game.draw.moveToCel(5,3);
+            Game.draw.drawCard(hand.activecrew);
+        }
+        if (hand.deck)
+        {
+            Game.draw.moveToCel(4,3);
+            Game.draw.drawFaceDown();
         }
     }
 
@@ -253,6 +290,19 @@ class DrawTool
         }
     }
 
+    setColourForText(background)
+    {
+        var c = background.substring(1);      // strip #
+        var rgb = parseInt(c, 16);   // convert rrggbb to decimal
+        var r = (rgb >> 16) & 0xff;  // extract red
+        var g = (rgb >>  8) & 0xff;  // extract green
+        var b = (rgb >>  0) & 0xff;  // extract blue
+
+        var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+        if (luma < 60) this.context.fillStyle = "#fff";
+        else this.context.fillStyle = "#000";
+    }
+
     setFontForText(_text, width, height)
     {
         let text = _text;
@@ -338,9 +388,10 @@ class DrawTool
         this.context.fill();
 
         // name area
+        let bg = "#add8e6";
         this.context.beginPath();
-        this.context.fillStyle = "#add8e6";
-        this.context.strokeStyle = "#add8e6";
+        this.context.fillStyle = bg;
+        this.context.strokeStyle = bg;
         this.context.lineWidth = 2;
         this.context.moveTo(x, y + radius);
         this.context.quadraticCurveTo(x, y, x + radius, y);
@@ -352,14 +403,15 @@ class DrawTool
         this.context.fill();
 
         this.setFontForText(card.name, w - nameOffsetX - nameOffsetX, nameHeight);
-        this.context.fillStyle = "#000";
+        this.setColourForText(bg);
         this.context.fillText(card.name, namePosX, namePosY);
 
         // power / HP Area
         if (card.type == CardType.System)
         {
+            bg = "#aaaaaa";
             this.context.beginPath();
-            this.context.fillStyle = "#aaa";
+            this.context.fillStyle = bg;
             this.context.strokeStyle = "#fff";
             this.context.lineWidth = 2;
             this.context.moveTo(x, y + nameHeight);
@@ -372,28 +424,30 @@ class DrawTool
             this.context.stroke();
 
             let text = "";
-            this.context.fillStyle = card.type == CardType.Action ? "#fff" : "#000";
             if (card.power < 0)
                 text = ">>> " + (-1 * card.power);
             else if (card.power > 0)
                 text = "<<< " + card.power;
             this.setFontForText(text, w / 2 - nameOffsetX - nameOffsetX, powerHeight);
+            this.setColourForText(bg);
             this.context.fillText(text, powerPosX, powerPosY);
 
             text = "HP: " + card.hp;
             this.setFontForText(text, w / 2 - nameOffsetX - nameOffsetX, powerHeight);
-            this.context.fillStyle = card.type == CardType.Action ? "#fff" : "#000";
+            this.setColourForText(bg);
             this.context.fillText(text, hpPosX, hpPosY);
         }
 
         // Requirement area
+        bg = "#aaaaaa";
         reqStepY = this.setFontForText(card.requires, w - nameOffsetX - nameOffsetX) * 1.1;
         let reqY = y + nameHeight + (card.type == CardType.System ? powerHeight : 0) + reqStepY;
-        this.context.fillStyle = "#aaa";
+        this.context.fillStyle = bg;
         this.context.fillRect(x, reqY - reqStepY + 2, w, (reqStepY * card.requires.length));
+
+        this.setColourForText(bg);
         for (let i in card.requires)
         {
-            this.context.fillStyle = "#000";
             this.context.fillText(card.requires[i], reqPosX, reqY);
             reqY += reqStepY;
         }
@@ -418,7 +472,7 @@ class DrawTool
         }
 
         // border
-        let c = card.type == CardType.Action ? SystemColours["Action"] : SystemColours[card.system];
+        let c = (card.type == CardType.System) ? SystemColours[card.system] : SystemColours[card.type];
         this.context.beginPath();
         this.context.strokeStyle = c;
         this.context.fillStyle = c;
@@ -447,11 +501,10 @@ class DrawTool
         this.context.lineTo(x + systemWidth, b);
         this.context.fill();
 
-        let text = card.type == CardType.Action ? "Action" : SystemNames[card.system];
+        let text = (card.type == CardType.System) ? SystemNames[card.system] : SystemNames[card.type];
         this.setFontForText(text, w / 2 - nameOffsetX - nameOffsetX, systemHeight);
-        this.context.fillStyle = card.type == CardType.Action ? "#fff" : "#000";
+        this.setColourForText(c);
         this.context.fillText(text, systemPosX, systemPosY);
-
     }
 
     drawZone(label)
@@ -491,7 +544,7 @@ class DrawTool
         this.context.fillText(label, namePosX, namePosY);
     }
 
-    drawCrewZone()
+    drawCrewZone(name)
     {
         let x = this.cursorX;
         let y = this.cursorY;
@@ -507,9 +560,12 @@ class DrawTool
         let namePosX = x + nameOffsetX;
         let namePosY = y + nameOffsetY;
 
+        let bg = name ? SystemColours[CardType.Crew] : "#aaaaaa";
+        if (!name) name = "Crew";
+
         this.context.beginPath();
-        this.context.strokeStyle = "#000";
-        this.context.fillStyle = "#000";
+        this.context.strokeStyle = "#000000";
+        this.context.fillStyle = bg;
         this.context.lineWidth = 2;
         this.context.moveTo(x + radius, y);
         this.context.lineTo(r - radius, y);
@@ -521,11 +577,48 @@ class DrawTool
         this.context.lineTo(x, y + radius);
         this.context.quadraticCurveTo(x, y, x + radius, y);
         this.context.closePath();
+        this.context.fill();
+        this.context.fillStyle = "#000000"; // makes no sense that this line is required
         this.context.stroke();
 
-        this.setFontForText("Crew", w - nameOffsetX - nameOffsetX);
-        this.context.fillStyle = "#000";
-        this.context.fillText("Crew", namePosX, namePosY);
+        this.setFontForText(name, w - nameOffsetX - nameOffsetX);
+        this.setColourForText(bg);
+        this.context.fillText(name, namePosX, namePosY);
     }
 
+    drawFaceDown()
+    {
+        if (!this.facedownPattern) this.createFacedownPattern();
+
+        let x = this.cursorX;
+        let y = this.cursorY;
+        let h = this.cardHeight;
+        let w = this.cardWidth;
+        let radius = w / 10;
+        var r = x + w;
+        var b = y + h;
+
+        let nameHeight = h * 0.24;
+        let nameOffsetX = w * 0.05;
+        let nameOffsetY = nameHeight * 0.6;
+        let namePosX = x + nameOffsetX;
+        let namePosY = y + nameOffsetY;
+
+        this.context.beginPath();
+        this.context.strokeStyle = "#000";
+        this.context.fillStyle = this.facedownPattern;
+        this.context.lineWidth = 2;
+        this.context.moveTo(x + radius, y);
+        this.context.lineTo(r - radius, y);
+        this.context.quadraticCurveTo(r, y, r, y + radius);
+        this.context.lineTo(r, y + h - radius);
+        this.context.quadraticCurveTo(r, b, r - radius, b);
+        this.context.lineTo(x + radius, b);
+        this.context.quadraticCurveTo(x, b, x, b - radius);
+        this.context.lineTo(x, y + radius);
+        this.context.quadraticCurveTo(x, y, x + radius, y);
+        this.context.closePath();
+        this.context.fill();
+        this.context.stroke();
+    }
 }

@@ -6,20 +6,22 @@ const CardType = {
 }
 
 const SystemTypes = {
-    Unknown : 0,
-    Hull : 1,
-    Power : 2,
-    Weapon : 3,
-    Nav: 4
+    Unknown : 100,
+    Hull : 101,
+    Power : 102,
+    Weapon : 103,
+    Nav: 104
 }
 
-let SystemNames = [
-    "Unknown",
-    "Hull",
-    "Power",
-    "Weapon",
-    "Engine"
-]
+let SystemNames = {};
+
+SystemNames[ SystemTypes.Unknown] = "Unknown";
+SystemNames[ SystemTypes.Hull] = "Hull";
+SystemNames[ SystemTypes.Power] = "Power";
+SystemNames[ SystemTypes.Weapon] = "Weapon";
+SystemNames[ SystemTypes.Nav] = "Nav";
+SystemNames[ CardType.Action] = "Action";
+SystemNames[ CardType.Crew] = "Crew";
 
 let cards = {};
 
@@ -62,14 +64,6 @@ new Card({
 });
 
 new Card({
-    id: "DEMO-5",
-    name: "FIRE!",
-    type: CardType.Action,
-    effectText: ["Fire one weapon system"],
-    requires: [ "Weapon" ]
-});
-
-new Card({
     id: "DEMO-2",
     name: "Phaser Cannon",
     type: CardType.System,
@@ -96,4 +90,20 @@ new Card({
     power: -2,
     effectText: ["Standard gimballing rocket", "fuel engine", "Evasion: 2", "Speed: 5", "External"],
     hp: 10
+});
+
+new Card({
+    id: "DEMO-5",
+    name: "FIRE!",
+    type: CardType.Action,
+    effectText: ["Fire one weapon system"],
+    requires: [ "Weapon" ]
+});
+
+
+new Card({
+    id: "DEMO-6",
+    name: "Captain Smith",
+    type: CardType.Crew,
+    effectText: ["Best captain in the fleet","Hand size: 3","Actions: 1"]
 });
