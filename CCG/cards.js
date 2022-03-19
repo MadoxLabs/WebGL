@@ -21,7 +21,6 @@ let SystemNames = [
     "Engine"
 ]
 
-let cardid = 1000;
 let cards = {};
 
 class Card
@@ -29,6 +28,7 @@ class Card
     static get defaultCard()
     {
         return {
+            id: 0,
             name: "Default Name",
             type: CardType.Unknown,
             requires: [],
@@ -45,7 +45,6 @@ class Card
         Object.assign(this, Card.defaultCard);
         if (params) Object.assign(this, params);
 
-        this.id = cardid++;
         this.state = {};
 
         cards[this.id] = this;
@@ -53,6 +52,7 @@ class Card
 }
 
 new Card({
+    id: "DEMO-1",
     name: "Small Fusion Reactor",
     type: CardType.System,
     system: SystemTypes.Power,
@@ -62,6 +62,7 @@ new Card({
 });
 
 new Card({
+    id: "DEMO-5",
     name: "FIRE!",
     type: CardType.Action,
     effectText: ["Fire one weapon system"],
@@ -69,10 +70,30 @@ new Card({
 });
 
 new Card({
+    id: "DEMO-2",
     name: "Phaser Cannon",
     type: CardType.System,
     system: SystemTypes.Weapon,
     power: -2,
-    effectText: ["A small phased energy cannon", "Damage: 5"],
+    effectText: ["A small phased energy cannon", "Damage: 5", "External"],
     hp: 5
+});
+
+new Card({
+    id: "DEMO-3",
+    name: "Steel Hull",
+    type: CardType.System,
+    system: SystemTypes.Hull,
+    effectText: ["Standard steel plating"],
+    hp: 20
+});
+
+new Card({
+    id: "DEMO-4",
+    name: "Chemical Propultion Engine",
+    type: CardType.System,
+    system: SystemTypes.Nav,
+    power: -2,
+    effectText: ["Standard gimballing rocket", "fuel engine", "Evasion: 2", "Speed: 5", "External"],
+    hp: 10
 });

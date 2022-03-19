@@ -1,5 +1,5 @@
 let SystemColours = {};
-SystemColours[SystemTypes.Hull] = "#000";
+SystemColours[SystemTypes.Hull] = "#ccc";
 SystemColours[SystemTypes.Power] = "Yellow";
 SystemColours[SystemTypes.Weapon] = "Red";
 SystemColours[SystemTypes.Nav] = "Blue";
@@ -74,6 +74,22 @@ class DrawTool
         this.moveToCel(5,3); this.drawZone("Active Crew");
     }
     
+    drawHand()
+    {
+        let hand = Game.hand;
+
+        for (let i in hand.ship)
+        {
+            Game.draw.moveToCel(i,2);
+            Game.draw.drawCard(hand.ship[i]);    
+        }
+        for (let i in hand.hand)
+        {
+            Game.draw.moveToCel(i,3);
+            Game.draw.drawCard(hand.hand[i]);    
+        }
+    }
+
     moveToCel(x, y)
     {
         this.cursorX = 10 + (this.cardWidth + 10) * x;
@@ -84,8 +100,6 @@ class DrawTool
     {
         x *= this.cardWidth;
         y *= this.cardHeight;
-        targetx *= this.cardWidth;
-        targety *= this.cardHeight;
 
         let text = _text;
         if (Array.isArray(text) == false)
@@ -159,6 +173,9 @@ class DrawTool
 
         for (let i in targets)
         {
+            targets[i].x *= this.cardWidth;
+            targets[i].y *= this.cardHeight;
+    
             // point to the left?
             if (targets[i].x < x)
             {
@@ -358,7 +375,7 @@ class DrawTool
             this.context.fillStyle = card.type == CardType.Action ? "#fff" : "#000";
             if (card.power < 0)
                 text = ">>> " + (-1 * card.power);
-            else
+            else if (card.power > 0)
                 text = "<<< " + card.power;
             this.setFontForText(text, w / 2 - nameOffsetX - nameOffsetX, powerHeight);
             this.context.fillText(text, powerPosX, powerPosY);

@@ -16,9 +16,9 @@ Game.postInit = function()
     document.getElementById("loading").style.display = "none";
     document.getElementById("game").style.display = "inline";
 
-    Game.tutorialStep = 0;
     Game.mouse = new Mouse(Game.canvas);
     Game.draw = new DrawTool(Game.context);
+    Game.hand = new HandManager();
 
     Game.onResize();
 
@@ -39,20 +39,41 @@ Game.run = function()
     window.requestAnimationFrame(Game.run);
 };
 
+let savedX = null;
+let savedY = null;
 Game.fireMouseEvent = function(type, mouse)
 {
     if (type == MouseEvent.Up)
     {
-        Game.tutorialStep++;
+        if (mouse.button == 1)
+        {
+            savedX = mouse.lastDownX;
+            savedY = mouse.lastDownY;
+            console.log("saved");
+        }
 
-        console.log("click at "+mouse.lastDownX+", "+mouse.lastDownY);
-        console.log("thats a factor of  "+(mouse.lastDownX/Game.cardWidth)+", "+(mouse.lastDownY/Game.cardHeight));
+        if (mouse.button == 0)
+        {
+            Tutorial.progress();
+        }
+
+        if (mouse.button == 2)
+        {
+            console.log("click at "+mouse.lastDownX+", "+mouse.lastDownY);
+            if(savedX)
+                console.log( "Game.draw.drawBubble("+(mouse.lastDownX/Game.draw.cardWidth)+", "+(mouse.lastDownY/Game.draw.cardHeight)+", [\"\"],"+(savedX/Game.draw.cardWidth)+", "+(savedY/Game.draw.cardHeight)+"); " );
+            else
+                console.log( "Game.draw.drawBubble("+(mouse.lastDownX/Game.draw.cardWidth)+", "+(mouse.lastDownY/Game.draw.cardHeight)+", [\"\"]); " );
+            savedX = null;
+            savedY = null;    
+        }
     }
 
 };
 
 Game.update = function()
 {
+    Tutorial.update();
 };
 
 Game.render = function()
@@ -65,28 +86,9 @@ Game.render = function()
     Game.context.strokeRect(2, 2, Game.canvas.width - 4, Game.canvas.height - 4);
 
     Game.draw.drawBoard();
-
-    if (Game.tutorialStep == 0)
-    {
-        Game.draw.drawBubble(4.7,1.6, ["This is the game board", "Click to see some cards"]);
-    }
-    if (Game.tutorialStep > 0)
-    {
-        Game.draw.moveToCel(0,2);
-        Game.draw.drawCard(cards[1000]);
-        Game.draw.moveToCel(0,3);
-        Game.draw.drawCard(cards[1001]);
-        Game.draw.moveToCel(1,2);
-        Game.draw.drawCard(cards[1002]);    
-
-        if (Game.tutorialStep == 1)
-            Game.draw.drawBubble(3.6, 1.7, ["This is some cards"], 2.15, 2.11);
-
-        if (Game.tutorialStep == 2)
-           Game.draw.drawBubble(4.7,1.6, ["That it for now"]                  );
-    }
+    Game.draw.drawHand();
+    Tutorial.render();
 };
-
 
 Game.onResize = function() 
 {
