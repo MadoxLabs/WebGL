@@ -93,12 +93,6 @@ Game.render = function()
     Game.context.strokeRect(2, 2, Game.canvas.width - 4, Game.canvas.height - 4);
 
     // board
-//    let cursorX = 10;
-//    let cursorY = 10;
-//    let stepOver = function() { cursorX += Game.cardWidth+10; }
-//    let stepDown = function() { cursorY += Game.cardHeight+10; }
-//    let crewDown = function() { cursorY += Game.cardHeight * 0.2 +10; }
-//    let reset = function() { cursorX = 10; }
     Game.moveToCel(0,0); Game.drawZone("Enemy Ship System"); 
     Game.moveToCel(1,0); Game.drawZone("Enemy Ship System"); 
     Game.moveToCel(2,0); Game.drawZone("Enemy Ship System"); 
@@ -159,7 +153,7 @@ Game.render = function()
         Game.drawCard(card);    
 
         if (step == 1)
-            Game.drawBubble(4.7,1.6, ["This is some cards"], 3.6, 2.0);
+            Game.drawBubble(3.6, 1.7, ["This is some cards"], 2.15, 2.11);
 
         if (step == 2)
            Game.drawBubble(4.7,1.6, ["That it for now"], 4.9,1.6);
