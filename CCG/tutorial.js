@@ -108,7 +108,7 @@ new Step10();
 class Step11 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(1.8915510718789408, 3.278688524590164, ["Every ship needs a crew. You start with only one, the Captain.", "This ship is captained by Captain Smith."], 5.455233291298866, 3.4098360655737703 ); }
+    render() { Game.draw.drawBubble(0.825531914893617, 3.370212765957447, ["Every ship needs a crew. You start with only one, the Captain.", "This ship is captained by Captain Smith."], 5.455233291298866, 3.4098360655737703 ); }
 }
 new Step11();
 class Step12 extends Bubble
