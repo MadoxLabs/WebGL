@@ -55,13 +55,13 @@ new Step0();
 class Step1 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(4.718446601941747, 1.3703190013869626, ["This is a Space Ship battle card game.","You are the captain of a space ship.", "Click to continue."]); }
+    render() { Game.draw.drawBubble(4.30287859824781, 1.4167709637046308, ["This is a Space Ship battle card game.","You are the captain of a space ship.", "Click to continue."]); }
 }
 new Step1();
 class Step2 extends Bubble
 {
     constructor() { super(); }
-    render() {  Game.draw.drawBubble(4.718446601941747, 1.3703190013869626, ["This row is where information about your ship appears.", "A ship is comprised of Ship System cards."],5.417475728155339, 2.6574202496532595); }
+    render() {  Game.draw.drawBubble(1.2390488110137674, 2.623279098873592, ["This row is where information about your ship appears.", "A ship is comprised of Ship System cards."]); }
 }
 new Step2();
 class Step3 extends Bubble
@@ -100,7 +100,7 @@ new Step7();
 class Step8 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(4.0943134535367545, 2.535367545076283, ["This engine requires 2 power per turn.", "Without enough power, its evasion skill is disabled."],2.712898751733703, 2.335644937586685); }
+    render() { Game.draw.drawBubble(3.747183979974969, 2.2127659574468086, ["This engine requires 2 power per turn.", "Without enough power, its evasion skill is disabled."],2.712898751733703, 2.335644937586685); }
 }
 new Step8();
 
@@ -108,13 +108,13 @@ class Step9 extends Bubble
 {
     constructor() { super(); }
     update() { Game.hand.addSystem("DEMO-2"); }
-    render() {Game.draw.drawBubble(5.092250922509225, 2.5141451414514147, ["This ship has a Phaser Cannon as its weapon.", "It takes 2 power to fire, and does 5 damage."],4.265682656826568, 2.6174661746617467); }
+    render() {Game.draw.drawBubble(2.8760951188986237, 1.6871088861076347, ["This ship has a Phaser Cannon as its weapon.", "It takes 2 power to fire, and does 5 damage."],4.100125156445557, 2.1476846057571963); }
 }
 new Step9();
 class Step10 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(1.8892988929889298, 1.5596555965559655, ["Each system has its own health.", "If a system is reduced to 0, it can't be used until repaired."], [{ x: 1.9261992619926198, y: 2.2878228782287824 },{ x: 2.959409594095941, y: 2.2878228782287824 },{ x: 4.044280442804428, y: 2.277982779827798 }] ); }
+    render() { Game.draw.drawBubble(1.449311639549437, 1.7171464330413015, ["Each system has its own health.", "If a system is reduced to 0, it can't be used until repaired."], [{ x: 1.9261992619926198, y: 2.2878228782287824 },{ x: 2.959409594095941, y: 2.2878228782287824 },{ x: 4.044280442804428, y: 2.277982779827798 }] ); }
 }
 new Step10();
 
@@ -145,13 +145,13 @@ new Step14();
 class Step15 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(4.153846153846154, 1.5737704918032787, ["When you play a card, it is placed in the middle, here."],3.238335435056747, 1.583858764186633 ); }
+    render() { Game.draw.drawBubble(3.454317897371715, 1.506883604505632, ["When you play a card, it is placed in the middle, here."],3.238335435056747, 1.583858764186633 ); }
 }
 new Step15();
 class Step16 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(6.045397225725095, 0.47414880201765447, ["This is where your opponent's ship will appear.", "You won't be able to see their crew or hand."],5.387137452711223, 0.47414880201765447 ); }
+    render() { Game.draw.drawBubble(1.3591989987484356, 0.4956195244055069, ["This is where your opponent's ship will appear.", "You won't be able to see their crew or hand."]); }
 }
 new Step16();
 class Step17 extends Bubble
