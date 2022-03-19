@@ -1,0 +1,143 @@
+DECK
+ - assign to crew
+ - people can be assigned any designation, and deck
+ - people have stats
+ - designations have stats
+
+TURN
+ - one card per turn per deck
+ - only captain deck can play at start
+ - can activate crew
+ - - by designation 
+ - - choose a designation
+ - hand size according to person stat
+ - missing cards are drawn from deck
+ - used cards go back into deck
+ - instead of playing a card, can swap it out
+
+CARDS
+ - can depend on systems
+ - can require power
+
+SYSTEMS
+ - have HP, take damage
+ - have power consumption
+
+WINNING
+ - destroy the hull
+
+BETWEEN ROUNDS
+ - can find one of: (spend xp)
+ - - refit (add new systems, come with new cards) 
+ - - training (improve crew stats, get new cards)
+ - - star base (pick up new crew, new cards)
+ - all choices can do some ship repair
+
+
+starting ship
+fusion core (POWER system)   
+ power 5
+ hp 10
+laser (WEAPON system)
+ needs power 2
+ dmg 5
+ hp 5
+engine (NAV system)
+ needs power 2
+ evasion 2  (reduces damage)
+ speed 5  (some cards need speed)
+ hp 10
+hull  (HULL system)
+ hp 20
+
+starting deck
+
+Fire! 
+ req WEAPON
+ effect: fire one weapon system. 
+Full Spread
+ req WEAPON
+ effect: double power, double damage
+Evasive Action
+ req NAV
+ effect: evasion +2 for 3 turns
+Jamming Signal
+ effect: enemy cant use WEAPON cards next turn
+Ramming Speed
+ req NAV, speed 10
+ effect: 10 damage, take 2 damage
+Target Any System
+ effect: all damage goes to the selected system until its destroyed
+Pedal to the metal
+ req NAV
+ effect: +5 speed
+Emergency Repair
+ effect: heal 5 to a non HULL system
+
+
+CARD LAYOUT
+
+name
+type / system
+requires
+effect text
+
+name
+system
+requires
+hp
+power (in out)
+values (effect)
+
+
+-----------------
+engine need
+- draw portraits (crew/enemy)
+- draw mini crew
+- draw effect lines
+- flash card 
+- move card from zone to zone
+
+- show system is powered
+- show requirements are ok
+- show power damage lowers power
+
+-----------------
+script
+
+what do we want to show
+- enemy : only hull and facedowns
+- draw
+- on screen : external, one time
+- reveal some enemy
+- card goes back to deck
+
+> take hit
+
+- fire weapon : its powered
+
+> take hit
+
+- evasive action
+
+> take hit : less dmg
+
+- full spread : redistribute power, no eveade
+- use jamming
+
+> target power
+
+- use full spread
+
+> fire
+
+- emergency repair
+
+> 
+
+- pedal to the metal
+
+>
+
+- ramming
+
