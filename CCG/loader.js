@@ -33,6 +33,8 @@ var Game = {};
 (function () {
   // These are the source files that need including 
   var gameSrc = ["mouse.js", 
+                 "cards.js",
+                 "draw.js",
                  "main.js"];
   var loadState = 0; // how many files are left to include, so we know when we're done
 
