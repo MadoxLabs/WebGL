@@ -92,9 +92,9 @@ values (effect)
 
 -----------------
 engine need
-- draw facedown
++ draw facedown
 + draw portraits (crew/enemy)
-- draw mini crew
++ draw mini crew
 - draw effect lines
 - flash card 
 - move card from zone to zone
@@ -143,11 +143,3 @@ what do we want to show
 - ramming
 
 -------------------
-
-facedown pattern
-
-
-// Create our primary canvas and fill it with the pattern
-const pattern = ctx.createPattern(patternCanvas, 'repeat');
-ctx.fillStyle = pattern;
-ctx.fillRect(0, 0, canvas.width, canvas.height);

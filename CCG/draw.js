@@ -6,6 +6,43 @@ SystemColours[SystemTypes.Nav] = "#0000ff";
 SystemColours[CardType.Action] = "#000000";
 SystemColours[CardType.Crew] = "#ff9966";
 
+class CardInMotion
+{
+    constructor()
+    {
+        this.fromCelX = 0;
+        this.fromCelY = 0;
+        this.toCelX = 0;
+        this.toCelY = 0;
+        this.drawCall = null;
+        this.callback = null;
+
+        this.startTime = window.performance.now();
+        this.duration = 1000.0;
+        this.done = false;
+    }
+
+    update()
+    {
+        if (this.done) return;
+
+        let now = window.performance.now();
+        let elapsed = now - this.startTime;
+        if (this.duration - elapsed < 0) 
+        {
+            this.done = true;
+            this.callback();
+            return;
+        }
+
+        let factor = elapsed / this.duration;
+        let x = this.fromCelX - (this.fromCelX - this.toCelX) * factor;
+        let y = this.fromCelY - (this.fromCelY - this.toCelY) * factor;
+        Game.draw.moveToCel(x,y);
+        this.drawCall();
+    }
+}
+
 class DrawTool
 {
     constructor(context)
@@ -13,6 +50,8 @@ class DrawTool
         this.context = context;
         this.cardWidth = 200;
         this.cardHeight = 300;
+
+        this.inMotion = [];
     }
 
     createFacedownPattern()
@@ -65,6 +104,37 @@ class DrawTool
         this.createFacedownPattern();
     }
 
+    isInMotion()
+    {
+        return this.inMotion.length > 0;
+    }
+
+    moveCard(card, x, y, tox, toy, callback)
+    {
+        let mover = new CardInMotion();
+        mover.fromCelX = x;
+        mover.fromCelY = y;
+        mover.toCelX = tox;
+        mover.toCelY = toy;
+        let o = this;
+        mover.drawCall = function() { o.drawCard(card); }
+        mover.callback = callback;
+        this.inMotion.push(mover);
+    }
+
+    deal(callback)
+    {
+        let mover = new CardInMotion();
+        mover.fromCelX = 4;
+        mover.fromCelY = 3;
+        mover.toCelX = Game.hand.getEmptyHandSlot();
+        mover.toCelY = 3;
+        let o = this;
+        mover.drawCall = function() { o.drawFaceDown(); }
+        mover.callback = callback;
+        this.inMotion.push(mover);
+    }
+
     drawBoard()
     {        
         // board
@@ -107,8 +177,16 @@ class DrawTool
         }
         for (let i in hand.hand)
         {
-            Game.draw.moveToCel(i,3);
-            Game.draw.drawCard(hand.hand[i]);    
+            if (hand.hand[i])
+            {
+                Game.draw.moveToCel(i,3);
+                Game.draw.drawCard(hand.hand[i]);        
+            }
+        }
+        if (Game.hand.activecard)
+        {
+            Game.draw.moveToCel(2,1);
+            Game.draw.drawCard(hand.activecard);    
         }
         for (let i in hand.crew)
         {
@@ -124,6 +202,15 @@ class DrawTool
         {
             Game.draw.moveToCel(4,3);
             Game.draw.drawFaceDown();
+        }
+
+        // remove all done movers
+        for (let i in this.inMotion)
+        {
+            if (this.inMotion[i].done)
+                this.inMotion.splice(i,1);
+            else 
+                this.inMotion[i].update();
         }
     }
 

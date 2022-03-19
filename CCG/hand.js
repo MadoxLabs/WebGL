@@ -7,6 +7,7 @@ class HandManager
         this.deck = null;
         this.crew = [];
         this.activecrew = null;
+        this.activecard = null;
     }
 
     addSystem(id)
@@ -20,7 +21,47 @@ class HandManager
     {
         let card = cards[id];
         if (card.type != CardType.Action) return;
+
+        for (let i in this.hand)
+        {
+            if (!this.hand[i]) 
+            {
+                this.hand[i] = card;
+                return;
+            }
+        }
         this.hand.push(card);
+    }
+
+    getEmptyHandSlot()
+    {
+        for (let i in this.hand)
+        {
+            if (!this.hand[i]) 
+            {
+                return i;
+            }
+        }
+        return this.hand.length;
+    }
+
+    useCard(i)
+    {
+        if (i < this.hand.length)
+        {
+            this.usedcard = this.hand[i];
+            this.hand[i] = null;
+        }
+    }
+
+    activateUsedCard()
+    {
+        this.activecard = this.usedcard;
+    }
+    
+    endTurn()
+    {
+        this.activecard = null;
     }
 
     addCrew(id)
