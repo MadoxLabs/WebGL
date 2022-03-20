@@ -287,6 +287,7 @@ class DrawTool
 
         for (let i in hand.ship)
         {
+            if (hand.ship[i].state.skip) continue;
             Game.draw.moveToCel(i,2);
             Game.draw.drawCard(hand.ship[i]);    
         }

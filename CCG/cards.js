@@ -110,7 +110,7 @@ new Card({
     system: SystemTypes.Nav,
     power: -2,
     effectText: ["Standard gimballing rocket", "fuel engine", "Evasion: 2", "Speed: 5", "External"],
-    hp: 10
+    hp: 5
 });
 
 new Card({
@@ -178,7 +178,7 @@ new Card({
     id: "DEMO-13",
     name: "Evasive Action",
     type: CardType.Action,
-    effectText: ["Avoid enemy fire for 3 turns", "Evade: +2"],
+    effectText: ["Avoid enemy fire for 2 turns", "Evade: +2"],
     requires: [ "Nav" ]
 });
 
@@ -229,7 +229,7 @@ new Card({
     system: SystemTypes.Nav,
     power: -2,
     effectText: ["Standard rocket fuel engine", "Speed: 5", "External"],
-    hp: 10
+    hp: 5
 });
 
 new Card({
@@ -238,4 +238,12 @@ new Card({
     type: CardType.Action,
     requires: [ "Weapon" ],
     effectText: ["Select a Ship System to attack"]
+});
+
+new Card({
+    id: "DEMO-21",
+    name: "Heavy Barrel",
+    type: CardType.Action,
+    requires: [ "Weapon" ],
+    effectText: ["Damage: 5","Damage 5 to one other","random external system"]
 });

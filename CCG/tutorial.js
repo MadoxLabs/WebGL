@@ -323,7 +323,7 @@ class Step34 extends Bubble
     { 
         Game.turn = 2;
         Game.hand.ship[1].power = 5;
-        let card3 = function() { Game.hand.addHand("DEMO-10"); }
+        let card3 = function() { Game.hand.addHand("DEMO-14"); }
         Game.draw.deal( card3 ); 
     }
     render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["Our Phaser Cannon is powered so lets return fire."]); }
@@ -448,7 +448,6 @@ class Step42 extends Bubble
         Game.turn = 2;
     }
     render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Jamming Signal'","We have nothing better. Let's try it."]); }
-//    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Full Salvo'!","It lets us do double damage, but needs double the power."],2.6838046272493576, 3.537275064267352); }
 }
 new Step42();
 class Step43 extends Bubble
@@ -522,8 +521,13 @@ class Step48 extends Bubble
     update()
     {
         let phaser = Game.hand.ship[3];
-        Game.hand.ship[3] = Game.hand.ship[2];
-        Game.hand.ship[2] = phaser;
+        let engine = Game.hand.ship[2];
+        let play1 = function() { Game.hand.ship[3] = engine; Game.hand.ship[3].skip = false; }
+        let play2 = function() { Game.hand.ship[2] = phaser; Game.hand.ship[2].skip = false;}
+        Game.draw.moveCard(Game.hand.ship[2],2,2,3,2,play1); 
+        Game.draw.moveCard(Game.hand.ship[3],3,2,2,2,play2); 
+        Game.hand.ship[3].skip = true;
+        Game.hand.ship[2].skip = true;
     }
     render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["With the power rerouted, the phaser can claim 4 power. There won't be enough for the engine.",
                                                                              "You can always reroute power for free whenever it is your turn.",
@@ -551,3 +555,95 @@ class Step49 extends Bubble
     render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["That's a lot of damage!"]); }
 }
 new Step49(); 
+class Step50 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(2.5,1.9,3.5,2.1,"#ff0000");
+            Game.draw.drawAffect(2.5,1.9,2.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-21"];
+            Game.hand.ship[2].hp -= 5;
+            Game.hand.ship[3].hp -= 5;
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-21"],2,-1,2,1, dmg);
+        }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["The enemy took advantage of our disabled engine and played 'Heavy Barrel'.","It took out our phaser and engine!"]); }
+}
+new Step50();
+class Step51 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let card3 = function() { Game.hand.addHand("DEMO-9"); }
+        Game.hand.ship[3].effectText[2] = "Evasion: 2";
+        Game.hand.ship[2].power = -2;
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We are sitting ducks with our systems destroyed!", "We can only repair one using 'Emergency Repairs'"],0.5938303341902315, 3.2133676092544987); }
+}
+new Step51();
+class Step52 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["The new card 'Ramming Speed' is interesting!", "Lets repair the engine."]); }
+}
+new Step52();
+class Step53 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.draw.drawAffect(2.5,1.9,3.5,2.1,"#ffff00");
+            Game.hand.activateUsedCard(); 
+            Game.hand.ship[3].hp += 5;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["Engines are back online."]); }
+}
+new Step53(); 
+class Step54 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+        }
+        Game.turn = 1;
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.hand.ship[1].power = 5;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["The enemy is trying to finish us off.","With his target (our phaser) destroyed, it reverts back to targetting the hull."]); }
+}
+new Step54();
+// draw self destruct
+// swap it for P2tM
+// get hit
+// P2tM
+// get hit
+// ramming speed - win
