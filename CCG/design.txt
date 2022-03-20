@@ -95,11 +95,11 @@ engine need
 + draw facedown
 + draw portraits (crew/enemy)
 + draw mini crew
-- draw effect lines
-- flash card 
++ draw effect lines
++ flash card 
 + move card from zone to zone
 
-- show system is powered
++ show system is powered
 - show requirements are ok
 - show power damage lowers power
 

@@ -58,8 +58,18 @@ new Card({
     name: "Small Fusion Reactor",
     type: CardType.System,
     system: SystemTypes.Power,
-    power: 10,
-    effectText: ["A basic power core", "Provides 10 power per turn"],
+    power: 5,
+    effectText: ["A basic power core", "Provides 5 power per turn"],
+    hp: 10
+});
+
+new Card({
+    id: "DEMO-1A",
+    name: "Small Fusion Reactor",
+    type: CardType.System,
+    system: SystemTypes.Power,
+    power: 5,
+    effectText: ["A basic power core", "Provides 5 power per turn"],
     hp: 10
 });
 

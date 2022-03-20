@@ -74,6 +74,8 @@ Game.fireMouseEvent = function(type, mouse)
 
 Game.update = function()
 {
+    if (Game.hand) Game.hand.update();
+    if (Game.enemy) Game.enemy.update();
     Tutorial.update();
 };
 

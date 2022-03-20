@@ -6,6 +6,86 @@ SystemColours[SystemTypes.Nav] = "#0000ff";
 SystemColours[CardType.Action] = "#000000";
 SystemColours[CardType.Crew] = "#ff9966";
 
+class AffectLine
+{
+    constructor(fromx, fromy, tox, toy, c)
+    {
+        this.fromCelX = fromx;
+        this.fromCelY = fromy;
+        this.toCelX = tox;
+        this.toCelY = toy;
+        this.colour = c;
+        this.step = 0;
+        this.done = false;
+        this.startTime = window.performance.now();
+    }
+
+    update()
+    {
+        if (this.done) return;
+
+        let now = window.performance.now();
+        let elapsed = now - this.startTime;
+        if (elapsed > 300) 
+        {
+            this.step++;
+            this.startTime = now;
+            if (this.step == 2)
+            {
+                this.done = true;
+                return;
+            }
+        }
+
+        if (this.step < 2)
+        {
+            let width = (this.step == 1) ? 4 : 1 * (elapsed / 50);
+
+            Game.draw.context.beginPath();
+            Game.draw.context.fillStyle = this.colour;
+            Game.draw.context.strokeStyle = this.colour;
+            Game.draw.context.lineWidth = width;
+    
+            let x = 10 + (Game.draw.cardWidth + 10) * this.fromCelX;
+            let y = 10 + (Game.draw.cardHeight + 10) * this.fromCelY;
+            Game.draw.context.moveTo(x, y);
+    
+            x = 10 + (Game.draw.cardWidth + 10) * this.toCelX;
+            y = 10 + (Game.draw.cardHeight + 10) * this.toCelY;
+            Game.draw.context.lineTo(x, y);
+    
+            Game.draw.context.stroke();            
+        }
+        if (this.step == 1)
+        {
+            let x = 10 + (Game.draw.cardWidth + 10) * Math.floor(this.toCelX);
+            let y = 10 + (Game.draw.cardHeight + 10) * Math.floor(this.toCelY);
+            let h = Game.draw.cardHeight;
+            let w = Game.draw.cardWidth;
+            let radius = w / 10;
+            var r = x + w;
+            var b = y + h;
+        
+            Game.draw.context.beginPath();
+            Game.draw.context.strokeStyle = this.colour;
+            Game.draw.context.fillStyle = this.colour;
+            Game.draw.context.lineWidth = 2;
+            Game.draw.context.moveTo(x + radius, y);
+            Game.draw.context.lineTo(r - radius, y);
+            Game.draw.context.quadraticCurveTo(r, y, r, y + radius);
+            Game.draw.context.lineTo(r, y + h - radius);
+            Game.draw.context.quadraticCurveTo(r, b, r - radius, b);
+            Game.draw.context.lineTo(x + radius, b);
+            Game.draw.context.quadraticCurveTo(x, b, x, b - radius);
+            Game.draw.context.lineTo(x, y + radius);
+            Game.draw.context.quadraticCurveTo(x, y, x + radius, y);
+            Game.draw.context.closePath();
+            Game.draw.context.fill();
+            Game.draw.context.stroke();
+        }
+    }
+}
+
 class CardInMotion
 {
     constructor()
@@ -27,7 +107,7 @@ class CardInMotion
         let xlen = Math.abs( this.fromCelX - this.toCelX);
         let ylen = Math.abs( this.fromCelY - this.toCelY);
         let len = Math.sqrt(xlen*xlen + ylen*ylen);
-        this.duration = 2000.0 * len / 6.0;
+        this.duration = 500.0 * len / 6.0;
     }
 
     update()
@@ -145,6 +225,12 @@ class DrawTool
         this.inMotion.push(mover);
     }
 
+    drawAffect(fromx, fromy, tox, toy, c)
+    {
+        let mover = new AffectLine(fromx, fromy, tox, toy, c);
+        this.inMotion.push(mover);
+    }
+
     drawBoard()
     {        
         // board
@@ -214,15 +300,6 @@ class DrawTool
             Game.draw.drawFaceDown();
         }
 
-        // remove all done movers
-        for (let i in this.inMotion)
-        {
-            if (this.inMotion[i].done)
-                this.inMotion.splice(i,1);
-            else 
-                this.inMotion[i].update();
-        }
-
         // enemy
         hand = Game.enemy;
         if (!hand) return;
@@ -246,6 +323,15 @@ class DrawTool
         {
             Game.draw.moveToCel(2,1);
             Game.draw.drawCard(hand.activecard);    
+        }
+        
+        // remove all done movers
+        for (let i in this.inMotion)
+        {
+            if (this.inMotion[i].done)
+                this.inMotion.splice(i,1);
+            else 
+                this.inMotion[i].update();
         }
     }
 
@@ -531,7 +617,7 @@ class DrawTool
         // power / HP Area
         if (card.type == CardType.System)
         {
-            bg = "#aaaaaa";
+            bg = "#e6e6e6";
             this.context.beginPath();
             this.context.fillStyle = bg;
             this.context.strokeStyle = "#fff";
@@ -546,12 +632,20 @@ class DrawTool
             this.context.stroke();
 
             let text = "";
-            if (card.power < 0)
+            if (card.power < 0) 
+            {
+                if (card.state.powered)
+                    this.context.fillStyle = "#39ac39";
+                else
+                    this.context.fillStyle = "#ff0000";
                 text = ">>> " + (-1 * card.power);
+            }
             else if (card.power > 0)
+            {
+                this.setColourForText(bg);
                 text = "<<< " + card.power;
+            }
             this.setFontForText(text, w / 2 - nameOffsetX - nameOffsetX, powerHeight);
-            this.setColourForText(bg);
             this.context.fillText(text, powerPosX, powerPosY);
 
             text = "HP: " + card.hp;
@@ -561,7 +655,7 @@ class DrawTool
         }
 
         // Requirement area
-        bg = "#aaaaaa";
+        bg = "#e6e6e6";
         reqStepY = this.setFontForText(card.requires, w - nameOffsetX - nameOffsetX) * 1.1;
         let reqY = y + nameHeight + (card.type == CardType.System ? powerHeight : 0) + reqStepY;
         this.context.fillStyle = bg;
@@ -682,7 +776,7 @@ class DrawTool
         let namePosX = x + nameOffsetX;
         let namePosY = y + nameOffsetY;
 
-        let bg = name ? SystemColours[CardType.Crew] : "#aaaaaa";
+        let bg = name ? SystemColours[CardType.Crew] : "#e6e6e6";
         if (!name) name = "Crew";
 
         this.context.beginPath();

@@ -183,7 +183,7 @@ class Step18 extends Bubble
         Game.enemy = new HandManager();
         Game.enemy.addSystem("DEMO-17");
         Game.enemy.addSystem("DEMO-18");
-        Game.enemy.addSystem("DEMO-1");
+        Game.enemy.addSystem("DEMO-1A");
         Game.enemy.addSystem("DEMO-19");
         Game.enemy.addCrew("DEMO-16"); 
         Game.enemy.activateCrew(0);
@@ -208,8 +208,6 @@ class Step21 extends Bubble
     constructor() { super(); }
     update() 
     { 
-//        let play1 = function() { Game.hand.activateUsedCard(); Game.draw.moveCard(Game.hand.activecard,2,1,4,3); Game.hand.endTurn();}
-//        let card1 = function() { Game.hand.addHand("DEMO-13"); Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); Game.hand.useCard(1); }
         let card1 = function() { Game.hand.addHand("DEMO-13"); }
         let card2 = function() { Game.hand.addHand("DEMO-5");  Game.draw.deal( card1 );}
         let card3 = function() { Game.hand.addHand("DEMO-12"); Game.draw.deal( card2 );}
@@ -271,6 +269,90 @@ class Step28 extends Bubble
         Game.draw.moveCard(Game.hand.activecard,2,1,4,3); 
         Game.hand.endTurn();
     }
-    render() { Game.draw.drawBubble(3.754740834386852, 1.4766118836915296, ["At the end of the turn, used cards get shuffled back into the deck.","There is no discard pile, so you might draw it again right away!"]); }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["At the end of the turn, used cards get shuffled back into the deck.","There is no discard pile, so you might draw a card again right away!"]); }
 }
 new Step28();
+class Step29 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+     }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["He played 'Fire!' which fires his guns.","By default, attacks hit the hull. Our Hull took 2 damage!"]); }
+}
+new Step29();
+class Step30 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(1.4260429835651074, 1.4412136536030342, ["His gun did 4 damage, but our engine can evade 2 damage for every shot.","The ship will only evade if the engine has enough power."], [{x:1.600505689001264, y:0.8445006321112516},{x:2.586599241466498, y:2.7964601769911503}]); }
+}
+new Step30();
+class Step31 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(3.5629820051413885, 1.480719794344473, ["A green coloured power indicator means that the system is fully powered."],2.668380462724936, 2.3187660668380463); }
+}
+new Step31();
+class Step32 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(3.5629820051413885, 1.480719794344473, ["Note that the power source used lost some of its power.","It will be replenished every turn."],1.6118251928020566, 2.3187660668380463); }
+}
+new Step32();
+class Step33 extends Bubble
+{
+    constructor() { super(); }
+    update() { Game.enemy.endTurn(); }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["It's our turn again. We need to draw a card."]); }
+}
+new Step33();
+class Step34 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-11"); }
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["Our Phaser Cannon is powered so lets return fire."]); }
+}
+new Step34();
+class Step35 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.hand.ship[1].power -= 2;
+            Game.draw.drawAffect(3.5,2.1,0.5,0.9,"#ff0000");
+            Game.enemy.ship[0].hp -= 5;
+        }
+        Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); 
+        Game.hand.useCard(1);
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Good shot! He took 5 damage.","Notice that with the engine on, there is not enough power for another shot.","Our turn ends."]); }
+}
+new Step35();
+class Step36 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3); 
+        Game.hand.endTurn();
+        Game.hand.ship[1].power = 5;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["The enemy shot us again!", "This is getting serious."]); }
+}
+new Step36();

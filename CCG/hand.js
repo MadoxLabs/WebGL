@@ -10,6 +10,25 @@ class HandManager
         this.activecard = null;
     }
 
+    update()
+    {
+        let total = 0;
+        for (let i in this.ship)
+        {
+            if (this.ship[i].system == SystemTypes.Power) total += this.ship[i].power;
+        }
+        for (let i in this.ship)
+        {
+            if (this.ship[i].system == SystemTypes.Power) continue;
+            if (total >= -1*this.ship[i].power) 
+            {
+                this.ship[i].state.powered = true;
+                total += this.ship[i].power;
+            }
+            else this.ship[i].state.powered = false;
+        }
+    }
+
     addSystem(id)
     {
         let card = cards[id];
