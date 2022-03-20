@@ -231,3 +231,11 @@ new Card({
     effectText: ["Standard rocket fuel engine", "Speed: 5", "External"],
     hp: 10
 });
+
+new Card({
+    id: "DEMO-20",
+    name: "Target System",
+    type: CardType.Action,
+    requires: [ "Weapon" ],
+    effectText: ["Select a Ship System to attack"]
+});

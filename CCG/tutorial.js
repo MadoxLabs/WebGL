@@ -323,7 +323,7 @@ class Step34 extends Bubble
     { 
         Game.turn = 2;
         Game.hand.ship[1].power = 5;
-        let card3 = function() { Game.hand.addHand("DEMO-11"); }
+        let card3 = function() { Game.hand.addHand("DEMO-10"); }
         Game.draw.deal( card3 ); 
     }
     render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["Our Phaser Cannon is powered so lets return fire."]); }
@@ -442,26 +442,16 @@ class Step42 extends Bubble
     update() 
     { 
         Game.hand.ship[1].power = 5;
-        let card3 = function() { Game.hand.addHand("DEMO-8"); }
+        let card3 = function() { Game.hand.addHand("DEMO-11"); }
         Game.draw.deal( card3 ); 
         Game.enemy.endTurn();
         Game.turn = 2;
     }
-    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Full Salvo'!","It lets us do double damage, but needs double the power."],2.6838046272493576, 3.537275064267352); }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Jamming Signal'","We have nothing better. Let's try it."]); }
+//    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Full Salvo'!","It lets us do double damage, but needs double the power."],2.6838046272493576, 3.537275064267352); }
 }
-new Step42(); 
+new Step42();
 class Step43 extends Bubble
-{
-    constructor() { super(); }
-    update() 
-    { 
-    }
-    render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["That would mean 4 power for the phaser. Including the engine, we do not have the 6 power needed.",
-                                                                            "Luckily, we can reroute power away from the engine, but that would turn off our evade.",
-                                                                            "For now, lets use the 'Jamming Signal'."]); }
-}
-new Step43(); 
-class Step44 extends Bubble
 {
     constructor() { super(); }
     update() 
@@ -470,9 +460,94 @@ class Step44 extends Bubble
         { 
             Game.hand.activateUsedCard(); 
         }
-        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
-        Game.hand.useCard(0);
+        Game.draw.moveCard(Game.hand.hand[2],2,3,2,1,play1); 
+        Game.hand.useCard(2);
     }
-    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Now he can't attack on his next turn.","It will be safe to reroute power from the engine!"]); }
+    render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["Now he can't attack on his next turn."]); }
 }
-new Step44(); 
+new Step43(); 
+class Step44 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(2.5,1.9,3.5,2.1,"#ffff00");
+            Game.enemy.activecard = cards["DEMO-20"];
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-20"],2,-1,2,1, dmg);
+        }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["The enemy was not able to attack. Instead he targetted our Phaser!","When a target is selected, all future attacks will go there."]); }
+}
+new Step44();
+class Step45 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-8"); }
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Full Salvo'!","It lets us do double damage, but needs double the power."],2.6838046272493576, 3.537275064267352); }
+}
+new Step45();
+class Step46 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["That would mean 4 power for the phaser. Including the engine, we do not have the 6 power needed.",
+                                                                             "Luckily, we can reroute power away from the engine, however that would disable our evade skill."]); }
+}
+new Step46(); 
+class Step47 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["Power flows from the power source from left to right.",
+                                                                             "After the engine claims 2 power, there is only 3 left for the phaser.",
+                                                                             "We can reroute the power by rearranging the systems cards. Lets do that now."]); }
+}
+new Step47(); 
+class Step48 extends Bubble
+{
+    constructor() { super(); }
+    update()
+    {
+        let phaser = Game.hand.ship[3];
+        Game.hand.ship[3] = Game.hand.ship[2];
+        Game.hand.ship[2] = phaser;
+    }
+    render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["With the power rerouted, the phaser can claim 4 power. There won't be enough for the engine.",
+                                                                             "You can always reroute power for free whenever it is your turn.",
+                                                                            "Now use 'Full Salvo'!"]); }
+}
+new Step48(); 
+class Step49 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+        }
+        let play1 = function() 
+        {             
+            Game.hand.activateUsedCard(); 
+            Game.hand.ship[2].power = -4;
+            Game.enemy.ship[0].hp -= 10;
+            Game.draw.drawAffect(2.5,1.9,0.5,0.9,"#ff0000");
+        }
+        Game.draw.moveCard(Game.hand.hand[0],2,3,2,1,play1); 
+        Game.hand.useCard(2);
+    }
+    render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["That's a lot of damage!"]); }
+}
+new Step49(); 

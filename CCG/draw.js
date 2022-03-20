@@ -696,7 +696,7 @@ class DrawTool
             {
                 if (card.requires[1] == "Power: x2")
                 {
-                    if (card.hand.ship[2].state.disabled)
+                    if (card.hand.ship[2].system == SystemTypes.Weapon)
                         this.context.fillStyle = "#39ac39";
                     else
                         this.context.fillStyle = "#ff0000";
