@@ -19,6 +19,7 @@ Game.postInit = function()
     Game.mouse = new Mouse(Game.canvas);
     Game.draw = new DrawTool(Game.context);
     Game.hand = new HandManager();
+    Game.turn = 0;
 
     Game.onResize();
     Tutorial.startAt(Game.startingStep);

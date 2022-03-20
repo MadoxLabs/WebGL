@@ -7,7 +7,7 @@ class HandManager
         this.deck = null;
         this.crew = [];
         this.activecrew = null;
-        this.activecard = null;
+        this.activecard = null;        
     }
 
     update()
@@ -29,10 +29,22 @@ class HandManager
         }
     }
 
+    shipHasSystem(name)
+    {
+        let type = ReverseSystemNames[name];
+        if (!type) return false;
+        for (let i in this.ship)
+        {
+            if (this.ship[i].system == type && this.ship[i].hp > 0) return true;
+        }
+        return false;
+    }
+
     addSystem(id)
     {
         let card = cards[id];
         if (card.type != CardType.System) return;
+        card.hand = this;
         this.ship.push(card);
     }
 
@@ -46,9 +58,11 @@ class HandManager
             if (!this.hand[i]) 
             {
                 this.hand[i] = card;
+                card.hand = this;
                 return;
             }
         }
+        card.hand = this;
         this.hand.push(card);
     }
 

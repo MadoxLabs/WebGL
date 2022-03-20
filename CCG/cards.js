@@ -10,7 +10,8 @@ const SystemTypes = {
     Hull : 101,
     Power : 102,
     Weapon : 103,
-    Nav: 104
+    Nav: 104,
+    Defense: 105
 }
 
 let SystemNames = {};
@@ -20,8 +21,18 @@ SystemNames[ SystemTypes.Hull] = "Hull";
 SystemNames[ SystemTypes.Power] = "Power";
 SystemNames[ SystemTypes.Weapon] = "Weapon";
 SystemNames[ SystemTypes.Nav] = "Nav";
+SystemNames[ SystemTypes.Defense] = "Defense";
 SystemNames[ CardType.Action] = "Action";
 SystemNames[ CardType.Crew] = "Crew";
+
+let ReverseSystemNames = {};
+
+ReverseSystemNames[ "Unknown" ] = SystemTypes.Unknown;
+ReverseSystemNames[ "Hull" ] = SystemTypes.Hull;
+ReverseSystemNames[ "Power" ] = SystemTypes.Power;
+ReverseSystemNames[ "Weapon" ] = SystemTypes.Weapon;
+ReverseSystemNames[ "Nav" ] = SystemTypes.Nav;
+ReverseSystemNames[ "Defense" ] = SystemTypes.Defense;
 
 let cards = {};
 
@@ -33,7 +44,7 @@ class Card
             id: 0,
             name: "Default Name",
             type: CardType.Unknown,
-            requires: [],
+            requires: null,
             effectText: [],
             effects: [],
             hp: 0,
@@ -153,16 +164,14 @@ new Card({
     id: "DEMO-11",
     name: "Jamming Signal",
     type: CardType.Action,
-    effectText: ["Enemy can not attack next turn"],
-    requires: [ ]
+    effectText: ["Enemy can not attack next turn"]
 });
 
 new Card({
     id: "DEMO-12",
     name: "On Screen",
     type: CardType.Action,
-    effectText: ["Reveal enemy's external systems", "Once"],
-    requires: [ ]
+    effectText: ["Reveal enemy's external systems", "Once"]
 });
 
 new Card({
@@ -177,16 +186,14 @@ new Card({
     id: "DEMO-14",
     name: "Emergency Repairs",
     type: CardType.Action,
-    effectText: ["Repair any non Hull system", "HP: +5"],
-    requires: [ ]
+    effectText: ["Repair any non Hull system", "HP: +5"]
 });
 
 new Card({
     id: "DEMO-15",
     name: "Pedal to the Metal",
     type: CardType.Action,
-    effectText: ["Speed: +5"],
-    requires: [ "Nav" ]
+    effectText: ["Increase speed for 1 turn.","Speed: +5"]
 });
 
 new Card({

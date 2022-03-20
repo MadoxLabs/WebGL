@@ -208,6 +208,7 @@ class Step21 extends Bubble
     constructor() { super(); }
     update() 
     { 
+        Game.turn = 2;
         let card1 = function() { Game.hand.addHand("DEMO-13"); }
         let card2 = function() { Game.hand.addHand("DEMO-5");  Game.draw.deal( card1 );}
         let card3 = function() { Game.hand.addHand("DEMO-12"); Game.draw.deal( card2 );}
@@ -268,6 +269,7 @@ class Step28 extends Bubble
     { 
         Game.draw.moveCard(Game.hand.activecard,2,1,4,3); 
         Game.hand.endTurn();
+        Game.turn = 1;
     }
     render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["At the end of the turn, used cards get shuffled back into the deck.","There is no discard pile, so you might draw a card again right away!"]); }
 }
@@ -298,13 +300,13 @@ new Step30();
 class Step31 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(3.5629820051413885, 1.480719794344473, ["A green coloured power indicator means that the system is fully powered."],2.668380462724936, 2.3187660668380463); }
+    render() { Game.draw.drawBubble(2.1329820051413885, 1.480719794344473, ["A green coloured power indicator means that the system is fully powered."],2.668380462724936, 2.3187660668380463); }
 }
 new Step31();
 class Step32 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(3.5629820051413885, 1.480719794344473, ["Note that the power source used lost some of its power.","It will be replenished every turn."],1.6118251928020566, 2.3187660668380463); }
+    render() { Game.draw.drawBubble(3.5629820051413885, 1.480719794344473, ["Note that the power source lost some of its power.","It will be replenished every turn."],1.6118251928020566, 2.3187660668380463); }
 }
 new Step32();
 class Step33 extends Bubble
@@ -319,6 +321,7 @@ class Step34 extends Bubble
     constructor() { super(); }
     update() 
     { 
+        Game.turn = 2;
         Game.hand.ship[1].power = 5;
         let card3 = function() { Game.hand.addHand("DEMO-11"); }
         Game.draw.deal( card3 ); 
@@ -349,10 +352,127 @@ class Step36 extends Bubble
     constructor() { super(); }
     update() 
     { 
-        Game.draw.moveCard(Game.hand.activecard,2,1,4,3); 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+        }
+        Game.turn = 1;
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
         Game.hand.endTurn();
         Game.hand.ship[1].power = 5;
     }
     render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["The enemy shot us again!", "This is getting serious."]); }
 }
 new Step36();
+class Step37 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-7"); }
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Shields Up', which would let us activate","one of our defensive systems."]); }
+}
+new Step37();
+class Step38 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["This line show the card's requirements.", "We don't have a Defense System, so we can't play it."],1.7969151670951158, 3.4087403598971724); }
+}
+new Step38();
+class Step39 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["Let's play 'Evasive Action'","It will let us avoid an extra 2 damage."]); }
+}
+new Step39(); 
+class Step40 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.draw.drawAffect(2.5,1.9,2.5,2.1,"#ffff00");
+            Game.hand.ship[2].effectText[2] = "Evasion: 4";
+        }
+        Game.draw.moveCard(Game.hand.hand[2],2,3,2,1,play1); 
+        Game.hand.useCard(2);
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Our engine has been updated to show an Evasion of 4 now.","Our turn ends."],2.6452442159383036, 2.879177377892031); }
+}
+new Step40();
+class Step41 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5"];
+            Game.hand.ship[1].power -= 2;
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+        }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["He played 'Fire!' again but we took no damage","thanks to our high evasion."]); }
+}
+new Step41();
+class Step42 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-8"); }
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(3.717223650385604, 1.4447300771208227, ["We drew 'Full Salvo'!","It lets us do double damage, but needs double the power."],2.6838046272493576, 3.537275064267352); }
+}
+new Step42(); 
+class Step43 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+    }
+    render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["That would mean 4 power for the phaser. Including the engine, we do not have the 6 power needed.",
+                                                                            "Luckily, we can reroute power away from the engine, but that would turn off our evade.",
+                                                                            "For now, lets use the 'Jamming Signal'."]); }
+}
+new Step43(); 
+class Step44 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Now he can't attack on his next turn.","It will be safe to reroute power from the engine!"]); }
+}
+new Step44(); 

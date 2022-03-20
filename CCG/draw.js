@@ -233,6 +233,25 @@ class DrawTool
 
     drawBoard()
     {        
+        // whose turn
+        if (Game.turn == 1)
+        {
+            let x = (this.cardWidth  + 10) * 0;
+            let w = (this.cardWidth  + 10) * 6 +10;
+            let y = (this.cardHeight + 10) * 0;
+            let h = (this.cardHeight + 10) * 1 +10;
+            this.context.fillStyle = "#ccffcc";
+            this.context.fillRect(x, y, w, h);
+        }
+        else if (Game.turn == 2)
+        {
+            let x = (this.cardWidth  + 10) * 0;
+            let w = (this.cardWidth  + 10) * 6 +10;
+            let y = (this.cardHeight + 10) * 2;
+            let h = (this.cardHeight + 10) * 2 +10;
+            this.context.fillStyle = "#ccffcc";
+            this.context.fillRect(x, y, w, h);
+        }
         // board
         this.moveToCel(0,0); this.drawZone("Enemy Ship System"); 
         this.moveToCel(1,0); this.drawZone("Enemy Ship System"); 
@@ -654,18 +673,43 @@ class DrawTool
             this.context.fillText(text, hpPosX, hpPosY);
         }
 
-        // Requirement area
-        bg = "#e6e6e6";
-        reqStepY = this.setFontForText(card.requires, w - nameOffsetX - nameOffsetX) * 1.1;
-        let reqY = y + nameHeight + (card.type == CardType.System ? powerHeight : 0) + reqStepY;
-        this.context.fillStyle = bg;
-        this.context.fillRect(x, reqY - reqStepY + 2, w, (reqStepY * card.requires.length));
-
-        this.setColourForText(bg);
-        for (let i in card.requires)
+        // Requirement area - only ever 2 requirements
+        if (card.hand && card.requires)
         {
-            this.context.fillText(card.requires[i], reqPosX, reqY);
+            bg = "#e6e6e6";
+            reqStepY = this.setFontForText(card.requires, w - nameOffsetX - nameOffsetX) * 1.1;
+            let reqY = y + nameHeight + (card.type == CardType.System ? powerHeight : 0) + reqStepY;
+            this.context.fillStyle = bg;
+            this.context.fillRect(x, reqY - reqStepY + 2, w, (reqStepY * card.requires.length));
+
+            if (card.hand.shipHasSystem(card.requires[0]))
+                this.context.fillStyle = "#39ac39";
+            else
+                this.context.fillStyle = "#ff0000";
+
+            // req 0
+            this.context.fillText(card.requires[0], reqPosX, reqY);
             reqY += reqStepY;
+
+            // req 1
+            if (card.requires.length>1)
+            {
+                if (card.requires[1] == "Power: x2")
+                {
+                    if (card.hand.ship[2].state.disabled)
+                        this.context.fillStyle = "#39ac39";
+                    else
+                        this.context.fillStyle = "#ff0000";
+                }
+                if (card.requires[1] == "Speed: 10")
+                {
+                    if (card.hand.ship[2].speed == 10)
+                        this.context.fillStyle = "#39ac39";
+                    else
+                        this.context.fillStyle = "#ff0000";
+                }
+                this.context.fillText(card.requires[1], reqPosX, reqY);
+            }
         }
 
         // Effect area
