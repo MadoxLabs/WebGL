@@ -197,7 +197,7 @@ new Card({
 
 new Card({
     id: "DEMO-18",
-    name: "Machien Guns",
+    name: "Machine Guns",
     type: CardType.System,
     system: SystemTypes.Weapon,
     power: -2,

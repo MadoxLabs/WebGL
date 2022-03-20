@@ -62,9 +62,9 @@ Game.fireMouseEvent = function(type, mouse)
         {
             console.log("click at "+mouse.lastDownX+", "+mouse.lastDownY);
             if(savedX)
-                console.log( "Game.draw.drawBubble("+(mouse.lastDownX/Game.draw.cardWidth)+", "+(mouse.lastDownY/Game.draw.cardHeight)+", [\"\"],"+(savedX/Game.draw.cardWidth)+", "+(savedY/Game.draw.cardHeight)+"); " );
+                console.log( "render() { Game.draw.drawBubble("+(mouse.lastDownX/Game.draw.cardWidth)+", "+(mouse.lastDownY/Game.draw.cardHeight)+", [\"\"],"+(savedX/Game.draw.cardWidth)+", "+(savedY/Game.draw.cardHeight)+"); }" );
             else
-                console.log( "Game.draw.drawBubble("+(mouse.lastDownX/Game.draw.cardWidth)+", "+(mouse.lastDownY/Game.draw.cardHeight)+", [\"\"]); " );
+                console.log( "render() { Game.draw.drawBubble("+(mouse.lastDownX/Game.draw.cardWidth)+", "+(mouse.lastDownY/Game.draw.cardHeight)+", [\"\"]); }" );
             savedX = null;
             savedY = null;    
         }

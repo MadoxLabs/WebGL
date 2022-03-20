@@ -187,14 +187,90 @@ class Step18 extends Bubble
         Game.enemy.addSystem("DEMO-19");
         Game.enemy.addCrew("DEMO-16"); 
         Game.enemy.activateCrew(0);
-
-        let play1 = function() { Game.hand.activateUsedCard(); Game.draw.moveCard(Game.hand.activecard,2,1,4,3); Game.hand.endTurn();}
-        let card1 = function() { Game.hand.addHand("DEMO-13"); Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); Game.hand.useCard(1); }
+    }
+    render() { Game.draw.drawBubble(4.079519595448799, 1.4007585335018964, ["This is your opponent.", "Information about the captain appears here."],5.878634639696586, 1.0619469026548674); }
+}
+new Step18();
+class Step19 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(0.475094816687737, 1.5170670037926675, ["This is his ship. You can only see the hull right now.", "Some Action cards can reveal more of his ship.", "It seems that his Hull is stronger than ours!"],0.8068268015170669, 1.0518331226295827); }
+}
+new Step19();
+class Step20 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(0.475094816687737, 1.5170670037926675, ["Lets start our turn by dealing our hand.","Captain Smith gets 3 cards in his hand."]); }
+}
+new Step20();
+class Step21 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+//        let play1 = function() { Game.hand.activateUsedCard(); Game.draw.moveCard(Game.hand.activecard,2,1,4,3); Game.hand.endTurn();}
+//        let card1 = function() { Game.hand.addHand("DEMO-13"); Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); Game.hand.useCard(1); }
+        let card1 = function() { Game.hand.addHand("DEMO-13"); }
         let card2 = function() { Game.hand.addHand("DEMO-5");  Game.draw.deal( card1 );}
         let card3 = function() { Game.hand.addHand("DEMO-12"); Game.draw.deal( card2 );}
         Game.draw.deal( card3 ); 
     }
-    render() { Game.draw.drawBubble(4.040353089533418, 1.5939470365699875, ["Good shot!"] ); }
+    render() { Game.draw.drawBubble(0.475094816687737, 1.5170670037926675, ["Space battles are pretty fast paced!", "On your turn, you can play only one card.","(Unless instructed otherwise)"]); }
 }
-new Step18();
-
+new Step21();
+class Step22 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(0.475094816687737, 1.5170670037926675, ["This is a good time to point out:","Every rule in the game can be broken if an Action card says so.","Keep a look out for those types of cards!"]); }
+}
+new Step22();
+class Step23 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.774968394437421, ["We don't know much about his ship, so lets start by playing this card.","'On Screen' reveals any Systems that are external."],0.5537294563843236, 3.2060682680151706); }
+}
+new Step23();
+class Step24 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.774968394437421, ["Also note that it is a 'Once' card.","'Once' cards won't show up again in this battle after being used","Ok, play it now."],0.5537294563843236, 3.2060682680151706); }
+}
+new Step24();
+class Step25 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.enemy.ship[1].state.revealed = true;
+            Game.enemy.ship[3].state.revealed = true;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Now we can see more systems!"]); }
+}
+new Step25();
+class Step26 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["His weapon doesn't do as much damage as ours."],1.5929203539823007, 0.8394437420986094); }}
+new Step26();
+class Step27 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["His engine can't evade damage like ours can.","Thats good to know!","Let's end our turn"],3.716814159292035, 0.8950695322376738); }}
+new Step27();
+class Step28 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3); 
+        Game.hand.endTurn();
+    }
+    render() { Game.draw.drawBubble(3.754740834386852, 1.4766118836915296, ["At the end of the turn, used cards get shuffled back into the deck.","There is no discard pile, so you might draw it again right away!"]); }
+}
+new Step28();
