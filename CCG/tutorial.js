@@ -89,7 +89,7 @@ new Step5();
 class Step6 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(2.9625520110957004, 2.51872399445215, ["This power source provides 20 power per turn."],1.639389736477115, 2.335644937586685); }
+    render() { Game.draw.drawBubble(2.9625520110957004, 2.51872399445215, ["This power source provides 5 power per turn."],1.639389736477115, 2.335644937586685); }
 }
 new Step6();
 class Step7 extends Bubble
@@ -130,7 +130,7 @@ new Step11();
 class Step12 extends Bubble
 {
     constructor() { super(); }
-    render() { Game.draw.drawBubble(1.8892988929889298, 1.5596555965559655, ["Other crew members you pick up will appear in this collumn."],5.909205548549811, 2.1437578814627996 ); }
+    render() { Game.draw.drawBubble(1.8892988929889298, 1.5596555965559655, ["Other crew members you pick up will appear in this column."],5.909205548549811, 2.1437578814627996 ); }
 }
 new Step12();
 class Step13 extends Bubble
