@@ -683,7 +683,7 @@ class DrawTool
             this.context.fillStyle = bg;
             this.context.fillRect(x, reqY - reqStepY + 2, w, (reqStepY * card.requires.length));
 
-            if (card.hand.shipHasSystem(card.requires[0]))
+            if (!card.hand || card.hand.shipHasSystem(card.requires[0]))
                 this.context.fillStyle = "#39ac39";
             else
                 this.context.fillStyle = "#ff0000";
@@ -704,7 +704,7 @@ class DrawTool
                 }
                 if (card.requires[1] == "Speed: 10")
                 {
-                    if (card.hand.ship[2].speed == 10)
+                    if (card.hand.ship[3].effectText[3] == "Speed: 10")
                         this.context.fillStyle = "#39ac39";
                     else
                         this.context.fillStyle = "#ff0000";

@@ -282,11 +282,11 @@ class Step29 extends Bubble
         let dmg = function()
         {
             Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
-            Game.enemy.activecard = cards["DEMO-5"];
+            Game.enemy.activecard = cards["DEMO-5A"];
             Game.hand.ship[0].hp -= 2;
             Game.hand.ship[1].power -= 2;
         }
-        Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+        Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg);
      }
     render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["He played 'Fire!' which fires his guns.","By default, attacks hit the hull. Our Hull took 2 damage!"]); }
 }
@@ -355,13 +355,13 @@ class Step36 extends Bubble
         let dmg = function()
         {
             Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
-            Game.enemy.activecard = cards["DEMO-5"];
+            Game.enemy.activecard = cards["DEMO-5A"];
             Game.hand.ship[0].hp -= 2;
             Game.hand.ship[1].power -= 2;
         }
         let fire = function()
         {
-            Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+            Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg);
         }
         Game.turn = 1;
         Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
@@ -422,12 +422,12 @@ class Step41 extends Bubble
         let dmg = function()
         {
             Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
-            Game.enemy.activecard = cards["DEMO-5"];
+            Game.enemy.activecard = cards["DEMO-5A"];
             Game.hand.ship[1].power -= 2;
         }
         let fire = function()
         {
-            Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+            Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg);
         }
         Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
         Game.hand.endTurn();
@@ -547,7 +547,7 @@ class Step49 extends Bubble
             Game.hand.activateUsedCard(); 
             Game.hand.ship[2].power = -4;
             Game.enemy.ship[0].hp -= 10;
-            Game.draw.drawAffect(2.5,1.9,0.5,0.9,"#ff0000");
+            Game.draw.drawAffect(2.5,1.1,0.5,0.9,"#ff0000");
         }
         Game.draw.moveCard(Game.hand.hand[0],2,3,2,1,play1); 
         Game.hand.useCard(2);
@@ -625,13 +625,13 @@ class Step54 extends Bubble
         let dmg = function()
         {
             Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
-            Game.enemy.activecard = cards["DEMO-5"];
+            Game.enemy.activecard = cards["DEMO-5A"];
             Game.hand.ship[0].hp -= 2;
             Game.hand.ship[1].power -= 2;
         }
         let fire = function()
         {
-            Game.draw.moveCard(cards["DEMO-5"],2,-1,2,1, dmg);
+            Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg);
         }
         Game.turn = 1;
         Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
@@ -641,9 +641,142 @@ class Step54 extends Bubble
     render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["The enemy is trying to finish us off.","With his target (our phaser) destroyed, it reverts back to targetting the hull."]); }
 }
 new Step54();
-// draw self destruct
-// swap it for P2tM
-// get hit
-// P2tM
-// get hit
-// ramming speed - win
+class Step55 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let card3 = function() { Game.hand.addHand("DEMO-10"); }
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.hand.ship[1].power += 2;
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.476611883691529, ["Its our turn, but we can not play 'Ramming Speed'","It requires 10 speed and we only have 5."],3.694087403598972, 2.9254498714652954); }
+}
+new Step55();
+class Step56 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+        }
+        Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); 
+        Game.hand.useCard(1);
+    }
+    render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["Instead of self destructing, lets just","throw out this card that we can't use."]); }
+}
+new Step56(); 
+class Step57 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5A"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg);
+        }
+        Game.turn = 1;
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.hand.ship[1].power = 5;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["He fired on us again.","I think his whole deck is 'Fire!' cards."]); }
+}
+new Step57();
+class Step58 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let card3 = function() { Game.hand.addHand("DEMO-15"); }
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.hand.ship[1].power += 2;
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.476611883691529, ["'Pedal to the Metal' is just what we need","to boost the engine speed!"]); }
+}
+new Step58();
+class Step59 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.ship[3].effectText[3] = "Speed: 10";
+            Game.hand.activateUsedCard(); 
+        }
+        Game.draw.moveCard(Game.hand.hand[1],1,3,2,1,play1); 
+        Game.hand.useCard(1);
+    }
+    render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["She's giving it all she's got!"]); }
+}
+new Step59(); 
+class Step60 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5A"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg);
+        }
+        Game.turn = 1;
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.hand.ship[1].power = 5;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.4766118836915296, ["He got us again, but its time to end the battle."]); }
+}
+new Step60();
+class Step61 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let card3 = function() { Game.hand.addHand("DEMO-5"); }
+        Game.draw.deal( card3 ); 
+        Game.enemy.endTurn();
+        Game.hand.ship[1].power += 2;
+        Game.turn = 2;
+    }
+    render() { Game.draw.drawBubble(2.754740834386852, 1.476611883691529, ["Everything is ready. Ramming speed!"]); }
+}
+new Step61();
+class Step62 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.draw.drawAffect(0.5,2.1,0.5,0.9,"#ff0000");
+            Game.enemy.ship[0].hp -= 10;
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.activateUsedCard(); 
+        }
+        Game.draw.moveCard(Game.hand.hand[2],2,3,2,1,play1); 
+        Game.hand.useCard(2);
+    }
+    render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["We've won the battle!","Let's head to the nearest Spacedock."]); }
+}
+new Step62(); 

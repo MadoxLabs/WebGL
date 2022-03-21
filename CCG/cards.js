@@ -122,6 +122,14 @@ new Card({
 });
 
 new Card({
+    id: "DEMO-5A",
+    name: "FIRE!",
+    type: CardType.Action,
+    effectText: ["Fire one weapon system"],
+    requires: [ "Weapon" ]
+});
+
+new Card({
     id: "DEMO-6",
     name: "Captain Smith",
     type: CardType.Crew,
