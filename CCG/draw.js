@@ -8,7 +8,7 @@ SystemColours[CardType.Crew] = "#ff9966";
 
 class AffectLine
 {
-    constructor(fromx, fromy, tox, toy, c)
+    constructor(fromx, fromy, tox, toy, c, cb)
     {
         this.fromCelX = fromx;
         this.fromCelY = fromy;
@@ -18,6 +18,7 @@ class AffectLine
         this.step = 0;
         this.done = false;
         this.startTime = window.performance.now();
+        this.callback = cb;
     }
 
     update()
@@ -33,6 +34,7 @@ class AffectLine
             if (this.step == 2)
             {
                 this.done = true;
+                if (this.callback) this.callback();
                 return;
             }
         }
@@ -225,9 +227,9 @@ class DrawTool
         this.inMotion.push(mover);
     }
 
-    drawAffect(fromx, fromy, tox, toy, c)
+    drawAffect(fromx, fromy, tox, toy, c, cb)
     {
-        let mover = new AffectLine(fromx, fromy, tox, toy, c);
+        let mover = new AffectLine(fromx, fromy, tox, toy, c, cb);
         this.inMotion.push(mover);
     }
 

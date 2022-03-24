@@ -875,7 +875,29 @@ new class Step72 extends Bubble
 new class Step73 extends Bubble
 {
     constructor() { super(); }
-    update() { }
+    update() 
+    { 
+        let card = null;
+        let d = function()
+        {
+            Game.hand.activecrew = Game.hand.activecard;
+            Game.hand.activecard = null;    
+        }
+        let m = function()
+        {
+            Game.enemy.addHand("DEMO-24"); 
+            Game.draw.moveCard(Game.hand.activecard,2,1,5,3,d); 
+            Game.enemy.activecard =  Game.enemy.hand[1];
+        }
+        let c = function() 
+        { 
+            Game.hand.activecard = card;
+            Game.draw.drawAffect(2.75,0.9,2.5,1.1,"#00ff00", m);   
+        }
+        Game.draw.moveCard(Game.hand.activecrew,5,3,2,1, c);         
+        card = Game.hand.activecrew;
+        Game.hand.activecrew = null;        
+    }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Training has earned him a new card, 'The Sigma Manuever'!","Lets train Ensign Lee as well"]); }
 }();
 new class Step74 extends Bubble

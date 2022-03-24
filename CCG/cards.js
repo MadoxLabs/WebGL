@@ -269,3 +269,10 @@ new Card({
     type: CardType.Action,
     effectText: ["Ensign Lee can play","next turn"]
 });
+
+new Card({
+    id: "DEMO-24",
+    name: "Sigma Manouver",
+    type: CardType.Action,
+    effectText: ["Attack without using power"]
+});
