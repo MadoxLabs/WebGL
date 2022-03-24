@@ -103,3 +103,13 @@ Game.onResize = function()
     Game.draw.computeCardSize();
 }
   
+Game.gotoSpacedock = function()
+{
+    Game.spacedock = true;
+}
+
+Game.leaveSpacedock = function()
+{
+    Game.spacedock = false;
+    Game.turn = 2;
+}

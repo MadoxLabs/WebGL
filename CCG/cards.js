@@ -216,7 +216,7 @@ new Card({
     name: "Reenforced Hull",
     type: CardType.System,
     system: SystemTypes.Hull,
-    effectText: ["Stong steel plating"],
+    effectText: ["Strong steel plating"],
     hp: 25
 });
 
@@ -254,4 +254,18 @@ new Card({
     type: CardType.Action,
     requires: [ "Weapon" ],
     effectText: ["Damage: 5","Damage 5 to one other","random external system"]
+});
+
+new Card({
+    id: "DEMO-22",
+    name: "Ensign Lee",
+    type: CardType.Crew,
+    effectText: ["Fresh from the Academy","Hand size: 1","Actions: 1"]
+});
+
+new Card({
+    id: "DEMO-23",
+    name: "Ensign, you're up!",
+    type: CardType.Action,
+    effectText: ["Ensign Lee can play","next turn"]
 });

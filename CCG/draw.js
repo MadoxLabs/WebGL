@@ -233,35 +233,47 @@ class DrawTool
 
     drawBoard()
     {        
-        // whose turn
-        if (Game.turn == 1)
+        if (Game.spacedock)
         {
-            let x = (this.cardWidth  + 10) * 0;
-            let w = (this.cardWidth  + 10) * 6 +10;
-            let y = (this.cardHeight + 10) * 0;
-            let h = (this.cardHeight + 10) * 1 +10;
-            this.context.fillStyle = "#ccffcc";
-            this.context.fillRect(x, y, w, h);
+            this.moveToCel(0.5,0); this.drawService("REPAIR"); 
+            this.moveToCel(1.5,0); this.drawService("REFIT"); 
+            this.moveToCel(2.5,0); this.drawService("TRAINING"); 
+            this.moveToCel(3.5,0); this.drawService("MARKET"); 
+        
+            this.moveToCel(2,1); this.drawZone("");
         }
-        else if (Game.turn == 2)
+        else
         {
-            let x = (this.cardWidth  + 10) * 0;
-            let w = (this.cardWidth  + 10) * 6 +10;
-            let y = (this.cardHeight + 10) * 2;
-            let h = (this.cardHeight + 10) * 2 +10;
-            this.context.fillStyle = "#ccffcc";
-            this.context.fillRect(x, y, w, h);
+            // whose turn
+            if (Game.turn == 1)
+            {
+                let x = (this.cardWidth  + 10) * 0;
+                let w = (this.cardWidth  + 10) * 6 +10;
+                let y = (this.cardHeight + 10) * 0;
+                let h = (this.cardHeight + 10) * 1 +10;
+                this.context.fillStyle = "#ccffcc";
+                this.context.fillRect(x, y, w, h);
+            }
+            else if (Game.turn == 2)
+            {
+                let x = (this.cardWidth  + 10) * 0;
+                let w = (this.cardWidth  + 10) * 6 +10;
+                let y = (this.cardHeight + 10) * 2;
+                let h = (this.cardHeight + 10) * 2 +10;
+                this.context.fillStyle = "#ccffcc";
+                this.context.fillRect(x, y, w, h);
+            }
+            // board
+            this.moveToCel(0,0); this.drawZone("Enemy Ship System"); 
+            this.moveToCel(1,0); this.drawZone("Enemy Ship System"); 
+            this.moveToCel(2,0); this.drawZone("Enemy Ship System"); 
+            this.moveToCel(3,0); this.drawZone("Enemy Ship System"); 
+            this.moveToCel(4,0); this.drawZone("Enemy Ship System"); 
+            this.moveToCel(5,0); this.drawZone("Enemy Portrait");    
+        
+            this.moveToCel(2,1); this.drawZone("Played Card");
         }
-        // board
-        this.moveToCel(0,0); this.drawZone("Enemy Ship System"); 
-        this.moveToCel(1,0); this.drawZone("Enemy Ship System"); 
-        this.moveToCel(2,0); this.drawZone("Enemy Ship System"); 
-        this.moveToCel(3,0); this.drawZone("Enemy Ship System"); 
-        this.moveToCel(4,0); this.drawZone("Enemy Ship System"); 
-        this.moveToCel(5,0); this.drawZone("Enemy Portrait");    
-    
-        this.moveToCel(2,1); this.drawZone("Played Card");
-    
+
         this.moveToCel(0,2); this.drawZone("My Ship System");
         this.moveToCel(1,2); this.drawZone("My Ship System"); 
         this.moveToCel(2,2); this.drawZone("My Ship System");
@@ -798,6 +810,44 @@ class DrawTool
         this.context.lineTo(x, y + radius);
         this.context.quadraticCurveTo(x, y, x + radius, y);
         this.context.closePath();
+        this.context.stroke();
+
+        this.setFontForText(label, w - nameOffsetX - nameOffsetX);
+        this.context.fillStyle = "#000";
+        this.context.fillText(label, namePosX, namePosY);
+    }
+
+    drawService(label)
+    {
+        let x = this.cursorX;
+        let y = this.cursorY;
+        let h = this.cardHeight;
+        let w = this.cardWidth;
+        let radius = w / 10;
+        var r = x + w;
+        var b = y + h;
+
+        let nameHeight = h * 0.5;
+        let nameOffsetX = w * 0.05;
+        let nameOffsetY = nameHeight * 0.6;
+        let namePosX = x + nameOffsetX;
+        let namePosY = y + nameOffsetY;
+
+        this.context.beginPath();
+        this.context.strokeStyle = "#000";
+        this.context.fillStyle = "#fec";
+        this.context.lineWidth = 2;
+        this.context.moveTo(x + radius, y);
+        this.context.lineTo(r - radius, y);
+        this.context.quadraticCurveTo(r, y, r, y + radius);
+        this.context.lineTo(r, y + h - radius);
+        this.context.quadraticCurveTo(r, b, r - radius, b);
+        this.context.lineTo(x + radius, b);
+        this.context.quadraticCurveTo(x, b, x, b - radius);
+        this.context.lineTo(x, y + radius);
+        this.context.quadraticCurveTo(x, y, x + radius, y);
+        this.context.closePath();
+        this.context.fill();
         this.context.stroke();
 
         this.setFontForText(label, w - nameOffsetX - nameOffsetX);

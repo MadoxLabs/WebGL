@@ -33,6 +33,151 @@ BETWEEN ROUNDS
  - - star base (pick up new crew, new cards)
  - all choices can do some ship repair
 
+--------------
+
+CURRENCIES
+ - how many types?
+ - xp
+ - money?
+ - tech?
+
+SPACE DOCK
+ - ship repair: any system - X hp for Y xp / gold?
+
+ recruit
+  - random place gives different kinds of people?
+    - bar
+    - academy
+    - outpost
+    - barracks
+    - underworld
+    - etc 
+  - take on crew for CURRENCY
+    - crew has reqs? hull type. prestige etc
+  - offload crew
+    - requires pay compensation
+  - stats
+    - max deck size
+    - bonuses? 
+      - stat based - damage, speed, evade etc
+      - system based 
+ - autogen
+   - assign values to stats 
+   - assign total value to a given rank crew
+
+refit
+ - ship system / hull upgrades
+   - shop specialties: only certain systems types?
+   - hull purchase
+     - what about old hull
+     - autogen?
+     - determines slots, stations, power structure
+      - is station a regular system?
+   - purchase / sell systems
+   - swap systems in inventory
+     - name stations (cosmetic)
+     - each station comes with a card to activate it
+       - pay for dupes?
+
+training
+ - level up crew with xp / prestige
+   - why? stat boost?
+ - get new cards via training
+   - random or skill tree?
+     - prefer random
+ 
+card shop
+  - selected cards, no random 
+  - random mode?
+
+missions
+campaign routes
+
+
+--
+POWER
+leave as internal
+can be targetting special ways
+- some hulls have untargettabe slots
+- can get a backup power supply card, dual powers
+
+HULL SHIP LAYOUT
+physical inventory type - balanced by dimension
+slots only - no real balance
+load type - balance by load amount
+hybred - slots and load
+hybred - slots and inventory
+
+
+
+
+----------- script 2
+
+Between battles you might find yourself at a spacedock like this one.
+
+Spacedocks have many useful services, but not all of them will offer every services.
+
+This is the ship repair yard. 
+Use it to fix damage to your systems or hull
+
+Not every repair yard will be set up to repair every type of system.
+
+You can refit your ship here. 
+This lets you buy and sell ship system cards, or replace the hull.
+
+The training facility lets you hire new crew, or level up your existing crew.
+Lets see who is here.
+
+Ensign Lee is the only person here right now. 
+
+Being level 1, he can only have a hand size of 1 card.
+we'll take him anyway. 
+
+Note that each crew member comes with their own card, just like this one. 
+Don't forget to add it to your deck.
+
+We can also buy some training for Captain Smith. 
+
+Training has earned him a new card, "The Sigma Manuever'!
+Lets train Ensign Lee as well
+
+Ensign Lee has gained a new stat: +1 damage from Weapons!
+
+Training is a good way to get more cards and skills.
+
+The final service is the Market where you can buy and sell cards.
+
+Regardless of there being a spacedock or not, you can always adjust your deck between battles.
+
+Each crew member can have their own deck to play from. 
+
+Lets take some of our cards and make a small deck for Ensign Lee.
+-give Lee fire and repairs
+
+We are ready to continue!
+
+--------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 starting ship
 fusion core (POWER system)   
@@ -100,7 +245,7 @@ engine need
 + move card from zone to zone
 
 + show system is powered
-- show requirements are ok
++ show requirements are ok
 - show power damage lowers power
 
 -----------------
@@ -136,7 +281,7 @@ what do we want to show
 
 > fire, 
 
-- pedal to the metal
+- pedal to the metal -
 
 > fire
 

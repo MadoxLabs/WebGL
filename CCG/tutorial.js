@@ -780,3 +780,153 @@ class Step62 extends Bubble
     render() { Game.draw.drawBubble(3.6246786632390746, 1.4498714652956297, ["We've won the battle!","Let's head to the nearest Spacedock."]); }
 }
 new Step62(); 
+
+
+
+class Step63 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.hand = new HandManager();
+        Game.hand.addSystem("DEMO-3");
+        Game.hand.addSystem("DEMO-1");
+        Game.hand.addSystem("DEMO-4");
+        Game.hand.addSystem("DEMO-2");
+        Game.hand.addCrew("DEMO-6"); 
+        Game.hand.activateCrew(0);
+        Game.hand.deck = [];
+        Game.enemy = new HandManager();
+        Game.gotoSpacedock();
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Between battles you might find yourself at a spacedock like this one."]); }
+}
+new Step63(); 
+new class Step64 extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Spacedocks have many useful services, but not all of them will offer every service."]); }
+}();
+new class Step65 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["This is the ship repair yard.","Use it to fix damage to your systems or hull"],1.148936170212766, 1.047872340425532); }
+}();
+new class Step66 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Not every repair yard will be set up to repair every type of system."]); }
+}();
+new class Step67 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["You can refit your ship here.","This lets you buy and sell ship system cards, or replace the hull."],2.2021276595744683, 1.0319148936170213); }
+}();
+new class Step68 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["The training facility lets you hire new crew, or level up your existing crew.","Lets see who is here."],3.3111702127659575, 1.047872340425532); }
+}();
+new class Step69 extends Bubble
+{
+    constructor() { super(); }
+    update() { 
+        Game.enemy.addCrew("DEMO-22"); 
+        Game.enemy.activecard =  Game.enemy.crew[0];
+    }
+    render() { Game.draw.drawBubble(3.7579787234042556, 1.5159574468085106, ["Ensign Lee is the only person here right now."],3.2313829787234045, 1.4893617021276595); }
+}();
+new class Step70 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(3.7579787234042556, 1.5159574468085106, ["Being level 1, he can only have a hand size of 1 card.","We'll take him anyway."],2.7845744680851063, 1.8670212765957446); }
+}();
+new class Step71 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function()
+        {
+            Game.enemy.addHand("DEMO-23"); 
+            Game.enemy.activecard =  Game.enemy.hand[0];
+            Game.hand.addCrew("DEMO-22");
+        }
+        Game.draw.moveCard(Game.enemy.activecard,2,1,5,2.25,play1); 
+        Game.enemy.activecard = null;
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 2.3319148936170213, ["Note that each crew member comes with their own card, just like this one.","Don't forget to add it to your deck."]); }
+}();
+new class Step72 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    {
+        Game.draw.moveCard(Game.enemy.activecard,2,1,4,3); 
+        Game.enemy.activecard = null;
+     }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["We can also buy some training for Captain Smith."]); }
+}();
+new class Step73 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Training has earned him a new card, 'The Sigma Manuever'!","Lets train Ensign Lee as well"]); }
+}();
+new class Step74 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Ensign Lee has gained a new stat: +1 damage from Weapons!"]); }
+}();
+new class Step75 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Training is a good way to get more cards and skills."]); }
+}();
+new class Step76 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["The final service is the Market where you can buy and sell cards."]); }
+}();
+new class Step77 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Regardless of there being a spacedock or not, you can always adjust your deck between battles."]); }
+}();
+new class Step78 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Each crew member can have their own deck to play from."]); }
+}();
+new class Step79 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Lets take some of our cards and make a small deck for Ensign Lee."]); }
+}();
+new class Step80 extends Bubble
+{
+    constructor() { super(); }
+    update() { }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["We are ready to continue!"]); }
+}();
+
+new class Step81 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.leaveSpacedock();
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Crewed Battle tutorial is not ready!"]); }
+}();
