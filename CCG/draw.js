@@ -235,6 +235,79 @@ class DrawTool
 
     drawBoard()
     {        
+        if (Game.deckmode)
+        {
+            this.moveToCel(5,2);    this.drawCrewZone();
+            this.moveToCel(5,2.25); this.drawCrewZone();
+            this.moveToCel(5,2.5);  this.drawCrewZone(); 
+            this.moveToCel(5,2.75); this.drawCrewZone(); 
+        
+            this.moveToCel(5,3); this.drawZone("Active Crew");
+
+            this.moveToCel(0,0); this.drawLargeZone("Unused Cards");
+            this.moveToCel(0,2); this.drawLargeZone("Active Deck");
+
+            // draw all card in deck 
+            if (Game.deckmode == 1)
+            {
+                this.moveToCel(0,2); Game.draw.drawCard(cards["DEMO-5"]);
+                this.moveToCel(0.25,2); Game.draw.drawCard(cards["DEMO-7"]);
+                this.moveToCel(0.5,2); Game.draw.drawCard(cards["DEMO-8"]);
+                this.moveToCel(0.75,2); Game.draw.drawCard(cards["DEMO-9"]);
+                this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-10"]);
+                this.moveToCel(1.25,2); Game.draw.drawCard(cards["DEMO-11"]);
+                this.moveToCel(1.5,2); Game.draw.drawCard(cards["DEMO-12"]);
+                this.moveToCel(1.75,2); Game.draw.drawCard(cards["DEMO-13"]);
+                this.moveToCel(2,2); Game.draw.drawCard(cards["DEMO-14"]);
+                this.moveToCel(2.25,2); Game.draw.drawCard(cards["DEMO-15"]);
+                this.moveToCel(2.5,2); Game.draw.drawCard(cards["DEMO-23"]);
+                this.moveToCel(2.75,2); Game.draw.drawCard(cards["DEMO-24"]);
+            }
+            else if (Game.deckmode == 2)
+            {
+                this.moveToCel(0.25,2); Game.draw.drawCard(cards["DEMO-7"]);
+                this.moveToCel(0.5,2); Game.draw.drawCard(cards["DEMO-8"]);
+                this.moveToCel(0.75,2); Game.draw.drawCard(cards["DEMO-9"]);
+                this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-10"]);
+                this.moveToCel(1.25,2); Game.draw.drawCard(cards["DEMO-11"]);
+                this.moveToCel(1.5,2); Game.draw.drawCard(cards["DEMO-12"]);
+                this.moveToCel(1.75,2); Game.draw.drawCard(cards["DEMO-13"]);
+                this.moveToCel(2.25,2); Game.draw.drawCard(cards["DEMO-15"]);
+                this.moveToCel(2.5,2); Game.draw.drawCard(cards["DEMO-23"]);
+                this.moveToCel(2.75,2); Game.draw.drawCard(cards["DEMO-24"]);
+            }
+            else if (Game.deckmode == 3)
+            {
+                this.moveToCel(0,0); Game.draw.drawCard(cards["DEMO-5"]);
+                this.moveToCel(1,0); Game.draw.drawCard(cards["DEMO-14"]);
+
+                this.moveToCel(0.25,2); Game.draw.drawCard(cards["DEMO-7"]);
+                this.moveToCel(0.5,2); Game.draw.drawCard(cards["DEMO-8"]);
+                this.moveToCel(0.75,2); Game.draw.drawCard(cards["DEMO-9"]);
+                this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-10"]);
+                this.moveToCel(1.25,2); Game.draw.drawCard(cards["DEMO-11"]);
+                this.moveToCel(1.5,2); Game.draw.drawCard(cards["DEMO-12"]);
+                this.moveToCel(1.75,2); Game.draw.drawCard(cards["DEMO-13"]);
+                this.moveToCel(2.25,2); Game.draw.drawCard(cards["DEMO-15"]);
+                this.moveToCel(2.5,2); Game.draw.drawCard(cards["DEMO-23"]);
+                this.moveToCel(2.75,2); Game.draw.drawCard(cards["DEMO-24"]);
+            }
+            else if (Game.deckmode == 4)
+            {
+                this.moveToCel(0,0); Game.draw.drawCard(cards["DEMO-5"]);
+                this.moveToCel(1,0); Game.draw.drawCard(cards["DEMO-14"]);
+            }
+            else if (Game.deckmode == 5)
+            {
+            }
+            else if (Game.deckmode == 6)
+            {
+                this.moveToCel(0,2); Game.draw.drawCard(cards["DEMO-5"]);
+                this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-14"]);
+            }
+            return;
+        }
+
         if (Game.spacedock)
         {
             this.moveToCel(0.5,0); this.drawService("REPAIR"); 
@@ -299,6 +372,35 @@ class DrawTool
     {
         let hand = Game.hand;
 
+        if (Game.deckmode)
+        {
+            if (hand.activecard)
+            {
+                Game.draw.moveToCel(2,1);
+                Game.draw.drawCard(hand.activecard);    
+            }
+            for (let i in hand.crew)
+            {
+                Game.draw.moveToCel(5,2 + (0.25*i));
+                Game.draw.drawCrewZone(hand.crew[i].name);    
+            }
+            if (hand.activecrew)
+            {
+                Game.draw.moveToCel(5,3);
+                Game.draw.drawCard(hand.activecrew);
+            }
+            // remove all done movers
+            for (let i in this.inMotion)
+            {
+                if (this.inMotion[i].done)
+                    this.inMotion.splice(i,1);
+                else 
+                    this.inMotion[i].update();
+            }
+
+            return;
+        }
+        
         for (let i in hand.ship)
         {
             if (hand.ship[i].state.skip) continue;
@@ -793,6 +895,43 @@ class DrawTool
         var b = y + h;
 
         let nameHeight = h * 0.24;
+        let nameOffsetX = w * 0.05;
+        let nameOffsetY = nameHeight * 0.6;
+        let namePosX = x + nameOffsetX;
+        let namePosY = y + nameOffsetY;
+
+        this.context.beginPath();
+        this.context.strokeStyle = "#000";
+        this.context.fillStyle = "#000";
+        this.context.lineWidth = 2;
+        this.context.moveTo(x + radius, y);
+        this.context.lineTo(r - radius, y);
+        this.context.quadraticCurveTo(r, y, r, y + radius);
+        this.context.lineTo(r, y + h - radius);
+        this.context.quadraticCurveTo(r, b, r - radius, b);
+        this.context.lineTo(x + radius, b);
+        this.context.quadraticCurveTo(x, b, x, b - radius);
+        this.context.lineTo(x, y + radius);
+        this.context.quadraticCurveTo(x, y, x + radius, y);
+        this.context.closePath();
+        this.context.stroke();
+
+        this.setFontForText(label, w - nameOffsetX - nameOffsetX);
+        this.context.fillStyle = "#000";
+        this.context.fillText(label, namePosX, namePosY);
+    }
+
+    drawLargeZone(label)
+    {
+        let x = this.cursorX;
+        let y = this.cursorY;
+        let h = this.cardHeight * 2;
+        let w = this.cardWidth * 5;
+        let radius = this.cardHeight / 10;
+        var r = x + w;
+        var b = y + h;
+
+        let nameHeight = h * 1.5;
         let nameOffsetX = w * 0.05;
         let nameOffsetY = nameHeight * 0.6;
         let namePosX = x + nameOffsetX;

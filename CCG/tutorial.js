@@ -898,25 +898,51 @@ new class Step73 extends Bubble
         card = Game.hand.activecrew;
         Game.hand.activecrew = null;        
     }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Training has earned him a new card, 'The Sigma Manuever'!","Lets train Ensign Lee as well"]); }
+    render() { Game.draw.drawBubble(0.7340425531914894, 0.5319148936170213, ["Training has earned him a new card, 'The Sigma Manuever'!","Lets train Ensign Lee as well"]); }
 }();
 new class Step74 extends Bubble
 {
     constructor() { super(); }
-    update() { }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Ensign Lee has gained a new stat: +1 damage from Weapons!"]); }
+    update() 
+    { 
+        let card = null;
+        let m = function()
+        {
+            Game.hand.activecard.effectText.push("Weapons: +1");
+        }
+        let c = function() 
+        { 
+            Game.hand.activecard = card;
+            Game.draw.drawAffect(2.75,0.9,2.5,1.1,"#00ff00", m);   
+        }
+        let b = function() 
+        { 
+            Game.draw.moveCard(card,4,2.25,2,1, c);    
+        }
+        Game.draw.moveCard(Game.enemy.activecard,2,1,4,3, b);    
+        Game.enemy.activecard = null;     
+        card = Game.hand.crew[1];
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 0.5319148936170213, ["Ensign Lee has gained a new stat: +1 damage from Weapons!"],2.8155080213903743, 1.9304812834224598); }
 }();
 new class Step75 extends Bubble
 {
     constructor() { super(); }
-    update() { }
+    update() 
+    { 
+        let d = function()
+        {
+        }
+        Game.hand.activecard = null;    
+        Game.draw.moveCard(Game.hand.activecrew,2,1,5,2.25, d);         
+    }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Training is a good way to get more cards and skills."]); }
 }();
 new class Step76 extends Bubble
 {
     constructor() { super(); }
     update() { }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["The final service is the Market where you can buy and sell cards."]); }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["The final service is the Market where you can buy and sell cards."],4.371657754010695, 1.0106951871657754); }
 }();
 new class Step77 extends Bubble
 {
@@ -927,28 +953,78 @@ new class Step77 extends Bubble
 new class Step78 extends Bubble
 {
     constructor() { super(); }
-    update() { }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Each crew member can have their own deck to play from."]); }
+    update() { Game.deckmode = 1; }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Each crew member can have their own deck to play from.","This is Captain Smith's deck at the bottom."]); }
 }();
 new class Step79 extends Bubble
 {
     constructor() { super(); }
     update() { }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Lets take some of our cards and make a small deck for Ensign Lee."]); }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Lets take some of our cards to make a small deck for Ensign Lee.","Cards at the top are not in any deck."]); }
 }();
 new class Step80 extends Bubble
 {
     constructor() { super(); }
-    update() { }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["We are ready to continue!"]); }
+    update() 
+    { 
+        let d = function() { Game.deckmode = 3; }
+        Game.draw.moveCard(cards["DEMO-14"],0,2,0,0, d);         
+        Game.draw.moveCard(cards["DEMO-5"],2,2,1,0);         
+        Game.deckmode = 2; 
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Switch to Ensign Lee to see his deck."]); }
 }();
-
 new class Step81 extends Bubble
 {
     constructor() { super(); }
     update() 
     { 
+        let d = function()
+        {
+            Game.hand.activecrew = Game.hand.crew[1];
+            Game.deckmode = 4; 
+        }
+        Game.draw.moveCard(Game.hand.crew[1],5,2.25,5,3, d);         
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Ensign Lee has nothing in his deck yet. Lets add these cards."]); }
+}();
+new class Step82 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let c = function() { Game.deckmode = 6; }
+        Game.deckmode = 5;
+        Game.draw.moveCard(cards["DEMO-14"],0,0,0,2, c);         
+        Game.draw.moveCard(cards["DEMO-5"],1,0,1,2);             
+    }
+    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["We are ready to continue!"]); }
+}();
+new class Step83 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.deckmode = 0;
         Game.leaveSpacedock();
+
+        Game.hand = new HandManager();
+        Game.hand.addSystem("DEMO-3");
+        Game.hand.addSystem("DEMO-1");
+        Game.hand.addSystem("DEMO-4");
+        Game.hand.addSystem("DEMO-2");
+        Game.hand.addCrew("DEMO-6"); 
+        Game.hand.addCrew("DEMO-22"); 
+        Game.hand.activateCrew(0);
+        Game.hand.deck = [];
+
+        Game.enemy = new HandManager();
+        Game.enemy.addSystem("DEMO-17");
+        Game.enemy.addSystem("DEMO-18");
+        Game.enemy.addSystem("DEMO-1A");
+        Game.enemy.addSystem("DEMO-19");
+        Game.enemy.addCrew("DEMO-16"); 
+        Game.enemy.activateCrew(0);
     }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Crewed Battle tutorial is not ready!"]); }
 }();
