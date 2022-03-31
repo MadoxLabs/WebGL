@@ -19,7 +19,11 @@ class HandManager
         }
         for (let i in this.ship)
         {
-            if (this.ship[i].system == SystemTypes.Power) continue;
+            if (this.ship[i].system == SystemTypes.Power) 
+            {
+                this.ship[i].state.powered = (this.ship[i].power != 0);
+                continue;
+            }
             if (total >= -1*this.ship[i].power) 
             {
                 this.ship[i].state.powered = true;
@@ -35,7 +39,7 @@ class HandManager
         if (!type) return false;
         for (let i in this.ship)
         {
-            if (this.ship[i].system == type && this.ship[i].hp > 0) return true;
+            if (this.ship[i].system == type && this.ship[i].hp > 0  && this.ship[i].state.powered) return true;
         }
         return false;
     }

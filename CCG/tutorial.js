@@ -16,7 +16,7 @@ class TutorialManager
     progress()
     {
         if (Game.draw.isInMotion()) return;
-        if (!this.step) { location.reload(); return; }
+        if (this.step < 1) { location.reload(); return; }
         this.step++;
         this.updated = false;
     }
@@ -822,13 +822,13 @@ new class Step66 extends Bubble
 new class Step67 extends Bubble
 {
     constructor() { super(); }
-    update() { }
+    update() { Game.deckmode = 7; }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["You can refit your ship here.","This lets you buy and sell ship system cards, or replace the hull."],2.2021276595744683, 1.0319148936170213); }
 }();
 new class Step68 extends Bubble
 {
     constructor() { super(); }
-    update() { }
+    update() { Game.deckmode = 0;}
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["The training facility lets you hire new crew, or level up your existing crew.","Lets see who is here."],3.3111702127659575, 1.047872340425532); }
 }();
 new class Step69 extends Bubble
@@ -941,13 +941,13 @@ new class Step75 extends Bubble
 new class Step76 extends Bubble
 {
     constructor() { super(); }
-    update() { }
+    update() { Game.deckmode = 8; }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["The final service is the Market where you can buy and sell cards."],4.371657754010695, 1.0106951871657754); }
 }();
 new class Step77 extends Bubble
 {
     constructor() { super(); }
-    update() { }
+    update() { Game.deckmode = 0; }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Regardless of there being a spacedock or not, you can always adjust your deck between battles."]); }
 }();
 new class Step78 extends Bubble
@@ -968,7 +968,7 @@ new class Step80 extends Bubble
     update() 
     { 
         let d = function() { Game.deckmode = 3; }
-        Game.draw.moveCard(cards["DEMO-14"],0,2,0,0, d);         
+        Game.draw.moveCard(cards["DEMO-8"],0,2,0,0, d);         
         Game.draw.moveCard(cards["DEMO-5"],2,2,1,0);         
         Game.deckmode = 2; 
     }
@@ -995,7 +995,7 @@ new class Step82 extends Bubble
     { 
         let c = function() { Game.deckmode = 6; }
         Game.deckmode = 5;
-        Game.draw.moveCard(cards["DEMO-14"],0,0,0,2, c);         
+        Game.draw.moveCard(cards["DEMO-8"],0,0,0,2, c);         
         Game.draw.moveCard(cards["DEMO-5"],1,0,1,2);             
     }
     render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["We are ready to continue!"]); }
@@ -1026,5 +1026,460 @@ new class Step83 extends Bubble
         Game.enemy.addCrew("DEMO-16"); 
         Game.enemy.activateCrew(0);
     }
-    render() { Game.draw.drawBubble(0.7340425531914894, 1.5319148936170213, ["Crewed Battle tutorial is not ready!"]); }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Let's try this battle again, this time with a crew!"]); }
+}();
+new class Step84 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.turn = 2;
+        let card1 = function() { Game.hand.addHand("DEMO-11"); }
+        let card2 = function() { Game.hand.addHand("DEMO-10");  Game.draw.deal( card1 );}
+        let card3 = function() { Game.hand.addHand("DEMO-12"); Game.draw.deal( card2 );}
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["We draw 3 cards like before.","Let's start with 'On Screen' again."]); }
+}();
+new class Step85 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.enemy.ship[1].state.revealed = true;
+            Game.enemy.ship[3].state.revealed = true;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Yep, its the same guy!"]); }
+}();
+new class Step86 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5A"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let a = function() { Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg); }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3, a); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["He fired on us again. So predictable!"]); }
+}();
+new class Step87 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.enemy.endTurn(); 
+
+        Game.turn = 2;
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-23"); }
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["It's our turn and we've drawn the new card for Ensign Lee","Let's play it"]); }
+}();
+new class Step88 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.hand.crew[1].hasmove = true;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Notice how Ensign Lee's name turned green.","That means he has been activated and can play cards."],5.5588235294117645, 2.53475935828877); }
+}();
+new class Step88a extends Bubble
+{
+    constructor() { super(); }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["The Ensign has been activated for 1 turn.","There are also cards that activate crew for 2 or more turns!"]); }
+}();
+new class Step89 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5A"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let a = function() { Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg); }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3, a); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["The Alien Captain is a one trick pony!"]); }
+}();
+new class Step90 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.enemy.endTurn(); 
+
+        Game.turn = 2;
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-5"); }
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["We've drawn the 'Fire!' card.","Let's do some damage"]); }
+}();
+new class Step91 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.hand.ship[1].power -= 2;
+            Game.draw.drawAffect(3.5,2.1,0.5,0.9,"#ff0000");
+            Game.enemy.ship[0].hp -= 5;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["That's a good start, but now it's Ensign Lee's turn!"]); }
+}();
+new class Step92 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Since the Ensign has been activated for this turn,","we can click on him to see his hand."],5.5588235294117645, 2.53475935828877); }
+}();
+new class Step93 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let d = function()
+        {
+            Game.hand.activecrew = Game.hand.crew[1];
+            Game.hand.captainhand = Game.hand.hand;
+            Game.hand.hand = [];
+            Game.hand.activecrew.effectText.push("Weapons: +1");
+        }
+        Game.draw.moveCard(Game.hand.crew[1],5,2.25,5,3, d);         
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Ensign Lee needs to draw his starting hand. Remember he only gets 1 card."]); }
+}();
+new class Step94 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let card3 = function() { Game.hand.addHand("DEMO-5");}
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["We made sure his deck is only attack cards, since he gets +1 to Weapons"]); }
+}();
+new class Step95 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["We are unable to use his 'Fire!' card because the Phaser doesn't have power."],3.5614973262032086, 2.3262032085561497); }
+}();
+new class Step96 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["We can still reroute power, however.","You can reroute power once per turn, and you can do it any time."]); }
+}();
+new class Step97 extends Bubble
+{
+    constructor() { super(); }
+    update()
+    {
+        let phaser = Game.hand.ship[3];
+        let engine = Game.hand.ship[2];
+        let play1 = function() { Game.hand.ship[3] = engine; Game.hand.ship[3].skip = false; }
+        let play2 = function() { Game.hand.ship[2] = phaser; Game.hand.ship[2].skip = false;}
+        Game.draw.moveCard(Game.hand.ship[2],2,2,3,2,play1); 
+        Game.draw.moveCard(Game.hand.ship[3],3,2,2,2,play2); 
+        Game.hand.ship[3].skip = true;
+        Game.hand.ship[2].skip = true;
+    }
+    render() { Game.draw.drawBubble(0.9562982005141389, 1.5218508997429305, ["With the power rerouted, we have enough juice to fire again!"]); }
+}();
+new class Step98 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.hand.ship[1].power -= 2;
+            Game.draw.drawAffect(2.5,2.1,0.5,0.9,"#ff0000");
+            Game.enemy.ship[0].hp -= 6;
+
+            Game.hand.crew[1].hasmove = false;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Ensign Lee is done, so our turn ends."]); }
+}();
+new class Step99 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5A"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let a = function() { Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg); }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3, a); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+        Game.hand.ship[1].power = 5;
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Our turn, and Ensign Lee is no longer active."]); }
+}();
+new class Step100 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.enemy.endTurn(); 
+
+        Game.turn = 2;
+        Game.hand.ship[1].power = 5;
+
+        let d = function()
+        {
+            Game.hand.activecrew = Game.hand.crew[0];
+            Game.hand.leehand = Game.hand.hand;
+            Game.hand.hand = Game.hand.captainhand;
+            let card3 = function() { Game.hand.addHand("DEMO-24"); }
+            Game.draw.deal( card3 ); 
+            }
+        Game.draw.moveCard(Game.hand.crew[0],5,2.25,5,3, d);         
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["We drew the new card we got from training!","Before using it, lets jam up the enemy."]); }
+}();
+new class Step101 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+        }
+        Game.draw.moveCard(Game.hand.hand[2],2,3,2,1,play1); 
+        Game.hand.useCard(2);
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["That bought us some time for a big finish."]); }
+}();
+class Step102 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(2.5,1.9,3.5,2.1,"#ffff00");
+            Game.enemy.activecard = cards["DEMO-20"];
+        }
+        let fire = function()
+        {
+            Game.draw.moveCard(cards["DEMO-20"],2,-1,2,1, dmg);
+        }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3,fire); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["He is nothing if not predictable"]); }
+}
+new Step102();
+new class Step103 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.enemy.endTurn(); 
+
+        Game.turn = 2;
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-23"); }
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["We've got Ensign Lee again! Perfect."]); }
+}();
+new class Step104 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.hand.crew[1].hasmove = true;
+        }
+        Game.draw.moveCard(Game.hand.hand[2],2,3,2,1,play1); 
+        Game.hand.useCard(2);
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Everything is all set"]); }
+}();
+new class Step105 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let dmg = function()
+        {
+            Game.draw.drawAffect(1.5,0.9,0.5,2.1,"#ff0000");
+            Game.enemy.activecard = cards["DEMO-5A"];
+            Game.hand.ship[0].hp -= 2;
+            Game.hand.ship[1].power -= 2;
+        }
+        let a = function() { Game.draw.moveCard(cards["DEMO-5A"],2,-1,2,1, dmg); }
+        Game.draw.moveCard(Game.hand.activecard,2,1,4,3, a); 
+        Game.hand.endTurn();
+        Game.turn = 1;
+        Game.hand.ship[1].power = 5;
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["I've grown tired of this Alien Captain!"]); }
+}();
+new class Step106 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.enemy.endTurn(); 
+
+        Game.turn = 2;
+        Game.hand.ship[1].power = 5;
+        let card3 = function() { Game.hand.addHand("DEMO-7"); }
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(3.304812834224599, 1.481283422459893, ["Captain Smith is active, but we don't have to use him first.","Let's switch to Ensign Lee"]); }
+}();
+new class Step107 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let d = function()
+        {
+            Game.hand.crew[0].hasmove = true;
+            Game.hand.activecrew = Game.hand.crew[1];
+            Game.hand.captainhand = Game.hand.hand;
+            Game.hand.hand = Game.hand.leehand
+        }
+        Game.draw.moveCard(Game.hand.crew[1],5,2.25,5,3, d);         
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Now that Ensign Lee is active, Captain's Smith name is green,","telling us he still has a move."]); }
+}();
+new class Step108 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        Game.enemy.endTurn(); 
+
+        let card3 = function() { Game.hand.addHand("DEMO-8"); }
+        Game.draw.deal( card3 ); 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Ensign Lee has draw 'Full Salvo', and the power is already rerouted to support this card."]); }
+}();
+new class Step109 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.hand.ship[1].power -= 4;
+            Game.draw.drawAffect(2.5,2.1,0.5,0.9,"#ff0000");
+            Game.enemy.ship[0].hp -= 12;
+
+            Game.hand.crew[1].hasmove = false;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Ensign Lee's weapon skill really helped out!","Let's switch back to Captain Smith"]); }
+}();
+new class Step110 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let d = function()
+        {
+            Game.hand.crew[1].hasmove = false;
+            Game.hand.activecrew = Game.hand.crew[0];
+            Game.hand.leehand = Game.hand.hand;
+            Game.hand.hand = Game.hand.captainhand;
+        }
+        Game.draw.moveCard(Game.hand.crew[0],5,2.25,5,3, d);         
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["Note that there isn't enough power left to fire the Phaser.","It's time for the Sigma Maneuver!"]); }
+}();
+new class Step110 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        let play1 = function() 
+        { 
+            Game.hand.activateUsedCard(); 
+            Game.draw.drawAffect(2.5,2.1,0.5,0.9,"#ff0000");
+            Game.enemy.ship[0].hp -= 2;
+
+            Game.hand.crew[0].hasmove = false;
+        }
+        Game.draw.moveCard(Game.hand.hand[0],0,3,2,1,play1); 
+        Game.hand.useCard(0);
+    }
+    render() { Game.draw.drawBubble(3.5053475935828877, 1.4973262032085561, ["We've won the fight, thanks to our crew!"]); }
+}();
+new class Step110 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+    }
+    render() { Game.draw.drawBubble(1.0467762326169405, 1.374968394437421, ["Remember enemy ships can also have crew as well!","That's the end for now."]); }
+}();
+new class Step110 extends Bubble
+{
+    constructor() { super(); }
+    update() 
+    { 
+        location.reload();
+    }
+    render() {  }
 }();

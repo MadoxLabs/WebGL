@@ -3,6 +3,7 @@ SystemColours[SystemTypes.Hull] = "#cccccc";
 SystemColours[SystemTypes.Power] = "#ffff00";
 SystemColours[SystemTypes.Weapon] = "#ff0000";
 SystemColours[SystemTypes.Nav] = "#0000ff";
+SystemColours[SystemTypes.Defense] = "#cccccc";
 SystemColours[CardType.Action] = "#000000";
 SystemColours[CardType.Crew] = "#ff9966";
 
@@ -235,6 +236,37 @@ class DrawTool
 
     drawBoard()
     {        
+        if (Game.deckmode == 8)
+        {
+            this.moveToCel(0.5,0); this.drawService("REPAIR"); 
+            this.moveToCel(1.5,0); this.drawService("REFIT"); 
+            this.moveToCel(2.5,0); this.drawService("TRAINING"); 
+            this.moveToCel(3.5,0); this.drawService("MARKET"); 
+        
+            this.moveToCel(2,1); this.drawZone("");
+
+            this.moveToCel(0,2); this.drawLargeZone("Cards For Sale");
+
+            this.moveToCel(0,2); Game.draw.drawCard(cards["DEMO-28"]);
+            this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-29"]);
+            return;
+        }
+        if (Game.deckmode == 7)
+        {
+            this.moveToCel(0.5,0); this.drawService("REPAIR"); 
+            this.moveToCel(1.5,0); this.drawService("REFIT"); 
+            this.moveToCel(2.5,0); this.drawService("TRAINING"); 
+            this.moveToCel(3.5,0); this.drawService("MARKET"); 
+        
+            this.moveToCel(2,1); this.drawZone("");
+
+            this.moveToCel(0,2); this.drawLargeZone("Systems For Sale");
+
+            this.moveToCel(0,2); Game.draw.drawCard(cards["DEMO-25"]);
+            this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-26"]);
+            this.moveToCel(2,2); Game.draw.drawCard(cards["DEMO-27"]);
+            return;
+        }
         if (Game.deckmode)
         {
             this.moveToCel(5,2);    this.drawCrewZone();
@@ -262,40 +294,43 @@ class DrawTool
                 this.moveToCel(2.25,2); Game.draw.drawCard(cards["DEMO-15"]);
                 this.moveToCel(2.5,2); Game.draw.drawCard(cards["DEMO-23"]);
                 this.moveToCel(2.75,2); Game.draw.drawCard(cards["DEMO-24"]);
+                this.moveToCel(3,2); Game.draw.drawCard(cards["DEMO-5"]);
             }
             else if (Game.deckmode == 2)
             {
                 this.moveToCel(0.25,2); Game.draw.drawCard(cards["DEMO-7"]);
-                this.moveToCel(0.5,2); Game.draw.drawCard(cards["DEMO-8"]);
                 this.moveToCel(0.75,2); Game.draw.drawCard(cards["DEMO-9"]);
                 this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-10"]);
                 this.moveToCel(1.25,2); Game.draw.drawCard(cards["DEMO-11"]);
                 this.moveToCel(1.5,2); Game.draw.drawCard(cards["DEMO-12"]);
                 this.moveToCel(1.75,2); Game.draw.drawCard(cards["DEMO-13"]);
+                this.moveToCel(2,2); Game.draw.drawCard(cards["DEMO-14"]);
                 this.moveToCel(2.25,2); Game.draw.drawCard(cards["DEMO-15"]);
                 this.moveToCel(2.5,2); Game.draw.drawCard(cards["DEMO-23"]);
                 this.moveToCel(2.75,2); Game.draw.drawCard(cards["DEMO-24"]);
+                this.moveToCel(3,2); Game.draw.drawCard(cards["DEMO-5"]);
             }
             else if (Game.deckmode == 3)
             {
                 this.moveToCel(0,0); Game.draw.drawCard(cards["DEMO-5"]);
-                this.moveToCel(1,0); Game.draw.drawCard(cards["DEMO-14"]);
+                this.moveToCel(1,0); Game.draw.drawCard(cards["DEMO-8"]);
 
                 this.moveToCel(0.25,2); Game.draw.drawCard(cards["DEMO-7"]);
-                this.moveToCel(0.5,2); Game.draw.drawCard(cards["DEMO-8"]);
                 this.moveToCel(0.75,2); Game.draw.drawCard(cards["DEMO-9"]);
                 this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-10"]);
                 this.moveToCel(1.25,2); Game.draw.drawCard(cards["DEMO-11"]);
                 this.moveToCel(1.5,2); Game.draw.drawCard(cards["DEMO-12"]);
                 this.moveToCel(1.75,2); Game.draw.drawCard(cards["DEMO-13"]);
+                this.moveToCel(2,2); Game.draw.drawCard(cards["DEMO-14"]);
                 this.moveToCel(2.25,2); Game.draw.drawCard(cards["DEMO-15"]);
                 this.moveToCel(2.5,2); Game.draw.drawCard(cards["DEMO-23"]);
                 this.moveToCel(2.75,2); Game.draw.drawCard(cards["DEMO-24"]);
+                this.moveToCel(3,2); Game.draw.drawCard(cards["DEMO-5"]);
             }
             else if (Game.deckmode == 4)
             {
                 this.moveToCel(0,0); Game.draw.drawCard(cards["DEMO-5"]);
-                this.moveToCel(1,0); Game.draw.drawCard(cards["DEMO-14"]);
+                this.moveToCel(1,0); Game.draw.drawCard(cards["DEMO-8"]);
             }
             else if (Game.deckmode == 5)
             {
@@ -303,8 +338,9 @@ class DrawTool
             else if (Game.deckmode == 6)
             {
                 this.moveToCel(0,2); Game.draw.drawCard(cards["DEMO-5"]);
-                this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-14"]);
+                this.moveToCel(1,2); Game.draw.drawCard(cards["DEMO-8"]);
             }
+
             return;
         }
 
@@ -372,6 +408,9 @@ class DrawTool
     {
         let hand = Game.hand;
 
+        if (Game.deckmode == 7) return;
+        if (Game.deckmode == 8) return;
+
         if (Game.deckmode)
         {
             if (hand.activecard)
@@ -423,7 +462,7 @@ class DrawTool
         for (let i in hand.crew)
         {
             Game.draw.moveToCel(5,2 + (0.25*i));
-            Game.draw.drawCrewZone(hand.crew[i].name);    
+            Game.draw.drawCrewZone(hand.crew[i].name, hand.crew[i].hasmove);    
         }
         if (hand.activecrew)
         {
@@ -996,7 +1035,7 @@ class DrawTool
         this.context.fillText(label, namePosX, namePosY);
     }
 
-    drawCrewZone(name)
+    drawCrewZone(name, hasmove)
     {
         let x = this.cursorX;
         let y = this.cursorY;
@@ -1034,7 +1073,10 @@ class DrawTool
         this.context.stroke();
 
         this.setFontForText(name, w - nameOffsetX - nameOffsetX);
-        this.setColourForText(bg);
+        if (hasmove)
+            this.context.fillStyle = "#0a0";
+        else
+            this.setColourForText(bg);
         this.context.fillText(name, namePosX, namePosY);
     }
 

@@ -272,7 +272,51 @@ new Card({
 
 new Card({
     id: "DEMO-24",
-    name: "Sigma Manouver",
+    name: "Sigma Maneuver",
     type: CardType.Action,
     effectText: ["Attack without using power"]
+});
+
+new Card({
+    id: "DEMO-25",
+    name: "Basic Shield",
+    type: CardType.System,
+    system: SystemTypes.Defense,
+    power: -5,
+    effectText: ["Energy Shields"],
+    hp: 20
+});
+
+new Card({
+    id: "DEMO-26",
+    name: "Nuclear Torpedoes",
+    type: CardType.System,
+    system: SystemTypes.Weapon,
+    power: -8,
+    effectText: ["Nuclear tipped ship busters","Damage: 15"],
+    hp: 5
+});
+
+new Card({
+    id: "DEMO-27",
+    name: "Spore Drive",
+    type: CardType.System,
+    system: SystemTypes.Nav,
+    power: -6,
+    effectText: ["A mysterious engine","Requires Black Alert", "Evasion: 10", "Speed: 0", "External"],
+    hp: 5
+});
+
+new Card({
+    id: "DEMO-28",
+    name: "RED ALERT!",
+    type: CardType.Action,
+    effectText: ["Activate all crew for 1 turn","Once"]
+});
+
+new Card({
+    id: "DEMO-29",
+    name: "Reverse The Polarity",
+    type: CardType.Action,
+    effectText: ["Shields reflect damage for","1 turn"]
 });
