@@ -1,0 +1,250 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-color: black;
+}
+
+p {
+  padding: 5px;
+  margin: 0px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+#surface {
+    border: solid black 1px;
+}
+
+#message, #title {
+  margin: 0 auto;
+  color: red;
+  font-size: x-large;
+  position: absolute;
+  top: 0px;
+}
+
+#message {
+  left: 400px;
+}
+
+#title {
+  left: 150px;
+}
+
+#headTests {
+  position: absolute;
+  left: 410px;
+  top: 50px;
+}
+
+#headStages {
+  position: absolute;
+  left: 200px;
+  top: 50px;
+}
+
+.mxHeader {
+  width: 190px;
+  padding: 5px;
+  margin: 10px;
+  color: #fff;
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1.3em;
+  border: 2px dashed #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px #333333, 2px 1px 6px 4px rgba(10, 10, 0, 0.5);
+  text-shadow: -1px -1px #aa3030;
+  font-weight: normal;
+}
+
+.mxHeader.active {
+  background: #333333;
+}
+
+.mxHeader.inactive {
+  background: black;
+}
+
+#TOC {
+  position: absolute;
+  top: 95px;
+}
+
+#header {
+  position: absolute;
+  top: -70px;
+  transform: scale(0.7)
+}
+
+.mxText {
+  color: #fff;
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1.3em;
+  text-shadow: -1px -1px #aa3030;
+  font-weight: normal;
+}
+
+.mxButton {
+  width: 130px;
+  padding: 5px;
+  margin: 10px;
+  color: #fff;
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1.3em;
+  border: 2px dashed #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px #333333, 2px 1px 6px 4px rgba(10, 10, 0, 0.5);
+  text-shadow: -1px -1px #aa3030;
+  font-weight: normal;
+}
+
+.mxButton.active {
+  background: #333333;
+}
+
+.mxButton.inactive {
+  background: black;
+}
+
+#topedge {
+  position: absolute;
+  left: 150px;
+  top: 95px;
+  height: 15px;
+  width: 100%;
+  background: #333333;
+  color: #fff;
+  border: 2px dashed #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px #333333, 2px 1px 6px 4px rgba(10, 10, 0, 0.5);
+}
+
+#edge {
+  position: absolute;
+  left: 150px;
+  top: 95px;
+  width: 15px;
+  height: 100%;
+  background: #333333;
+  color: #fff;
+  border: 2px dashed #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px #333333, 2px 1px 6px 4px rgba(10, 10, 0, 0.5);
+}
+
+#headMover {
+  position: absolute;
+  top: 94px;
+  width: 197px;
+  height: 36px;
+  background: #333333;
+}
+
+#headMover.left {
+  left: 213px;
+}
+
+#headMover.right {
+  left: 425px;
+}
+
+#tabMover {
+  position: absolute;
+  left: 150px;
+  width: 30px;
+  height: 36px;
+  background: #333333;
+}
+
+#tabMover.pos0 {
+  top: 110px;
+}
+
+#tabMover.pos1 {
+  top: 160px;
+}
+
+#tabMover.pos2 {
+  top: 210px;
+}
+
+#tabMover.pos3 {
+  top: 260px;
+}
+
+  #tabMover.pos4 {
+    top: 310px;
+  }
+
+  #tabMover.pos5 {
+    top: 360px;
+  }
+
+  #tabMover.pos6 {
+    top: 410px;
+  }
+
+.appwindow {
+  position: absolute;
+  left: 160px;
+  top: 100px;
+  width: 100%;
+  height: 100%;
+  background: #333333;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.visible {
+  visibility: visible;
+}
+
+table.blueTable {
+  border: 3px solid #1C6EA4;
+  background-color: #333333;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  color: white;
+}
+
+table.blueTable td, table.blueTable th {
+  padding: 3px 2px;
+}
+
+table.blueTable tbody td {
+  font-size: 13px;
+}
+
+table.blueTable tr:nth-child(even) {
+  background: #222222;
+}
+
+table.blueTable tfoot td {
+  font-size: 14px;
+}
+
+table.blueTable tfoot .links {
+  text-align: right;
+}
+
+table.blueTable tfoot .links a {
+  display: inline-block;
+  background: #1C6EA4;
+  color: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 5px;
+}

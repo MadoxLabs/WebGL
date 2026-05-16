@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <title>MadoxLabs Ray Tracer</title>
+    <link rel="stylesheet" href="style.css" media="screen" type="text/css" />
+    <script src="rFrame.js"></script>
+    <script>
+      let assets = {};
+      var animImage;
+      var staticImage;
+
+      function init()
+      {
+        animImage = new Image();
+        animImage.src = "assets/animatedlogo.gif";
+        staticImage = new Image();
+        staticImage.src = "assets/logo.jpg";
+      }
+
+      function reportBootup(value)
+      {
+        var out = document.getElementById("message");
+        out.innerHTML = "Booting up: " + value;
+      }
+      function reportLoaded(name, value)
+      {
+        var out = document.getElementById("message");
+        delete assets[name];
+        out.innerHTML = "Loading: " + value + " assets to go...";
+      }
+      function reportLoading(name, value)
+      {
+        var out = document.getElementById("message");
+        assets[name] = 1;
+        out.innerHTML = "Loading: " + value + " assets to go...";
+      }
+
+      var head = -1;
+      function changeHead(src)
+      {
+        if (src != head) { head = src; }
+        else return;
+
+        document.getElementById("headMover").className = ["left", "right"][head];
+        document.getElementById("headTests").className = "mxHeader " + ["inactive", "active"][head];
+        document.getElementById("headStages").className = "mxHeader " + ["active", "inactive"][head];
+        document.getElementById("tests").className = "appwindow " + ["hidden", ""][head];
+        document.getElementById("stages").className = "appwindow " + ["", "hidden"][head];
+
+        ray.App.drawTOC(head == 1 ? "tests" : "stages");
+        tab = -1;
+        changeTab(0);
+      }
+
+      var tab = -1;
+      function changeTab(src, id)
+      {
+        if (src != tab) { tab = src; }
+        else return;
+
+        document.getElementById("tabMover").className = "pos" + tab;
+        for (let i = 0; i < 10; ++i)
+        {
+          let obj = document.getElementById("tab" + i);
+          if (!obj) continue;
+          obj.className = "mxButton " + ((tab == i) ? "active" : "inactive");
+        }
+        if (head == 1) ray.App.runTest(tab);
+        else if (head == 0) ray.App.runStage(id);
+      }
+
+    </script>
+  </head>
+  <body style="margin:0;padding:0;" onload="init(); ray.loadApp();">
+    <span id='header'><img onmouseover="this.src=animImage.src;" onmouseout="this.src=staticImage.src;" src="assets/logo.jpg"></span>
+    <span id="title">MadoxLabs Ray Tracer - </span> <span id="message">Booting up:</span>
+    <div id="headTests" class="mxHeader inactive" onclick="changeHead(1);">Tests</div>
+    <div id="headStages" class="mxHeader active" onclick="changeHead(0);">Stages</div>
+    <div id="TOC"></div>
+    <div id="topedge"></div>
+    <div id="edge"></div>
+    <div class="left" id="headMover"></div>
+    <div class="pos0" id="tabMover"></div>
+    <div id="tests" class="appwindow hidden"></div>
+    <div id="stages" class="appwindow"></div>
+</body>
+</html>

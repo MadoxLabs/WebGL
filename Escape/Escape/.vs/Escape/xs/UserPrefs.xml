@@ -1,0 +1,16 @@
+﻿<Properties StartupConfiguration="{86637FEA-4BDE-4085-B93F-E3BA8CC84537}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="../../mxPipeline/js/viewer.js">
+    <Files>
+      <File FileName="../../mxPipeline/js/viewer.js" Line="8" Column="15" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.mxLighting FirstBuild="True" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.mxFrame PreferredExecutionTarget="MonoDevelop.Default" FirstBuild="True" />
+  <MonoDevelop.Ide.ItemProperties.mxPipeline FirstBuild="True" />
+  <MultiItemStartupConfigurations />
+</Properties>

@@ -1,0 +1,192 @@
+﻿{
+  "renderOptions": {
+    "antialias": 2,
+    "maxReflections": 10
+  },
+  "cameras": [
+    {
+      "name": "main",
+      "width": 400,
+      "height": 400,
+      "fov": 1.1566,
+      "from": [-15, -0, -8],
+      "to": [0, -4, 0],
+      "up": [0, 1, 0]
+    }
+  ],
+  "lights": [
+    {
+      "type": "pointlight",
+      "position": [-10, 10, 10],
+      "intensityDiffuse": 0.8,
+      "intensityAmbient": 0.8,
+      "colour": [1, 1, 1]
+    },
+    {
+      "type": "pointlight",
+      "position": [-10, 10, -10],
+      "intensityDiffuse": 0.8,
+      "intensityAmbient": 0.8,
+      "colour": [1, 1, 1]
+    },
+    {
+      "type": "pointlight",
+      "position": [1, -4, 0],
+      "intensityDiffuse": 1,
+      "intensityAmbient": 1,
+      "attenuation": [0,0.13,0],
+      "colour": [1, 1, 0.2]
+    }
+  ],
+  "materials" :[
+      { "name": "desk", "ambient": 0.2, "diffuse": 1.0, "specular":0.5, "reflective": 0.1, "colour": [0.2,0.2,0.2] },
+      { "name": "legs", "ambient": 0.2, "diffuse": 1.0, "specular":0.5, "reflective": 0.01, "colour": [0.2,0.2,0.2] }
+  ],
+  "transforms": [
+  ],
+  "objects": [
+  {
+    "name": "widget",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[-1.4,-4.5,3] },{ "type":"Ry", "value":-1.2 },{ "type":"S", "value":[0.5,0.3,0.5] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0.7,0,0]                  
+                }
+  },
+  {
+    "name": "widget",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[0.5,-4.8,-3] },{ "type":"Ry", "value":1.1 },{ "type":"S", "value":[0.2,0.2,0.8] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0,0.4,0.8]                  
+                }
+  },
+  {
+    "name": "paper",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[-1.4,-4.7,-1] },{ "type":"Ry", "value":1.8 },{ "type":"S", "value":[1,0.01,1.5] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [1,1,1]                  
+                }
+  },
+  {
+    "name": "lampshade",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[1,-1.4,0] },{ "type":"S", "value":[1,0.75,1] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0.2,0.45,0.2]                  
+                }
+  },
+  {
+    "name": "lamppost",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[1,-4,0] },{ "type":"S", "value":[0.1,1,0.1] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":1,
+                  "reflective": 0.1,
+                  "colour": [0,0,0]                  
+                }
+  },
+  {
+    "name": "lamp",
+    "type": "sphere",
+    "transform": {"series":[{ "type":"T", "value":[1,-2,0] },{ "type":"S", "value":[1,1,1] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":1,
+                  "reflective": 0.9, "transparency": 0.9, "transmit": 0.9,
+                  "colour": [0.15,0.15,0.15]                  
+                }
+  },
+  {
+    "name": "desk",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[0,-5,0] },{ "type":"S", "value":[4,0.2,8] }]}, 
+    "material": "desk"
+  },
+  {
+    "name": "leg",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[-3.5,-10,-7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
+    "material": "legs"
+  },
+  {
+    "name": "leg",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[3.5,-10,7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
+    "material": "legs"
+  },
+  {
+    "name": "leg",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[3.5,-10,-7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
+    "material": "legs"
+  },
+  {
+    "name": "leg",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[-3.5,-10,7.5] },{ "type":"S", "value":[0.3,5,0.3] }]}, 
+    "material": "legs"
+  },
+  {
+    "name": "frame",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[15.9,2,0] },{ "type":"S", "value":[0.05,8,10] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0.2,0.2,0.2]                  
+                }
+  },
+  {
+    "name": "art",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[0,2,15.9] },{ "type":"S", "value":[4,4,0.05] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0.8,0.2,0.2]                  
+                }
+  },
+  {
+    "name": "art",
+    "type": "sphere",
+    "transform": {"series":[{ "type":"T", "value":[2,3.5,15.8] },{ "type":"S", "value":[1,1,0.05] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0.8,0.8,0.2]                  
+                }
+  },
+  {
+    "name": "art",
+    "type": "sphere",
+    "transform": {"series":[{ "type":"T", "value":[0,-0.7,15.8] },{ "type":"S", "value":[2.5,1,0.05] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,
+                  "colour": [0.2,0.8,0.2]                  
+                }
+  },
+  {
+    "name": "mirror",
+    "type": "cube",
+    "transform": {"series":[{ "type":"T", "value":[15.8,2,0] },{ "type":"S", "value":[0.05,7.5,9.5] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":1,
+                  "reflective": 0.9,
+                  "colour": [0.1,0.1,0.1]                  
+                }
+  },
+  {
+    "name": "walls",
+    "type": "cube",
+    "transform": {"series":[{ "type":"S", "value":[16,16,16] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,                  
+                  "pattern": { "type": "stripe",
+                               "transform": {"series":[{ "type":"S", "value":[0.03,0.05,0.05] },{ "type":"Ry", "value":1 }]}, 
+                               "colours" : [[0.37,0.21,0.10],[0.16, 0.16, 0.16]]
+                             }
+                }
+  },
+  {
+    "name": "floor",
+    "type": "cube",
+    "transform": {"series":[{ "type":"S", "value":[17,15.5,17] }]}, 
+    "material": { "ambient": 0.2, "diffuse": 1.0, "specular":0,                  
+                  "pattern": { "type": "checker",
+                               "transform": {"series":[{ "type":"S", "value":[0.315,0.315,0.315] }]}, 
+                               "colours" : [[0.7, 0.6, 0.6],[0.16, 0.16, 0.16]]
+                             }
+                }
+  }
+  ]
+}

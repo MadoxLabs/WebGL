@@ -1,0 +1,51 @@
+  {
+    "animate": [
+    {
+      "item" : "lights.1.position.x",
+      "range":[-10,10,0.4]
+    }
+    ],
+    "cameras": [
+      {
+        "name": "main",
+        "width": 800,
+        "height": 600,
+        "fov": 1.57,
+        "from": [0, 0, -2.5],
+        "to": [0, 0, 0],
+        "up": [0, 1, 0]
+      }
+    ],
+    "materials": [
+      {
+        "name": "ball",
+        "shininess": 50,
+        "colour": [1, 0.2, 0.2]
+      }
+    ],
+    "transforms": [
+      {
+        "name": "ball",
+        "series": [{ "type": "T", "value": [0, 0, 0] }]
+      }
+    ],
+    "lights": [
+      {
+        "type": "pointlight",
+        "position": [10, 10, -10],
+        "colour": [0, 0, 1]
+      },
+      {
+        "type": "pointlight",
+        "position": [-10, 10, -10],
+        "colour": [1, 1, 1]
+      }
+    ],
+    "objects": [
+      {
+        "type": "sphere",
+        "transform": "ball",
+        "material": "ball"
+      }
+    ]
+  }
