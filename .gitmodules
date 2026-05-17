@@ -1,0 +1,4 @@
+[submodule "mxFrame"]
+	path = mxFrame
+	url = https://github.com/MadoxLabs/mxFrame
+	branch = main
